@@ -37,7 +37,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className="w-64 h-full bg-blue-900 px-5 py-1.5 flex flex-col">
+    <nav className="w-64 h-full bg-primary-500 px-5 py-1.5 flex flex-col">
       <ControlledAccordion providerValue={providerValue} className="w-full">
         <HomeRoute item={home} />
         {links.map((link) => (
