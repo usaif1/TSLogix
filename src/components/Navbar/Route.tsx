@@ -1,24 +1,29 @@
 // dependencies
 import React from "react";
-import { CaretDown } from "@phosphor-icons/react";
+import { CaretUp } from "@phosphor-icons/react";
 import { Icon } from "@phosphor-icons/react";
 
-type LinkProps = {
+type Props = {
   item: {
     title: string;
-    route: string;
     icon: Icon;
+    route: string;
   };
+  isOpen: boolean;
 };
 
-const Route: React.FC<LinkProps> = ({ item }) => {
+const Route: React.FC<Props> = ({ item, isOpen }) => {
+  const isActive = location.pathname.includes(item.route);
+
   return (
-    <div className="w-full text-white flex items-center justify-between py-3">
-      <div className="flex items-center gap-x-2">
-        <item.icon size={20} />
+    <div className={`route ${isActive ? "route_active" : ""}`}>
+      <div>
+        <item.icon size={20} weight={isActive ? "bold" : "regular"} />
         {item.title}
       </div>
-      <CaretDown />
+      <CaretUp
+        className={`caret_icon ${isOpen ? "-rotate-180" : "rotate-0"}`}
+      />
     </div>
   );
 };

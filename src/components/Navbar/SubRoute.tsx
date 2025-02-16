@@ -1,6 +1,6 @@
 // dependencies
 import React from "react";
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 
 type LinkProps = {
   item: {
@@ -10,10 +10,14 @@ type LinkProps = {
 };
 
 const SubRoute: React.FC<LinkProps> = ({ item }) => {
+  const location = useLocation();
+
+  const isActive = location.pathname === item.route;
+
   return (
     <NavLink
       to={item.route}
-      className="text-white w-full hover:bg-active pl-8 text-start py-1 rounded-md font-medium"
+      className={`subroute ${isActive ? "subroute_active" : ""}`}
     >
       {item.title}
     </NavLink>

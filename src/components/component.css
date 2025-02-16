@@ -1,0 +1,32 @@
+@import "tailwindcss";
+@reference "../index.css";
+
+.szh-accordion__item-content {
+  transition: height 0.25s cubic-bezier(0, 0, 0, 1);
+}
+
+@layer components {
+  .route {
+    @apply w-full text-white flex items-center justify-between py-3;
+  }
+
+  .route > div {
+    @apply flex items-center gap-x-2;
+  }
+
+  .route_active {
+    @apply font-bold;
+  }
+
+  .caret_icon {
+    @apply will-change-transform transition-transform duration-250 ease-in-out;
+  }
+
+  .subroute {
+    @apply text-white w-full hover:bg-active pl-8 text-start py-1.5 rounded-md font-medium;
+  }
+
+  .subroute_active {
+    @apply font-bold bg-active;
+  }
+}
