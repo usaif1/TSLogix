@@ -1,11 +1,15 @@
 @import "tailwindcss";
 
 @theme {
+  /* background colors */
   --color-primary-500: #2c2b6d;
   --color-primary-600: #1a1954;
-
-  /* background colors */
   --color-background-primary: #fafafa;
+  --color-active: #222222;
+
+  /* text colors */
+  --color-breadcrumb-active: #4658ac;
+  --color-breadcrumb-inactive: #71717a;
 }
 
 :root {
@@ -17,12 +21,20 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-@layer {
+.szh-accordion__item-btn {
+  @apply w-full cursor-pointer flex flex-col justify-start items-start;
+}
+
+@layer components {
   .main {
     @apply h-screen w-screen overflow-hidden flex flex-col;
   }
 
   .layout {
     @apply h-screen w-screen overflow-y-scroll flex flex-col;
+  }
+
+  .anchor {
+    @apply cursor-pointer;
   }
 }

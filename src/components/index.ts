@@ -7,3 +7,4 @@ export { default as Button } from "./Button";
 export { default as GlobalBanner } from "./GlobalBanner";
 export { default as WarehouseCoordinator } from "./WarehouseCoordinator";
 export { default as Navbar } from "./Navbar";
+export { default as Header } from "./Header";

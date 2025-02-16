@@ -2,14 +2,23 @@
 import React from "react";
 import { Routes, Route } from "react-router";
 
-// screens
+// layouts
 import { HomeLayout } from "@/layouts";
+
+// screens
+import { HomePage } from "@/modules/home/screens";
+import { Entry, ProcessHome } from "@/modules/process/screens";
 
 const ProtectedRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path="/" Component={HomeLayout} />
-      <Route />
+      <Route path="/" Component={HomeLayout}>
+        <Route index Component={HomePage} />
+        <Route path="processes">
+          <Route index Component={ProcessHome} />
+          <Route path="entry" Component={Entry} />
+        </Route>
+      </Route>
     </Routes>
   );
 };

@@ -17,7 +17,7 @@ type AuthStoreActions = {
 
 const authInitialState: AuthStore = {
   // auth user
-  authUser: false,
+  authUser: true,
   loadingAuthUser: true,
 };
 

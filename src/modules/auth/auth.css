@@ -1,14 +1,8 @@
 @import "tailwindcss";
 
-@theme {
-  --color-primary-500: #2c2b6d;
-  --color-primary-600: #1a1954;
+@reference "../../index.css";
 
-  /* background colors */
-  --color-background-primary: #fafafa;
-}
-
-@layer {
+@layer components {
   .login_form {
     @apply w-4/12 flex flex-col gap-y-3;
   }
