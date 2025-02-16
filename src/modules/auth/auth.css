@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@layer {
+  .login_form {
+    @apply w-4/12 flex flex-col gap-y-3;
+  }
+
+  .login_form_block {
+    @apply flex flex-col;
+  }
+
+  .login_input {
+    @apply border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-1 focus-visible:outline-red-400;
+  }
+}

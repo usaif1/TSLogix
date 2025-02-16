@@ -3,13 +3,15 @@ import React from "react";
 
 // components
 import { LoginForm, LoginHeader } from "../components";
+import { Divider } from "@/components";
 
 const Login: React.FC = () => {
   return (
-    <div>
+    <>
       <LoginHeader />
+      <Divider height="xl" />
       <LoginForm />
-    </div>
+    </>
   );
 };
 
