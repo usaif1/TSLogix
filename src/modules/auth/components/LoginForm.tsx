@@ -22,7 +22,7 @@ const LoginForm: React.FC = () => {
         <input type="password" className="login_input mt-1.5" />
       </div>
 
-      <Button additionalClass="!bg-[#2C2B6D]">
+      <Button>
         <div className="flex gap-x-2 items-center">
           <Text color="text-white" weight="font-normal">
             Login

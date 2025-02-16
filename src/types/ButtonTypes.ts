@@ -1,13 +1,5 @@
-export enum ButtonBgColorsEnum {
-  blue = "bg-blue-600",
-  salwaGolden = "bg-salwa-gold",
-  green = "bg-emerald-700",
+// btn variant
+export enum ButtonVariantEnum {
+  primary = "bg-primary-500 hover:bg-primary-600 text-white cursor-pointer",
 }
-
-export enum ButtonTextColorsEnum {
-  white = "text-white",
-}
-
-export type ButtonBgColors = keyof typeof ButtonBgColorsEnum;
-
-export type ButtonTextColors = keyof typeof ButtonTextColorsEnum;
+export type ButtonVariant = keyof typeof ButtonVariantEnum;
