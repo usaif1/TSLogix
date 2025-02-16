@@ -11,3 +11,9 @@
   border: none;
   background-color: transparent;
 }
+
+@layer {
+  .main {
+    @apply h-screen w-screen overflow-hidden flex flex-col;
+  }
+}

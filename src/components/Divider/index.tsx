@@ -2,7 +2,7 @@
 import React from "react";
 
 type Props = {
-  height: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  height?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
 };
 
 enum DIVIDER_HEIGHT {
