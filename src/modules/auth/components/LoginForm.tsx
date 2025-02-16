@@ -5,9 +5,21 @@ import { ArrowRight } from "@phosphor-icons/react";
 // components
 import { Button, Text } from "@/components";
 
+// store
+import { AuthStore } from "@/globalStore";
+
 const LoginForm: React.FC = () => {
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    AuthStore.setState((prevState) => ({
+      ...prevState,
+      authUser: true,
+    }));
+  };
+
   return (
-    <form className="login_form">
+    <form className="login_form" onSubmit={onSubmit}>
       <div className="login_form_block">
         <label>Email</label>
         <input
@@ -22,7 +34,7 @@ const LoginForm: React.FC = () => {
         <input type="password" className="login_input mt-1.5" />
       </div>
 
-      <Button>
+      <Button type="submit">
         <div className="flex gap-x-2 items-center">
           <Text color="text-white" weight="font-normal">
             Login

@@ -3,7 +3,7 @@ import React from "react";
 import { Routes, Route } from "react-router";
 
 // layout
-import AuthLayout from "@/modules/auth/layout";
+import { AuthLayout } from "@/layouts";
 
 // screens
 import { Login } from "@/modules/auth/screens";

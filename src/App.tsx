@@ -1,12 +1,15 @@
 // routes
 import { ProtectedRoutes, UnProtectedRoutes } from "@/routes";
 
-const isAuthenticated = false;
+// store
+import { AuthStore } from "@/globalStore";
 
 function App() {
+  const authUser = AuthStore.use.authUser();
+
   return (
     <main className="main">
-      {isAuthenticated ? <ProtectedRoutes /> : <UnProtectedRoutes />}
+      {authUser ? <ProtectedRoutes /> : <UnProtectedRoutes />}
     </main>
   );
 }
