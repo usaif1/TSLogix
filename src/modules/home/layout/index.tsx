@@ -11,7 +11,9 @@ const AuthLayout: React.FC = () => {
       <Header />
       <div className="h-full flex">
         <Navbar />
-        <Outlet />
+        <div className="w-full h-full pt-5 px-10">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@reference "../../index.css";
+
+@layer components {
+  .home_container {
+    @apply flex flex-col items-center pt-20 h-full;
+  }
+
+  .home_page_link {
+    @apply border border-primary-500 text-primary-500 rounded-lg py-1 text-lg w-[12.5rem] text-center;
+  }
+}
