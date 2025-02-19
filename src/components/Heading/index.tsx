@@ -7,16 +7,18 @@ import { TEXT_COLORS } from "@/styling/theme";
 type Props = {
   color?: TEXT_COLORS;
   children: React.ReactNode;
-  classname?: string;
+  additionalClass?: string;
 };
 
 const Heading: React.FC<Props> = ({
   color = "text-black",
   children,
-  classname = "",
+  additionalClass = "",
 }) => {
   return (
-    <p className={`${color} text-2xl font-bold ${classname}`}>{children}</p>
+    <p className={`${color} text-2xl font-bold ${additionalClass}`}>
+      {children}
+    </p>
   );
 };
 

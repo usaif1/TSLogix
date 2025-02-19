@@ -1,3 +1,9 @@
 @import "tailwindcss";
 
 @reference "../../index.css";
+
+@layer components {
+  .order_entry_form {
+    @apply w-[80rem] h-full;
+  }
+}

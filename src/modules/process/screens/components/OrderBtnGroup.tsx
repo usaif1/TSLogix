@@ -8,6 +8,7 @@ import { Button } from "@/components";
 type OrderTypeItem = {
   title: string;
   icon: Icon;
+  onClick: () => void;
 };
 
 type Props = {
@@ -16,10 +17,15 @@ type Props = {
 
 const OrderBtnGroup: React.FC<Props> = ({ items }) => {
   return (
-    <div className="w-6/12 flex items-center gap-x-4">
+    <div className="flex items-center gap-x-4">
       {items.map((item) => {
         return (
-          <Button key={item.title} variant="action">
+          <Button
+            key={item.title}
+            variant="action"
+            onClick={item.onClick}
+            additionalClass="!w-56"
+          >
             <div className="flex items-center gap-x-2">
               {item.title}
               <item.icon className="text-white" weight="bold" size={16} />

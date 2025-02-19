@@ -1,5 +1,3 @@
-"use client";
-
 // dependencies
 import React from "react";
 import { X } from "@phosphor-icons/react";
@@ -19,7 +17,7 @@ const ModalCancelBtn: React.FC = () => {
   return (
     <button
       onClick={onClick}
-      className="absolute top-2 right-2 bg-gray-700 h-6 w-6 rounded-full flex items-center justify-center"
+      className="bg-gray-700 h-6 w-6 rounded-full flex items-center justify-center cursor-pointer"
     >
       <X weight="bold" size={17} color="white" />
     </button>

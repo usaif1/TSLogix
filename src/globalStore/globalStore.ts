@@ -5,7 +5,10 @@ import { create } from "zustand";
 
 // utils
 import createSelectors from "@/utils/selectors";
-import { BasicModalComponent } from "@/components/ModalComponents";
+import {
+  BasicModalComponent,
+  ModalCloseButtonDefault,
+} from "@/components/ModalComponents";
 
 type GlobalStore = {
   // auth user
@@ -14,6 +17,7 @@ type GlobalStore = {
 
   // modal
   modalComponent: React.FC;
+  modalCloseButton: React.FC;
   isModalOpen: boolean;
   closeModalCallback: () => void;
 };
@@ -33,6 +37,7 @@ const globalInitialState: GlobalStore = {
 
   // modal
   modalComponent: BasicModalComponent,
+  modalCloseButton: ModalCloseButtonDefault,
   isModalOpen: false,
   closeModalCallback: () => null,
 };

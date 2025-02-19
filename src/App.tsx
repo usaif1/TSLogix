@@ -2,9 +2,6 @@
 import { ProtectedRoutes, UnProtectedRoutes } from "@/routes";
 import ReactModal from "react-modal";
 
-// components
-import { ModalCloseBtn } from "@/components";
-
 // store
 import { AuthStore } from "@/globalStore";
 
@@ -15,6 +12,7 @@ function App() {
   const authUser = AuthStore.use.authUser();
 
   const ModalComponent = GlobalStore.use.modalComponent();
+  const ModalCloseButton = GlobalStore.use.modalCloseButton();
   const isOpen = GlobalStore.use.isModalOpen();
 
   return (
@@ -28,13 +26,20 @@ function App() {
             maxHeight: "80vh",
             height: "fit-content",
             alignSelf: "center",
-            background: "#1C1C1C",
             borderColor: "#787878",
+            background: "#ffffff",
+            width: "fit-content",
+            margin: "auto",
           },
-          overlay: { zIndex: 99 },
+          overlay: {
+            zIndex: 99,
+            background: "rgba(24,24,27,0.52)",
+          },
         }}
       >
-        <ModalCloseBtn />
+        <div className="absolute top-2 right-2">
+          <ModalCloseButton />
+        </div>
         <ModalComponent />
       </ReactModal>
     </main>

@@ -16,7 +16,7 @@ import {
 type Props = {
   color?: TEXT_COLORS;
   children: React.ReactNode;
-  classname?: string;
+  additionalClass?: string;
   size?: TEXT_SIZE;
   weight?: FONT_WEIGHT;
 };
@@ -24,12 +24,14 @@ type Props = {
 const Text: React.FC<Props> = ({
   color = "text-black",
   children,
-  classname = "",
+  additionalClass = "",
   size = "base",
   weight = "normal",
 }) => {
   return (
-    <p className={`${color} ${classname} ${weight} ${TEXT_SIZE_ENUM[size]}`}>
+    <p
+      className={`${color} ${additionalClass} ${weight} ${TEXT_SIZE_ENUM[size]}`}
+    >
       {children}
     </p>
   );

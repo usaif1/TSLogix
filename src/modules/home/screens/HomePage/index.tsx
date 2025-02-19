@@ -26,7 +26,7 @@ const HomePage: React.FC = () => {
     <div className="home_container">
       <div className="flex flex-col items-center">
         <img src={TSLogixLogoHigh} />
-        <Text classname="italic text-[28px]" weight="font-bold">
+        <Text additionalClass="italic text-[28px]" weight="font-bold">
           Welcome to the Warehouse Control System
         </Text>
       </div>

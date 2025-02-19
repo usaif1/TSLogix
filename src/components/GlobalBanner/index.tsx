@@ -9,11 +9,11 @@ const GlobalBanner: React.FC = () => {
         TSLogix Logo goes here
       </div>
       <div>
-        <Text classname="text-center text-blue-800 font-bold">
+        <Text additionalClass="text-center text-blue-800 font-bold">
           Your products in the hands of professionals do everything right in the
           right way
         </Text>
-        <Text classname="text-center text-blue-800 font-bold">
+        <Text additionalClass="text-center text-blue-800 font-bold">
           &quot; Do everything right in the right way &quot;
         </Text>
       </div>
