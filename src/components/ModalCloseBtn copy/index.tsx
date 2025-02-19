@@ -1,6 +1,6 @@
 // dependencies
 import React from "react";
-import { X } from "phosphor-react";
+import { X } from "@phosphor-icons/react";
 
 // store
 import { GlobalStore } from "@/globalStore";
