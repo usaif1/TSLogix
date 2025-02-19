@@ -2,14 +2,19 @@
 
 @theme {
   /* background colors */
-  --color-primary-500: #2c2b6d;
-  --color-primary-600: #1a1954;
-  --color-background-primary: #fafafa;
-  --color-active: #222222;
+  --color-primary-500: #2c2b6d; /* Main buttons, navigation bars, input outlines */
+  --color-primary-600: #1a1954; /* Hover states for primary components */
+  --color-background-primary: #fafafa; /* Page/card backgrounds */
+  --color-active: #222222; /* Active links/indicators */
+  --color-action-nav: #143d59; /* Form/action redirect links background */
+  --color-action-nav-hover: #0f2f47; /* Hover colors for form/action redirect links background */
 
   /* text colors */
-  --color-breadcrumb-active: #4658ac;
-  --color-breadcrumb-inactive: #71717a;
+  --color-breadcrumb-active: #4658ac; /* Current page in breadcrumbs */
+  --color-breadcrumb-inactive: #71717a; /* Inactive breadcrumb links */
+
+  /* border colors */
+  --color-accent-500: #4763e4; /* Searchbar borders, interactive element highlights */
 }
 
 :root {

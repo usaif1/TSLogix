@@ -25,11 +25,11 @@ const Navbar: React.FC = () => {
   });
 
   useEffect(() => {
-    const normalizePath = (path: string) => path.replace(/\/$/, ""); // Remove trailing slashes
-    const currentPath = normalizePath(location.pathname);
-
+    // const normalizePath = (path: string) => path.replace(/\/$/, ""); // Remove trailing slashes
+    // const currentPath = normalizePath(location.pathname);
+    // location.pathname.includes(item.route);
     const activeRoute = links.find((link) =>
-      currentPath.startsWith(normalizePath(link.route))
+      location.pathname.includes(link.route)
     );
 
     if (activeRoute) providerValue.toggle(activeRoute.route);

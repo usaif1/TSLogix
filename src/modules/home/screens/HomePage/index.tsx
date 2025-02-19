@@ -9,11 +9,11 @@ import { HomePageLink } from "./components";
 const links = [
   {
     title: "Entry Order",
-    route: "/process/entry",
+    route: "/processes/entry",
   },
   {
     title: "Departure Order",
-    route: "/process/departure",
+    route: "/processes/departure",
   },
   {
     title: "Suppliers",

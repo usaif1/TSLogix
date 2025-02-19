@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@reference "../../index.css";
+
+@layer components {
+  .order_link {
+    @apply w-full flex justify-center items-center gap-x-1 bg-action-nav hover:bg-[#0F2F47] text-white font-semibold text-center py-1 rounded-md;
+  }
+}

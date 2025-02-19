@@ -6,6 +6,7 @@
 }
 
 @layer components {
+  /* navbar */
   .route {
     @apply w-full text-white flex items-center justify-between py-3;
   }
@@ -28,5 +29,10 @@
 
   .subroute_active {
     @apply font-bold bg-active;
+  }
+
+  /* searchbar */
+  .searchbar {
+    @apply w-full h-12 flex items-center gap-x-2 pl-5 border border-accent-500 rounded-md;
   }
 }
