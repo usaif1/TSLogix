@@ -2,6 +2,7 @@
 import { BrowserRouter } from "react-router";
 import { createRoot } from "react-dom/client";
 import Modal from "react-modal";
+import "react-datepicker/dist/react-datepicker.css";
 
 // components
 import App from "./App.tsx";

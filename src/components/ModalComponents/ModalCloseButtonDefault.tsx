@@ -17,7 +17,7 @@ const ModalCancelBtn: React.FC = () => {
   return (
     <button
       onClick={onClick}
-      className="bg-gray-700 h-6 w-6 rounded-full flex items-center justify-center cursor-pointer"
+      className="bg-primary-500 h-6 w-6 rounded-full flex items-center justify-center cursor-pointer"
     >
       <X weight="bold" size={17} color="white" />
     </button>

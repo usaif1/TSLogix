@@ -1,6 +1,5 @@
-import "../process.css"
+import "../process.css";
 
 export { default as Entry } from "./Entry";
 export { default as ProcessHome } from "./ProcessHome";
-export {default as Departure} from "./Departure"
-export {default as NewEntryOrder} from "./NewEntryOrder"
+export { default as Departure } from "./Departure";

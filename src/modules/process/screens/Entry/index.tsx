@@ -5,7 +5,11 @@ import { Plus } from "@phosphor-icons/react";
 // components
 import { OrderBtnGroup } from "../components";
 import { Divider, Text, Searchbar } from "@/components";
-import { NewEntryOrderForm, NewMassEntryOrderForm } from "./components";
+import {
+  EntryRecordsTable,
+  NewEntryOrderForm,
+  NewMassEntryOrderForm,
+} from "./components";
 
 // store
 import { GlobalStore } from "@/globalStore";
@@ -17,7 +21,6 @@ const Entry: React.FC = () => {
     return [
       {
         title: "Generate Order",
-        route: "/processes/entry/new",
         icon: Plus,
         onClick: () => {
           GlobalStore.setState((prevState) => ({
@@ -29,7 +32,6 @@ const Entry: React.FC = () => {
       },
       {
         title: "Generate Mass Order",
-        route: "/processes/entry/new/bulk",
         icon: Plus,
         onClick: () => {
           GlobalStore.setState((prevState) => ({
@@ -52,6 +54,10 @@ const Entry: React.FC = () => {
       <Searchbar value="" placeholder="Enter Document Number" />
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
+      <Divider />
+      <div className="h-4/5 bg-white rounded-md px-2 py-1.5">
+        <EntryRecordsTable />
+      </div>
     </div>
   );
 };

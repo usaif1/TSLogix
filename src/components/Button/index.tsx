@@ -25,7 +25,7 @@ const Button: React.FC<ButtonProps> = ({
       {...props}
       type={type}
       onClick={onClick}
-      className={`w-full ${ButtonVariantEnum[variant]} px-2 py-2 rounded-md font-bold  ${additionalClass} flex justify-center cursor-pointer`}
+      className={`${ButtonVariantEnum[variant]} px-2 py-2 rounded-md font-bold  ${additionalClass} flex justify-center cursor-pointer`}
     >
       {children}
     </button>
