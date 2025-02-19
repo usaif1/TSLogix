@@ -1,4 +1,4 @@
-import  './component.css'
+import "./component.css";
 
 export { default as Heading } from "./Heading";
 export { default as Text } from "./Text";
@@ -11,4 +11,3 @@ export { default as WarehouseCoordinator } from "./WarehouseCoordinator";
 export { default as Navbar } from "./Navbar";
 export { default as Header } from "./Header";
 export { default as Searchbar } from "./Searchbar";
-
