@@ -7,7 +7,13 @@ import { HomeLayout } from "@/layouts";
 
 // screens
 import { HomePage } from "@/modules/home/screens";
-import { Entry, ProcessHome, Departure } from "@/modules/process/screens";
+import {
+  Entry,
+  ProcessHome,
+  Departure,
+  NewEntry,
+  MassEntry,
+} from "@/modules/process/screens";
 
 const ProtectedRoutes: React.FC = () => {
   return (
@@ -16,7 +22,11 @@ const ProtectedRoutes: React.FC = () => {
         <Route index element={<HomePage />} />
         <Route path="processes">
           <Route index element={<ProcessHome />} />
-          <Route path="entry" element={<Entry />} />
+          <Route path="entry">
+            <Route index element={<Entry />} />
+            <Route path="new" element={<NewEntry />} />
+            <Route path="mass" element={<MassEntry />} />
+          </Route>
           <Route path="departure" element={<Departure />} />
         </Route>
       </Route>

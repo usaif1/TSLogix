@@ -4,6 +4,6 @@
 
 @layer components {
   .order_entry_form {
-    @apply w-[80rem] h-full;
+    @apply w-full h-11/12 bg-white rounded-md px-8;
   }
 }

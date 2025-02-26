@@ -1,10 +1,10 @@
 // dependencies
 import React, { useState } from "react";
-import Select from "react-select";
+import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
 
 // components
-import { Button, Divider, Text } from "@/components";
+import { Button, Divider } from "@/components";
 
 const originOptions = [
   { value: "originOption1", label: "originOption1" },
@@ -12,27 +12,24 @@ const originOptions = [
   { value: "originOption3", label: "originOption3" },
 ];
 
+const reactSelectStyle = {
+  container: (style: CSSObjectWithLabel) => ({
+    ...style,
+    height: "2.5rem",
+  }),
+};
+
 const NewMassEntryOrderForm: React.FC = () => {
   const [startDate, setStartDate] = useState(new Date());
 
   return (
     <form className="order_entry_form">
-      <Text size="xl" weight="font-medium">
-        Entry Order Registration
-      </Text>
       <Divider />
       <div className="w-full flex items-center gap-x-6">
         {/* origin */}
         <div className="w-full flex flex-col">
           <label>Origin</label>
-          <Select
-            options={originOptions}
-            styles={{
-              container: () => ({
-                height: "2.5rem",
-              }),
-            }}
-          />
+          <Select options={originOptions} styles={reactSelectStyle} />
         </div>
 
         {/* entry order no */}
@@ -52,14 +49,7 @@ const NewMassEntryOrderForm: React.FC = () => {
         {/* document */}
         <div className="w-full flex flex-col">
           <label>Document</label>
-          <Select
-            options={originOptions}
-            styles={{
-              container: () => ({
-                height: "2.5rem",
-              }),
-            }}
-          />
+          <Select options={originOptions} styles={reactSelectStyle} />
         </div>
 
         {/* registration date */}
@@ -105,27 +95,16 @@ const NewMassEntryOrderForm: React.FC = () => {
         {/* personnel in charge */}
         <div className="w-full flex flex-col">
           <label>Personnel In Charge</label>
-          <Select
-            options={originOptions}
-            styles={{
-              container: () => ({
-                height: "2.5rem",
-              }),
-            }}
-          />
+          <Select options={originOptions} styles={reactSelectStyle} />
         </div>
 
-        {/* ~ document status */}
+        {/* document status */}
         <div className="w-full flex flex-col">
           <label>Document Status</label>
           <Select
             options={originOptions}
             isDisabled
-            styles={{
-              container: () => ({
-                height: "2.5rem",
-              }),
-            }}
+            styles={reactSelectStyle}
           />
         </div>
       </div>
