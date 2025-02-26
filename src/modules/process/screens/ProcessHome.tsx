@@ -5,6 +5,8 @@ const ProcessHome: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("process home useEffect")
+
     navigate("/processes/entry", { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

@@ -218,7 +218,7 @@ const NewMassEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* supplier */}
         <div className="w-full flex flex-col">
-          <label htmlFor="supplier">Supplier</label>
+          <label htmlFor="supplier">Archive</label>
           <input
             type="text"
             disabled

@@ -33,7 +33,7 @@ const HomePage: React.FC = () => {
       <Divider height="md" />
       <div className="flex items-center gap-x-5">
         {links.map((link) => {
-          return <HomePageLink item={link} />;
+          return <HomePageLink key={link.title} item={link} />;
         })}
       </div>
     </div>
