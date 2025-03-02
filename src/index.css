@@ -36,7 +36,7 @@
   }
 
   .layout {
-    @apply h-screen w-screen overflow-y-scroll flex flex-col;
+    @apply h-screen w-screen flex flex-col;
   }
 
   .anchor {

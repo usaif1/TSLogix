@@ -3,43 +3,26 @@ import React, { useMemo } from "react";
 import { Plus } from "@phosphor-icons/react";
 
 // components
-import { OrderBtnGroup } from "../components";
+import { OrderBtnGroup } from "../../components";
 import { Divider, Text, Searchbar } from "@/components";
 import {
   EntryRecordsTable,
-  NewEntryOrderForm,
-  NewMassEntryOrderForm,
+  // NewEntryOrderForm,
+  // NewMassEntryOrderForm,
 } from "./components";
 
-// store
-import { GlobalStore } from "@/globalStore";
-
 const Entry: React.FC = () => {
-  const openModal = GlobalStore.use.openModal();
-
   const buttonGroup = useMemo(() => {
     return [
       {
         title: "Generate Order",
         icon: Plus,
-        onClick: () => {
-          GlobalStore.setState((prevState) => ({
-            ...prevState,
-            modalComponent: NewEntryOrderForm,
-          }));
-          openModal();
-        },
+        route: "/processes/entry/new",
       },
       {
         title: "Generate Mass Order",
         icon: Plus,
-        onClick: () => {
-          GlobalStore.setState((prevState) => ({
-            ...prevState,
-            modalComponent: NewMassEntryOrderForm,
-          }));
-          openModal();
-        },
+        route: "/processes/entry/mass",
       },
     ];
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -51,7 +34,7 @@ const Entry: React.FC = () => {
         Entry Order
       </Text>
       <Divider />
-      <Searchbar value="" placeholder="Enter Document Number" />
+      <Searchbar placeholder="Enter Document Number" />
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
       <Divider />
