@@ -24,9 +24,6 @@ const Route: React.FC<Props> = ({ item, isOpen }) => {
       <CaretUp
         className={`caret_icon ${isOpen ? "-rotate-180" : "rotate-0"}`}
       />
-
-
-
     </div>
   );
 };
