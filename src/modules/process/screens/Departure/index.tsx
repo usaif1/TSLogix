@@ -28,7 +28,7 @@ const Entry: React.FC = () => {
         Departure Order
       </Text>
       <Divider />
-      <Searchbar value="" placeholder="Enter Document Number" />
+      <Searchbar placeholder="Enter Document Number" />
       <Divider />
       <Button variant="action" additionalClass="!w-56" onClick={onClick}>
         <div className="flex items-center gap-x-2">

@@ -10,9 +10,13 @@ import { HomePage } from "@/modules/home/screens";
 import {
   Entry,
   ProcessHome,
-  Departure,
   NewEntry,
   MassEntry,
+  // departure
+  Departure,
+  DepartureApproved,
+  DepartureCounter,
+  DepartureReturned,
 } from "@/modules/process/screens";
 
 const ProtectedRoutes: React.FC = () => {
@@ -29,9 +33,9 @@ const ProtectedRoutes: React.FC = () => {
           </Route>
           <Route path="departure">
             <Route index element={<Departure />} />
-            <Route path="approved" element={<Departure />} />
-            <Route path="returned" element={<Departure />} />
-            <Route path="counter" element={<Departure />} />
+            <Route path="approved" element={<DepartureApproved />} />
+            <Route path="returned" element={<DepartureReturned />} />
+            <Route path="counter" element={<DepartureCounter />} />
           </Route>
         </Route>
       </Route>

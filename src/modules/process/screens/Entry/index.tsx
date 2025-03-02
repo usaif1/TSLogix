@@ -3,7 +3,7 @@ import React, { useMemo } from "react";
 import { Plus } from "@phosphor-icons/react";
 
 // components
-import { OrderBtnGroup } from "../components";
+import { OrderBtnGroup } from "../../components";
 import { Divider, Text, Searchbar } from "@/components";
 import {
   EntryRecordsTable,
@@ -34,7 +34,7 @@ const Entry: React.FC = () => {
         Entry Order
       </Text>
       <Divider />
-      <Searchbar value="" placeholder="Enter Document Number" />
+      <Searchbar placeholder="Enter Document Number" />
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
       <Divider />
