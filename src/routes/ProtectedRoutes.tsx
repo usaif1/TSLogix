@@ -32,6 +32,8 @@ const ProtectedRoutes: React.FC = () => {
             <Route path="mass" element={<MassEntry />} />
           </Route>
           <Route path="departure">
+
+            
             <Route index element={<Departure />} />
             <Route path="approved" element={<DepartureApproved />} />
             <Route path="returned" element={<DepartureReturned />} />
