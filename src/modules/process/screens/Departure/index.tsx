@@ -16,7 +16,7 @@ const Entry: React.FC = () => {
   const onClick = () => {
     GlobalStore.setState((prevState) => ({
       ...prevState,
-      modalComponent: DepartureOptions,
+      ModalComponent: DepartureOptions,
     }));
 
     openModal();

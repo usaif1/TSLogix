@@ -7,19 +7,39 @@ import { AuthStore } from "@/globalStore";
 
 // store
 import { GlobalStore } from "@/globalStore";
+import { useEffect } from "react";
 
 function App() {
-  const authUser = AuthStore.use.authUser();
+  const { authUser, stopLoader, setAuthUser, loaders } = AuthStore();
+  const { ModalComponent, ModalCloseButton, isModalOpen } = GlobalStore();
 
-  const ModalComponent = GlobalStore.use.modalComponent();
-  const ModalCloseButton = GlobalStore.use.modalCloseButton();
-  const isOpen = GlobalStore.use.isModalOpen();
+  const authLoader = loaders["auth/initial-load"];
+  const loggedInUser = localStorage.getItem("liu");
+
+  useEffect(() => {
+    console.log(JSON.parse(loggedInUser as string));
+    if (loggedInUser) {
+      setAuthUser(JSON.parse(loggedInUser));
+    } else {
+      setAuthUser(null);
+    }
+
+    stopLoader("auth/initial-load");
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <main className="main">
-      {authUser ? <ProtectedRoutes /> : <UnProtectedRoutes />}
+      {authLoader ? (
+        <div>loading...</div>
+      ) : authUser ? (
+        <ProtectedRoutes />
+      ) : (
+        <UnProtectedRoutes />
+      )}
       <ReactModal
-        isOpen={isOpen}
+        isOpen={isModalOpen}
         shouldCloseOnOverlayClick={false}
         style={{
           content: {
