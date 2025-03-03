@@ -5,7 +5,6 @@ import React, { useMemo } from "react";
 import { Divider, Text, Searchbar } from "@/components";
 import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
 import { Plus, MagnifyingGlass } from "@phosphor-icons/react";
-import { EntryRecordsTable } from "@/modules/process/screens/Entry/components";
 
 const Supplier: React.FC = () => {
   const buttonGroup = useMemo(() => {
@@ -18,12 +17,11 @@ const Supplier: React.FC = () => {
       {
         title: "Add",
         icon: Plus,
-        route: "/maintenance/supplier/newsupplier",
+        route: "/maintenance/supplier/new",
       },
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
