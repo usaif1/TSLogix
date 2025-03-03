@@ -19,6 +19,13 @@ import {
   DepartureReturned,
 } from "@/modules/process/screens";
 
+import {
+  // maintenance
+  Supplier,
+  NewSupplier,
+  MaintenanceHome,
+} from "@/modules/maintenance/screens";
+
 const ProtectedRoutes: React.FC = () => {
   return (
     <Routes>
@@ -36,6 +43,13 @@ const ProtectedRoutes: React.FC = () => {
             <Route path="approved" element={<DepartureApproved />} />
             <Route path="returned" element={<DepartureReturned />} />
             <Route path="counter" element={<DepartureCounter />} />
+          </Route>
+        </Route>
+        <Route path="maintenance">
+          <Route index element={<MaintenanceHome />} />
+          <Route path="supplier">
+            <Route index element={<Supplier />} />
+            <Route path="newsupplier" element={<NewSupplier />} />
           </Route>
         </Route>
       </Route>
