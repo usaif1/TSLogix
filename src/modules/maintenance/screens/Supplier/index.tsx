@@ -12,7 +12,7 @@ const Supplier: React.FC = () => {
       {
         title: "Look For",
         icon: MagnifyingGlass,
-        route: "/processes/entry/new",
+        route: "/maintenance/supplier",
       },
       {
         title: "Add",

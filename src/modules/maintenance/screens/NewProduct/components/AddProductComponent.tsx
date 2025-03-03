@@ -18,68 +18,12 @@ const reactSelectStyle = {
   }),
 };
 
-const SupplierRegistration: React.FC = () => {
-
+const AddProductComponent: React.FC = () => {
   return (
-    <form className="order_entry_form">
+    <div>
       <div className="w-full flex items-center gap-x-6">
-        {/* Company Name */}
         <div className="w-full flex flex-col">
-          <label htmlFor="origin">Company Name</label>
-          <input
-            type="text"
-            disabled
-            id="entry_order_no"
-            name="entry_order_no"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* entry order no */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">RUC</label>
-          <input
-            type="text"
-            disabled
-            id="entry_order_no"
-            name="entry_order_no"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* address */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">Address</label>
-          <input
-            type="text"
-            disabled
-            id="entry_order_no"
-            name="entry_order_no"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* city */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">City</label>
-          <input
-            type="text"
-            disabled
-            id="entry_order_no"
-            name="entry_order_no"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* personnel in charge */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="personnel_in_charge">Country</label>
+          <label htmlFor="personnel_in_charge">Line Name</label>
           <Select
             options={originOptions}
             styles={reactSelectStyle}
@@ -88,9 +32,32 @@ const SupplierRegistration: React.FC = () => {
           />
         </div>
 
-        {/* Phone */}
         <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">Phone</label>
+          <label htmlFor="personnel_in_charge">Group Name</label>
+          <Select
+            options={originOptions}
+            styles={reactSelectStyle}
+            inputId="personnel_in_charge"
+            name="personnel_in_charge"
+          />
+        </div>
+      </div>
+
+      <Divider />
+      <div className="w-full flex items-center gap-x-6">
+        <div className="w-full flex flex-col">
+          <label htmlFor="entry_order_no">Product Name</label>
+          <input
+            type="text"
+            disabled
+            id="entry_order_no"
+            name="entry_order_no"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        <div className="w-full flex flex-col">
+          <label htmlFor="entry_order_no">Manufacturer</label>
           <input
             type="text"
             disabled
@@ -102,42 +69,50 @@ const SupplierRegistration: React.FC = () => {
       </div>
 
       <Divider />
-      <div>
-        <div className="w-full flex items-center gap-x-6">
-          <div className="w-full flex flex-col">
-            <label htmlFor="entry_order_no">Phone</label>
-            <input
-              type="text"
-              disabled
-              id="entry_order_no"
-              name="entry_order_no"
-              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-            />
-          </div>
+      <div className="w-full flex items-center gap-x-6">
+        <div className="w-full flex flex-col">
+          <label htmlFor="entry_order_no">Temperature</label>
+          <input
+            type="text"
+            disabled
+            id="entry_order_no"
+            name="entry_order_no"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
 
-          <div className="w-full flex flex-col">
-            <label htmlFor="entry_order_no">Email</label>
-            <input
-              type="text"
-              disabled
-              id="entry_order_no"
-              name="entry_order_no"
-              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-            />
-          </div>
+        <div className="w-full flex flex-col">
+          <label htmlFor="entry_order_no">State</label>
+          <input
+            type="text"
+            disabled
+            id="entry_order_no"
+            name="entry_order_no"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+        <div className="w-full flex flex-col">
+          <label htmlFor="entry_order_no">Humidity</label>
+          <input
+            type="text"
+            disabled
+            id="entry_order_no"
+            name="entry_order_no"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
         </div>
       </div>
       <Divider height="lg" />
       <div className="flex gap-10">
         <Button variant="action" additionalClass="w-40">
-          Register
+          Add
         </Button>
         <Button variant="cancel" additionalClass="w-40">
           Cancel
         </Button>
       </div>
-    </form>
+    </div>
   );
 };
 
-export default SupplierRegistration;
+export default AddProductComponent;
