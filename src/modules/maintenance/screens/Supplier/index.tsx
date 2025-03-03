@@ -5,7 +5,6 @@ import React, { useMemo } from "react";
 import { Divider, Text, Searchbar } from "@/components";
 import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
 import { Plus, MagnifyingGlass } from "@phosphor-icons/react";
-import { EntryRecordsTable } from "@/modules/process/screens/Entry/components";
 
 const Supplier: React.FC = () => {
   const buttonGroup = useMemo(() => {
