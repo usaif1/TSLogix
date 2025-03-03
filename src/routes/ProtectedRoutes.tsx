@@ -24,6 +24,8 @@ import {
   Supplier,
   NewSupplier,
   MaintenanceHome,
+  Product,
+  NewProduct,
 } from "@/modules/maintenance/screens";
 
 const ProtectedRoutes: React.FC = () => {
@@ -50,6 +52,10 @@ const ProtectedRoutes: React.FC = () => {
           <Route path="supplier">
             <Route index element={<Supplier />} />
             <Route path="new" element={<NewSupplier />} />
+          </Route>
+          <Route path="product">
+            <Route index element={<Product />} />
+            <Route path="new" element={<NewProduct />} />
           </Route>
         </Route>
       </Route>

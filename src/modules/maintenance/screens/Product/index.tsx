@@ -2,22 +2,23 @@
 import React, { useMemo } from "react";
 
 // components
-import { Divider, Text, Searchbar } from "@/components";
-import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
+import { Divider, Text} from "@/components";
+import ProductRegisterComponent from "./components/product";
 import { Plus, MagnifyingGlass } from "@phosphor-icons/react";
+import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
 
-const Supplier: React.FC = () => {
+const Product: React.FC = () => {
   const buttonGroup = useMemo(() => {
     return [
       {
         title: "Look For",
         icon: MagnifyingGlass,
-        route: "/maintenance/supplier",
+        route: "/maintenance/product",
       },
       {
         title: "Add",
         icon: Plus,
-        route: "/maintenance/supplier/new",
+        route: "/maintenance/product/new",
       },
     ];
   }, []);
@@ -25,14 +26,14 @@ const Supplier: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        Supplier Maintenance
+        Product Registry
       </Text>
       <Divider />
-      <Searchbar placeholder="Search Supplier" />
+      <ProductRegisterComponent />
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
     </div>
   );
 };
 
-export default Supplier;
+export default Product;
