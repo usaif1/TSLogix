@@ -49,7 +49,7 @@ const ProtectedRoutes: React.FC = () => {
           <Route index element={<MaintenanceHome />} />
           <Route path="supplier">
             <Route index element={<Supplier />} />
-            <Route path="newsupplier" element={<NewSupplier />} />
+            <Route path="new" element={<NewSupplier />} />
           </Route>
         </Route>
       </Route>

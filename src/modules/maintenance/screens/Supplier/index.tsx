@@ -17,12 +17,11 @@ const Supplier: React.FC = () => {
       {
         title: "Add",
         icon: Plus,
-        route: "/maintenance/supplier/newsupplier",
+        route: "/maintenance/supplier/new",
       },
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  
+
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">

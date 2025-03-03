@@ -1,7 +1,6 @@
 // dependencies
 import React from "react";
 import { create } from "zustand";
-// import { User } from "firebase/auth";
 
 // utils
 import createSelectors from "@/utils/selectors";
@@ -11,13 +10,9 @@ import {
 } from "@/components/ModalComponents";
 
 type GlobalStore = {
-  // auth user
-  // authUser: User | null;
-  loadingAuthUser: boolean;
-
   // modal
-  modalComponent: React.FC;
-  modalCloseButton: React.FC;
+  ModalComponent: React.FC;
+  ModalCloseButton: React.FC;
   isModalOpen: boolean;
   closeModalCallback: () => void;
 };
@@ -31,13 +26,9 @@ type GlobalActions = {
 };
 
 const globalInitialState: GlobalStore = {
-  // auth user
-  // authUser: null,
-  loadingAuthUser: true,
-
   // modal
-  modalComponent: BasicModalComponent,
-  modalCloseButton: ModalCloseButtonDefault,
+  ModalComponent: BasicModalComponent,
+  ModalCloseButton: ModalCloseButtonDefault,
   isModalOpen: false,
   closeModalCallback: () => null,
 };
