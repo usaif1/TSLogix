@@ -14,10 +14,10 @@ function App() {
   const { ModalComponent, ModalCloseButton, isModalOpen } = GlobalStore();
 
   const authLoader = loaders["auth/initial-load"];
-  const loggedInUser = localStorage.getItem("liu");
+  // const loggedInUser = localStorage.getItem("liu");
 
   useEffect(() => {
-    console.log(JSON.parse(loggedInUser as string));
+    const loggedInUser = localStorage.getItem("liu");
     if (loggedInUser) {
       setAuthUser(JSON.parse(loggedInUser));
     } else {

@@ -4,8 +4,6 @@ import axios from "axios";
 // store
 import { AuthStore } from "@/globalStore";
 
-const authUser = AuthStore.getState().authUser;
-
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   timeout: 10000,
@@ -16,7 +14,10 @@ const api = axios.create({
 
 // Add interceptors
 api.interceptors.request.use((config) => {
-  const token = authUser;
+  const authUser = AuthStore.getState().authUser;
+
+  const token = authUser.token;
+  console.log("token in interceptor", token);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
