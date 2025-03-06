@@ -572,7 +572,7 @@ const NewEntryOrderForm: React.FC = () => {
         </div>
       </div>
 
-      <Divider />
+      <Divider height="2xl" />
       <div>
         <Button
           variant="action"
