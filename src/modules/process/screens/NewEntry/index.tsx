@@ -1,11 +1,18 @@
 // dependencies
-import React from "react";
+import React, { useEffect } from "react";
 
 // components
 import { Divider, Text } from "@/components";
 import { NewEntryOrderForm } from "./components";
 
+// service
+import { ProcessService } from "@/globalService";
+
 const NewEntry: React.FC = () => {
+  useEffect(() => {
+    ProcessService.fetchEntryOrderFormFields();
+  }, []);
+
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
