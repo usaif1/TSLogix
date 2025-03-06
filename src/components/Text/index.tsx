@@ -30,7 +30,7 @@ const Text: React.FC<Props> = ({
 }) => {
   return (
     <p
-      className={`${color} ${additionalClass} ${weight} ${TEXT_SIZE_ENUM[size]}`}
+      className={`${color} ${weight} ${TEXT_SIZE_ENUM[size]} ${additionalClass} `}
     >
       {children}
     </p>

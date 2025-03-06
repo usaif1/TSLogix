@@ -11,6 +11,12 @@ type ProcessesStore = {
   // auth user
   entryOrders: any[];
 
+  //   entry order form fields
+  origins: any[];
+  users: any[];
+  suppliers: any[];
+  documentTypes: any[];
+
   // loading states
   loaders: Record<LoaderTypes, boolean>;
 };
@@ -26,8 +32,14 @@ type ProcessesStoreActions = {
 };
 
 const authInitialState: ProcessesStore = {
-  // auth user
+  // entry orders
   entryOrders: [],
+
+  //   entry order form fields
+  origins: [],
+  users: [],
+  suppliers: [],
+  documentTypes: [],
 
   loaders: {
     "processes/fetch-entry-orders": false,
