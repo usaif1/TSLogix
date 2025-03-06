@@ -8,6 +8,9 @@ import { ProcessesStore } from "@/globalStore";
 const baseURL = "/processes";
 
 const setEntryOrders = ProcessesStore.getState().setEntryOrders;
+const setDepartureExitOptions =
+  ProcessesStore.getState().setDepartureExitOptions;
+const setDepartureOrders = ProcessesStore.getState().setDepartureOrders;
 
 export const ProcessService = {
   // fetch all entry orders
@@ -20,8 +23,6 @@ export const ProcessService = {
   //   fetch all dropdown fields for new entry order form
   fetchEntryOrderFormFields: async () => {
     const response = await api.get(`${baseURL}/entry-formfields`);
-
-    console.log(response.data);
 
     const { origins, users, suppliers, documentTypes } = response.data;
 
@@ -73,5 +74,20 @@ export const ProcessService = {
     });
 
     return response;
+  },
+
+  // fetch exit options for departure
+  fetchDepartureExitOptions: async () => {
+    const response = await api.get(`${baseURL}/departure-exit-options`);
+    setDepartureExitOptions(response.data.data);
+
+    return response.data.data;
+  },
+
+  fetchAllDepartureOrders: async () => {
+    const response = await api.get(`${baseURL}/departure-orders`);
+    setDepartureOrders(response.data.data);
+
+    return response.data.data;
   },
 };

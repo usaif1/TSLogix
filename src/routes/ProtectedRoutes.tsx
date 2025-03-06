@@ -42,7 +42,7 @@ const ProtectedRoutes: React.FC = () => {
           </Route>
           <Route path="departure">
             <Route index element={<Departure />} />
-            <Route path="approved" element={<DepartureApproved />} />
+            <Route path="new" element={<DepartureApproved />} />
             <Route path="returned" element={<DepartureReturned />} />
             <Route path="counter" element={<DepartureCounter />} />
           </Route>
