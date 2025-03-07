@@ -11,6 +11,7 @@ type ProcessesStore = {
   // entry order
   entryOrders: any[];
 
+  // entry form fields
   origins: any[];
   users: any[];
   suppliers: any[];
@@ -19,6 +20,11 @@ type ProcessesStore = {
   // departure
   departureOrders: any[];
   departureExitOptions: any[];
+
+  // departure form fields
+  customers: any[];
+  packagingTypes: any[];
+  labels: any[];
 
   // loading states
   loaders: Record<LoaderTypes, boolean>;
@@ -52,7 +58,12 @@ const authInitialState: ProcessesStore = {
 
   // departure orders
   departureOrders: [],
+
+  // departure form fields
   departureExitOptions: [],
+  customers: [],
+  packagingTypes: [],
+  labels: [],
 
   loaders: {
     "processes/fetch-entry-orders": false,

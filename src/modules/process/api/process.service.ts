@@ -57,8 +57,6 @@ export const ProcessService = {
       };
     });
 
-    // { value: "originOption1", label: "originOption1" },
-
     ProcessesStore.setState((prevState) => ({
       ...prevState,
       origins: formattedOrigins,
@@ -80,6 +78,51 @@ export const ProcessService = {
   fetchDepartureExitOptions: async () => {
     const response = await api.get(`${baseURL}/departure-exit-options`);
     setDepartureExitOptions(response.data.data);
+
+    return response.data.data;
+  },
+
+  fetchDepartureFormFields: async () => {
+    const response = await api.get(`${baseURL}/departure-formfields`);
+
+    const { customers, packagingTypes, labels, documentTypes } =
+      response.data.data;
+
+    const formattedCustomers = customers.map((customer: any) => {
+      return {
+        value: customer.customer_id,
+        label: customer.name,
+      };
+    });
+
+    const formattedDocumentTypes = documentTypes.map((documentType: any) => {
+      return {
+        value: documentType.document_type_id,
+        label: documentType.name,
+      };
+    });
+
+    const formattedPackagingTypes = packagingTypes.map((packagingType: any) => {
+      return {
+        value: packagingType.packaging_type_id,
+        label: packagingType.name,
+      };
+    });
+
+    const formattedLabels = labels.map((label: any) => {
+      return {
+        value: label.label_id,
+        label: label.name,
+      };
+    });
+
+    ProcessesStore.setState((prevState) => ({
+      ...prevState,
+      customers: formattedCustomers,
+      documentTypes: formattedDocumentTypes,
+      labels: formattedLabels,
+      packagingTypes: formattedPackagingTypes,
+    }));
 
     return response.data.data;
   },

@@ -28,3 +28,22 @@ export type EntryFormData = {
   temperature: string;
   humidity: string;
 };
+
+export interface DepartureFormData {
+  customer: ReactSelectValue; // Or {value: string; label: string} if you want to store select objects
+  departure_order_no: string;
+  registration_date: Date;
+  document_type: ReactSelectValue;
+  document_no: string;
+  document_date: Date;
+  transfer_date_and_time: Date;
+  personnel_in_charge: string;
+  document_status: ReactSelectValue;
+  arrival_point: string;
+  packaging_type: ReactSelectValue;
+  labeled: ReactSelectValue;
+  id_responsible: string;
+  collection_responsible: string;
+  order_status: string;
+  observation: string;
+}
