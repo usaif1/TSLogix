@@ -6,251 +6,178 @@ import DatePicker from "react-datepicker";
 // components
 import { Button, Divider } from "@/components";
 
-const originOptions = [
-  { value: "originOption1", label: "originOption1" },
-  { value: "originOption2", label: "originOption2" },
-  { value: "originOption3", label: "originOption3" },
-];
-
-const reactSelectStyle = {
-  container: (style: CSSObjectWithLabel) => ({
-    ...style,
-    height: "2.5rem",
-  }),
-};
-
 const DepartureApprovedForm: React.FC = () => {
-  const [startDate, setStartDate] = useState(new Date());
-
   return (
     <form className="order_entry_form">
       <div className="w-full flex items-center gap-x-6">
-        {/* customer */}
+        {/* Entry Order No */}
         <div className="w-full flex flex-col">
-          <label htmlFor="origin">Customer</label>
-          <Select
-            options={originOptions}
-            styles={reactSelectStyle}
-            inputId="customer"
-            name="customer"
-          />
-        </div>
-
-        {/* departure order no */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">Departure Order No</label>
+          <label htmlFor="entry_order_no">Dispatch Order No</label>
           <input
             type="text"
-            disabled
-            id="departure_order_no"
-            name="departure_order_no"
+            autoCapitalize="on"
+            id="entry_order_no"
+            name="entry_order_no"
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />
         </div>
-
-        {/* registration date */}
+        {/* Palettes */}
         <div className="w-full flex flex-col">
-          <label htmlFor="registration_date">Registration Date</label>
-          <DatePicker
-            showTimeSelect
-            dateFormat="Pp"
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="registration_date"
-            name="registration_date"
-            selected={startDate}
-            onChange={(date) => setStartDate(date as Date)}
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* document type */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="document">Document Type</label>
-          <Select
-            options={originOptions}
-            styles={reactSelectStyle}
-            inputId="document"
-            name="document"
-          />
-        </div>
-
-        {/* document no */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">Document No</label>
+          <label htmlFor="palletes">Palettes</label>
           <input
             type="text"
-            disabled
-            id="document_no"
-            name="document_no"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* document date */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="document_date">Document Date</label>
-          <DatePicker
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="document_date"
-            name="document_date"
-            selected={startDate}
-            onChange={(date) => setStartDate(date as Date)}
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* transfer date and time */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="transfer_date_and_time">
-            Date and Time of Transfer
-          </label>
-          <DatePicker
-            showTimeSelect
-            dateFormat="Pp"
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="transfer_date_and_time"
-            name="transfer_date_and_time"
-            selected={startDate}
-            onChange={(date) => setStartDate(date as Date)}
-          />
-        </div>
-
-        {/* personnel in charge */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="personnel_in_charge">Personnel In Charge</label>
-          <Select
-            options={originOptions}
-            styles={reactSelectStyle}
-            inputId="personnel_in_charge"
-            name="personnel_in_charge"
-          />
-        </div>
-
-        {/* document status */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="document_status">Document Status</label>
-          <Select
-            options={originOptions}
-            isDisabled
-            styles={reactSelectStyle}
-            inputId="document_status"
-            name="document_status"
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* arrival point */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="arrival_point">Arrival Point</label>
-          <input
-            type="text"
-            disabled
-            id="arrival_point"
-            name="arrival_point"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* packaging type */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="packaging_type">Packaging Type</label>
-          <Select
-            options={originOptions}
-            isDisabled
-            styles={reactSelectStyle}
-            inputId="packaging_type"
-            name="packaging_type"
-          />
-        </div>
-
-        {/* labeled */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="packaging_type">Labeled</label>
-          <Select
-            options={originOptions}
-            isDisabled
-            styles={reactSelectStyle}
-            inputId="packaging_type"
-            name="packaging_type"
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* ID responsible */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="id_responsible">ID Responsible</label>
-          <input
-            type="text"
-            disabled
-            id="id_responsible"
-            name="id_responsible"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* responsible for collection */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="collection_responsible">
-            Responsible for Collection
-          </label>
-          <input
-            type="text"
-            disabled
-            id="collection_responsible"
-            name="collection_responsible"
+            autoCapitalize="on"
+            id="palletes"
+            name="palletes"
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />
         </div>
       </div>
 
       <Divider />
-      <div>
-        <div className="w-full flex items-center gap-x-6">
-          <div>
-            <input
-              type="radio"
-              id="order_in_process"
-              name="order_status"
-              value="order_in_process"
-            />
-            <label htmlFor="order_in_process"> Order in Process</label>
-          </div>
-          <div>
-            <input
-              type="radio"
-              id="send_order"
-              name="order_status"
-              value="send_order"
-            />
-            <label htmlFor="send_order"> Send Order</label>
-          </div>
-        </div>
-      </div>
 
-      <Divider />
       <div className="w-full flex items-center gap-x-6">
+        {/* Product Description */}
         <div className="w-full flex flex-col">
-          <label htmlFor="observation">Observation</label>
+          <label htmlFor="product_description">Product Description</label>
           <textarea
-            id="observation"
-            name="observation"
+            id="product_description"
+            name="product_description"
             className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500"
           />
         </div>
       </div>
 
       <Divider />
+
+      <div className="w-full flex items-center gap-x-6">
+        {/* Quantity */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="quantity">Quantity</label>
+          <div className="w-full flex items-end gap-x-2">
+            <input
+              type="number"
+              id="quantity"
+              name="quantity"
+              className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            />
+          </div>
+        </div>
+
+        {/* Weight */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="weight">Weight</label>
+          <div className="w-full flex items-end gap-x-2">
+            <input
+              type="number"
+              id="weight"
+              name="weight"
+              className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            />
+            <span>Kg</span>
+          </div>
+        </div>
+
+        {/* Insured Value */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="insured_value">Insured Value</label>
+          <input
+            type="number"
+            id="insured_value"
+            name="insured_value"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      <div className="w-full flex items-center gap-x-6">
+        {/* Date of Entry */}
+        <div className="w-1/2 flex flex-col">
+          <label htmlFor="entry_date">Date of Dispatch</label>
+          <DatePicker
+            showTimeSelect
+            dateFormat="Pp"
+            className="w-full border border-slate-400 h-10 rounded-md pl-4"
+            id="entry_date"
+            name="entry_date"
+          />
+        </div>
+
+        {/* Entry Transfer Note */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="entry_transfer_note">Dispatch Transfer Note</label>
+          <input
+            type="text"
+            id="entry_transfer_note"
+            name="entry_transfer_note"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      <div className="w-full flex items-center gap-x-6">
+        {/* Presentation */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="presentation">Presentation</label>
+          <input
+            type="text"
+            id="presentation"
+            name="presentation"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        {/* Order Status */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="order_status">Status</label>
+          <input
+            type="number"
+            id="order_status"
+            name="order_status"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        {/* Order Type */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="order_type">Type</label>
+          <input
+            type="number"
+            id="order_type"
+            name="order_type"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      <div className="w-full flex items-center gap-x-6">
+        {/* Comments */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="comments">Comments</label>
+          <textarea
+            id="comments"
+            name="comments"
+            className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+      </div>
+
+      <Divider height="2xl" />
+
       <div>
-        <Button variant="action" additionalClass="w-40">
-          Add Product
+        <Button
+          variant="action"
+          additionalClass="w-40"
+          type="submit"
+          disabled
+        >
+          Register
         </Button>
       </div>
     </form>
