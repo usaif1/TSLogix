@@ -1,30 +1,16 @@
-// types
-import { ReactSelectValue } from "@/types/FormTypes";
-
 export type EntryFormData = {
-  origin: ReactSelectValue;
   entry_order_no: string;
-  document: ReactSelectValue;
-  registration_date: Date;
-  document_date: Date;
-  admission_date_and_time: Date;
-  personnel_in_charge: ReactSelectValue;
-  document_status: ReactSelectValue;
+  palletes: string;
+  code: string;
+  product_description: string;
+  weight: string;
+  quantity: string;
+  insured_value: string;
+  entry_date: Date;
+  entry_transfer_note: string;
   order_status: string;
-  observation: string;
-  total_volume: string;
-  total_weight: string;
-  cif_value: string;
-  supplier: ReactSelectValue;
-  product: string;
-  protocol_analysis_certificate: File | null;
-  manufacturing_date: Date;
-  expiration_date: Date;
-  lot_series: string;
-  quantity_packaging: string;
+  order_type: string;
+  comments: string;
   presentation: string;
   total_qty: string;
-  technical_specification: File | null;
-  temperature: string;
-  humidity: string;
 };
