@@ -251,6 +251,7 @@ const NewEntryOrderForm: React.FC = () => {
       </div>
 
       <Divider />
+      
       <div>
         <div className="w-full flex items-center gap-x-6">
           <div>
