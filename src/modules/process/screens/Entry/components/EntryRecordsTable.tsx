@@ -1,34 +1,39 @@
-// dependencies
-import React from "react";
+import React, { useMemo } from "react";
 
 // store
 import { ProcessesStore } from "@/globalStore";
+import DataTable from "@/components/DataTable";
+import { createTableColumns } from "@/utils/tableUtils";
 
 const EntryRecordsTable: React.FC = () => {
   const entryOrders = ProcessesStore.use.entryOrders();
+  
+  const columns = useMemo(() => 
+    createTableColumns([
+      { accessor: 'entry_order_no', header: 'Order' },
+      { accessor: 'origin.name', header: 'Palettes' },
+      { accessor: 'supplier.name', header: 'Code' },
+      { accessor: 'quantity', header: 'Quantity' },
+      { accessor: 'weight', header: 'Weight' },
+      { accessor: 'insuredValue', header: 'Insured Value' },
+      { accessor: 'dateOfEntry', header: 'Date of Entry' },
+      { accessor: 'entryTransferNote', header: 'Entry Transfer Note' },
+      { accessor: 'presentation', header: 'Presentation' },
+      { accessor: 'status', header: 'Status' },
+      { accessor: 'type', header: 'Type' },
+      { accessor: 'comments', header: 'Comments' },
+      { accessor: 'documentType.name', header: 'Document Type' },
+    ]), 
+  []);
 
   return (
-    <div className="overflow-x-auto p-4">
-      <table className="min-w-full">
-        <thead>
-          <tr className="border-b border-gray-300">
-            <th className="px-4 py-2 text-left">Entry Order No</th>
-            <th className="px-4 py-2 text-left">Origin</th>
-            <th className="px-4 py-2 text-left">Supplier</th>
-            <th className="px-4 py-2 text-left">Document Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          {entryOrders.map((entryOrder, index) => (
-            <tr key={index} className="border-b border-gray-300">
-              <td className="px-4 py-2">{entryOrder.entry_order_no}</td>
-              <td className="px-4 py-2">{entryOrder.origin?.name}</td>
-              <td className="px-4 py-2">{entryOrder.supplier?.name}</td>
-              <td className="px-4 py-2">{entryOrder.documentType?.name}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="p-4">
+      <DataTable 
+        data={entryOrders} 
+        columns={columns}
+        showPagination={true}
+        emptyMessage="No entry orders found"
+      />
     </div>
   );
 };
