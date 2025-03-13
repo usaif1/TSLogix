@@ -21,11 +21,16 @@ const NewEntryOrderForm: React.FC = () => {
   // Define states for all form fields
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "" },
+    palettes: "",
+    product_description: "",
+    insured_value: "",
     entry_order_no: "",
     document: { option: "", value: "" },
     registration_date: new Date(),
     document_date: new Date(),
     admission_date_and_time: new Date(),
+    entry_date: new Date(),
+    entry_transfer_note: "",
     personnel_in_charge: { option: "", value: "" },
     document_status: { option: "Registered", value: "REGISTERED" },
     order_status: "",
@@ -45,6 +50,7 @@ const NewEntryOrderForm: React.FC = () => {
     technical_specification: null,
     temperature: "",
     humidity: "",
+    type: "",
   });
 
   const handleChange = (
@@ -457,6 +463,92 @@ const NewEntryOrderForm: React.FC = () => {
             id="lot_series"
             name="lot_series"
             value={formData.lot_series}
+            onChange={handleChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+      </div>
+
+      <Divider />
+      <div className="w-full flex items-center gap-x-6">
+        {/* manufacturing date */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="manufacturing_date">Product</label>
+          <input
+            type="text"
+            id="lot_series"
+            name="lot_series"
+            value={formData.product}
+            onChange={handleChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        {/* expiration date */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="expiration_date">Palettes</label>
+          <input
+            type="text"
+            id="lot_series"
+            name="lot_series"
+            value={formData.palettes}
+            onChange={handleChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        {/* lot/ series */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="lot_series">Insured Value</label>
+          <input
+            type="text"
+            id="lot_series"
+            name="lot_series"
+            value={formData.insured_value}
+            onChange={handleChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      <div className="w-full flex items-center gap-x-6">
+        {/* manufacturing date */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="manufacturing_date">Entry Date</label>
+          <DatePicker
+            className="w-full border border-slate-400 h-10 rounded-md pl-4"
+            id="expiration_date"
+            name="expiration_date"
+            selected={formData.entry_date}
+            onChange={(date) =>
+              setFormData({ ...formData, expiration_date: date as Date })
+            }
+          />
+        </div>
+
+        {/* expiration date */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="expiration_date">Entry Transfer Note</label>
+          <input
+            type="text"
+            id="lot_series"
+            name="lot_series"
+            value={formData.entry_transfer_note}
+            onChange={handleChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        {/* lot/ series */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="lot_series">Type</label>
+          <input
+            type="text"
+            id="lot_series"
+            name="lot_series"
+            value={formData.type}
             onChange={handleChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />

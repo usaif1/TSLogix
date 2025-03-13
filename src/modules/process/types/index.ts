@@ -2,6 +2,11 @@ import { ReactSelectValue } from "@/types/FormTypes";
 
 export type EntryFormData = {
   origin: ReactSelectValue;
+  palettes: string;
+  product_description: string;
+  insured_value: string;
+  entry_date: Date;
+  entry_transfer_note: string;
   entry_order_no: string;
   document: ReactSelectValue;
   registration_date: Date;
@@ -26,4 +31,5 @@ export type EntryFormData = {
   technical_specification: File | null;
   temperature: string;
   humidity: string;
+  type: string;
 };
