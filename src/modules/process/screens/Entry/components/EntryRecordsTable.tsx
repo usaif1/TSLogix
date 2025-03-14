@@ -26,7 +26,7 @@ const EntryRecordsTable: React.FC = () => {
   []);
 
   return (
-    <div className="p-4">
+    <div className="">
       <DataTable 
         data={entryOrders} 
         columns={columns}

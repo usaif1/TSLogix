@@ -7,6 +7,7 @@ import DatePicker from "react-datepicker";
 import { Button, Divider, Text } from "@/components";
 import { ProcessesStore } from "@/globalStore";
 import { EntryFormData } from "@/modules/process/types";
+import { ProcessService } from "@/modules/process/api/process.service";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -17,6 +18,11 @@ const reactSelectStyle = {
 
 const NewEntryOrderForm: React.FC = () => {
   const { documentTypes, origins, users, suppliers } = ProcessesStore();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<{
+    success?: boolean;
+    message?: string;
+  }>({});
 
   // Define states for all form fields
   const [formData, setFormData] = useState<EntryFormData>({
@@ -25,13 +31,13 @@ const NewEntryOrderForm: React.FC = () => {
     product_description: "",
     insured_value: "",
     entry_order_no: "",
-    document: { option: "", value: "" },
+    document_type_id: { option: "", value: "" },
     registration_date: new Date(),
     document_date: new Date(),
-    admission_date_and_time: new Date(),
+    admission_date_time: new Date(),
     entry_date: new Date(),
     entry_transfer_note: "",
-    personnel_in_charge: { option: "", value: "" },
+    personnel_incharge_id: { option: "", value: "" },
     document_status: { option: "Registered", value: "REGISTERED" },
     order_status: "",
     observation: "",
@@ -40,8 +46,8 @@ const NewEntryOrderForm: React.FC = () => {
     cif_value: "",
     supplier: { option: "", value: "" },
     product: "",
-    protocol_analysis_certificate: null,
-    manufacturing_date: new Date(),
+    certificate_protocol_analysis: null,
+    mfd_date_time: new Date(),
     expiration_date: new Date(),
     lot_series: "",
     quantity_packaging: "",
@@ -54,21 +60,16 @@ const NewEntryOrderForm: React.FC = () => {
   });
 
   const handleChange = (
-    e:
-      | React.ChangeEvent<HTMLInputElement>
-      | React.ChangeEvent<HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-
-    // Ensure the value is either a number or string
-    const updatedValue =
-      value === "" ? "" : isNaN(Number(value)) ? value : Number(value);
-
+  
     setFormData((prevState) => ({
       ...prevState,
-      [name]: updatedValue,
+      [name]: value,
     }));
   };
+  
 
   const handleSelectChange = (name: string, selectedOption: any) => {
     console.log("selected option", selectedOption);
@@ -112,8 +113,42 @@ const NewEntryOrderForm: React.FC = () => {
     return true; // All fields are valid
   };
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+  
+    try {
+      setIsSubmitting(true);
+      setSubmitStatus({});
+  
+      const submissionData = { ...formData };
+      
+      const apiSubmissionData = {
+        ...submissionData,
+        document_status: formData.document_status?.value || "REGISTERED",
+        origin: formData.origin?.value || "",
+        document_type_id: formData.document_type_id?.value || "",
+        personnel_incharge_id: formData.personnel_incharge_id?.value || "",
+        supplier: formData.supplier?.value || "",
+        order_type: "ENTRY",
+      };
+      const response = await ProcessService.createNewEntryOrder(apiSubmissionData);
+  
+      console.log("Entry order created successfully:", response.data);
+  
+      setSubmitStatus({
+        success: true,
+        message: "Entry order created successfully",
+      });
+    } catch (error) {
+      console.error("Error creating entry order:", error);
+  
+      setSubmitStatus({
+        success: false,
+        message: "Failed to create entry order. Please try again.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const documentStatusOptions = useMemo(() => {
@@ -158,11 +193,11 @@ const NewEntryOrderForm: React.FC = () => {
           <Select
             options={documentTypes}
             styles={reactSelectStyle}
-            inputId="document"
-            name="document"
-            value={formData.document}
+            inputId="document_type_id"
+            name="documen_type_id"
+            value={formData.document_type_id}
             onChange={(selectedOption) =>
-              handleSelectChange("document", selectedOption)
+              handleSelectChange("document_type_id", selectedOption)
             }
           />
         </div>
@@ -211,11 +246,11 @@ const NewEntryOrderForm: React.FC = () => {
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             id="admission_date_and_time"
             name="admission_date_and_time"
-            selected={formData.admission_date_and_time}
+            selected={formData.admission_date_time}
             onChange={(date) =>
               setFormData({
                 ...formData,
-                admission_date_and_time: date as Date,
+                admission_date_time: date as Date,
               })
             }
           />
@@ -230,11 +265,11 @@ const NewEntryOrderForm: React.FC = () => {
           <Select
             options={users}
             styles={reactSelectStyle}
-            inputId="personnel_in_charge"
-            name="personnel_in_charge"
-            value={formData.personnel_in_charge}
+            inputId="personnel_incharge_id"
+            name="personnel_incharge_id"
+            value={formData.personnel_incharge_id}
             onChange={(selectedOption) =>
-              handleSelectChange("personnel_in_charge", selectedOption)
+              handleSelectChange("personnel_incharge_id", selectedOption)
             }
           />
         </div>
@@ -244,7 +279,6 @@ const NewEntryOrderForm: React.FC = () => {
           <label htmlFor="document_status">Document Status</label>
           <Select
             options={documentStatusOptions}
-            isDisabled
             styles={reactSelectStyle}
             inputId="document_status"
             name="document_status"
@@ -257,7 +291,7 @@ const NewEntryOrderForm: React.FC = () => {
       </div>
 
       <Divider />
-      
+
       <div>
         <div className="w-full flex items-center gap-x-6">
           <div>
@@ -391,8 +425,8 @@ const NewEntryOrderForm: React.FC = () => {
               className="w-[60%] h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
               readOnly
               value={
-                formData.protocol_analysis_certificate
-                  ? formData.protocol_analysis_certificate.name
+                formData.certificate_protocol_analysis
+                  ? formData.certificate_protocol_analysis.name
                   : "No file selected"
               }
             />
@@ -425,6 +459,20 @@ const NewEntryOrderForm: React.FC = () => {
 
       <Divider />
       <div className="w-full flex items-center gap-x-6">
+        <div className="w-full flex flex-col">
+          <label htmlFor="observation">Product Description</label>
+          <textarea
+            id="product_description"
+            name="product_description"
+            value={formData.product_description}
+            onChange={handleChange}
+            className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+      </div>
+
+      <Divider />
+      <div className="w-full flex items-center gap-x-6">
         {/* manufacturing date */}
         <div className="w-full flex flex-col">
           <label htmlFor="manufacturing_date">Manufacturing Date</label>
@@ -434,9 +482,9 @@ const NewEntryOrderForm: React.FC = () => {
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             id="manufacturing_date"
             name="manufacturing_date"
-            selected={formData.manufacturing_date}
+            selected={formData.mfd_date_time}
             onChange={(date) =>
-              setFormData({ ...formData, manufacturing_date: date as Date })
+              setFormData({ ...formData, mfd_date_time: date as Date })
             }
           />
         </div>
@@ -471,7 +519,6 @@ const NewEntryOrderForm: React.FC = () => {
 
       <Divider />
       <div className="w-full flex items-center gap-x-6">
-
         {/* expiration date */}
         <div className="w-full flex flex-col">
           <label htmlFor="expiration_date">Palettes</label>
@@ -507,11 +554,11 @@ const NewEntryOrderForm: React.FC = () => {
           <label htmlFor="manufacturing_date">Entry Date</label>
           <DatePicker
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="expiration_date"
-            name="expiration_date"
+            id="entry_date"
+            name="entry_date"
             selected={formData.entry_date}
             onChange={(date) =>
-              setFormData({ ...formData, expiration_date: date as Date })
+              setFormData({ ...formData, entry_date: date as Date })
             }
           />
         </div>
@@ -559,7 +606,6 @@ const NewEntryOrderForm: React.FC = () => {
         </div>
 
         {/* presentation */}
-
         <div className="w-full flex flex-col">
           <label htmlFor="presentation">Presentation</label>
           <input
@@ -642,7 +688,6 @@ const NewEntryOrderForm: React.FC = () => {
         </div>
 
         {/* humidity */}
-
         <div className="w-full flex flex-col">
           <label htmlFor="humidity">Humidity</label>
           <input
@@ -656,16 +701,24 @@ const NewEntryOrderForm: React.FC = () => {
         </div>
       </div>
 
+      {/* Submission status message */}
+      {submitStatus.message && (
+        <div
+          className={`mt-4 p-3 rounded-md ${
+            submitStatus.success
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {submitStatus.message}
+        </div>
+      )}
+
       <Divider height="2xl" />
 
       <div>
-        <Button
-          variant="action"
-          additionalClass="w-40"
-          type="submit"
-          disabled={!isFormValid()}
-        >
-          Register
+        <Button variant="action" additionalClass="w-40" type="submit">
+          {isSubmitting ? "Submitting..." : "Register"}
         </Button>
       </div>
     </form>

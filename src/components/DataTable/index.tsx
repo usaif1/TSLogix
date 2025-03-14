@@ -38,19 +38,18 @@ function DataTable<T extends object>({
   });
 
   return (
-    <div className={`overflow-x-auto ${className}`}>
-      <div className="rounded-md shadow-sm">
-        <table className="min-w-full table-auto">
-          <thead>
+    <div className={`rounded-md shadow-sm border border-gray-200 ${className}`}>
+      {/* Table Container for horizontal scroll */}
+      <div className="w-[92%] overflow-x-auto">
+        <table className="w-full min-w-full table-auto">
+          {/* Table Header */}
+          <thead className="bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr
-                key={headerGroup.id}
-                className="border-b"
-              >
+              <tr key={headerGroup.id} className="border-b border-gray-200">
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="pt-2 py-6 text-left text-sm font-semibold text-gray-700 whitespace-nowrap"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider"
                   >
                     {flexRender(
                       header.column.columnDef.header,
@@ -61,70 +60,80 @@ function DataTable<T extends object>({
               </tr>
             ))}
           </thead>
+
+          {/* Table Body */}
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr
-                key={row.id}
-                className="border-b hover:bg-gray-50 transition-colors"
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="pt-2 py-6 text-sm text-gray-600 truncate max-w-xs"
-                    title={String(cell.getValue() || "")}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+            {table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row, rowIndex) => (
+                <tr
+                  key={row.id}
+                  className={`border-b border-gray-200 ${
+                    rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
+                  } hover:bg-gray-100 transition-colors`}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="px-6 py-4 text-sm text-gray-700 truncate max-w-xs"
+                      title={String(cell.getValue() || "")}
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  className="py-8 text-center text-gray-500"
+                >
+                  {emptyMessage}
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
-
-        {data.length === 0 && (
-          <div className="py-8 text-center text-gray-500">{emptyMessage}</div>
-        )}
-
-        {showPagination && data.length > 0 && (
-          <div className="flex items-center justify-between px-4 py-3 bg-white border-t">
-            <div className="flex-1 sm:block">
-              <p className="text-sm text-gray-700">
-                Showing{" "}
-                <span className="font-medium">
-                  {table.getState().pagination.pageIndex *
-                    table.getState().pagination.pageSize +
-                    1}
-                </span>{" "}
-                -{" "}
-                <span className="font-medium">
-                  {Math.min(
-                    (table.getState().pagination.pageIndex + 1) *
-                      table.getState().pagination.pageSize,
-                    data.length
-                  )}
-                </span>{" "}
-                of <span className="font-medium">{data.length}</span> results
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                className="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                Previous
-              </button>
-              <button
-                className="relative inline-flex items-center px-4 py-2 border text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Pagination */}
+      {showPagination && data.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 w-[92%]">
+          <div className="text-sm text-gray-700">
+            Showing{" "}
+            <span className="font-medium">
+              {table.getState().pagination.pageIndex *
+                table.getState().pagination.pageSize +
+                1}
+            </span>{" "}
+            -{" "}
+            <span className="font-medium">
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) *
+                  table.getState().pagination.pageSize,
+                data.length
+              )}
+            </span>{" "}
+            of <span className="font-medium">{data.length}</span> results
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Previous
+            </button>
+            <button
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

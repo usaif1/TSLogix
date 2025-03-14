@@ -4,6 +4,7 @@ import api from "@/utils/api/axios.config";
 
 // store
 import { ProcessesStore } from "@/globalStore";
+import { create } from "domain";
 
 const baseURL = "/processes";
 
@@ -68,8 +69,13 @@ export const ProcessService = {
   },
   //   create new entry order
   createNewEntryOrder: async (formData: any) => {
+    
     const response = await api.post(`${baseURL}/create-entry-order`, {
       ...formData,
+      organisation_id: localStorage.getItem("organisation_id"),
+      order_type: "ENTRY",
+      created_by: localStorage.getItem("id"),
+
     });
 
     return response;
