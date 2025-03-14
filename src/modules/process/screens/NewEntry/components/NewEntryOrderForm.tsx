@@ -471,18 +471,6 @@ const NewEntryOrderForm: React.FC = () => {
 
       <Divider />
       <div className="w-full flex items-center gap-x-6">
-        {/* manufacturing date */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="manufacturing_date">Product</label>
-          <input
-            type="text"
-            id="lot_series"
-            name="lot_series"
-            value={formData.product}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
 
         {/* expiration date */}
         <div className="w-full flex flex-col">
