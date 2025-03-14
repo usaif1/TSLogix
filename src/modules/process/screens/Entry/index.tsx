@@ -4,13 +4,18 @@ import { Plus } from "@phosphor-icons/react";
 
 // components
 import { OrderBtnGroup } from "../../components";
-import { Divider, Text, Searchbar } from "@/components";
+import { Divider, Text, Searchbar, LoaderSync } from "@/components";
 import { EntryRecordsTable } from "./components";
 
 // services
 import { ProcessService } from "@/globalService";
 
+// store
+import { ProcessesStore } from "@/globalStore";
+
 const Entry: React.FC = () => {
+  const { loaders } = ProcessesStore();
+
   const buttonGroup = useMemo(() => {
     return [
       {
@@ -42,7 +47,14 @@ const Entry: React.FC = () => {
       <OrderBtnGroup items={buttonGroup} />
       <Divider />
       <div className="sm:h-3/5 2xl:h-full rounded-md py-1.5 overflow-scroll">
-        <EntryRecordsTable />
+        {loaders["processes/fetch-entry-orders"] ? (
+          <>
+            <Divider height="md" />
+            <LoaderSync loaderText="Fetching Entry Orders. Please Wait" />
+          </>
+        ) : (
+          <EntryRecordsTable />
+        )}
       </div>
     </div>
   );
