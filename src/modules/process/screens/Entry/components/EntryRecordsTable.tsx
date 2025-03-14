@@ -26,7 +26,7 @@ const EntryRecordsTable: React.FC = () => {
   []);
 
   return (
-    <div className="">
+    <div className="max-w-full h-full">
       <DataTable 
         data={entryOrders} 
         columns={columns}

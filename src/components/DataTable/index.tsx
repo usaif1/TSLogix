@@ -40,8 +40,15 @@ function DataTable<T extends object>({
   return (
     <div className={`rounded-md shadow-sm border border-gray-200 ${className}`}>
       {/* Table Container for horizontal scroll */}
-      <div className="w-[92%] overflow-x-auto">
-        <table className="w-full min-w-full table-auto">
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(1, minmax(0, 1fr))",
+          overflow: "auto",
+          whiteSpace: "normal",
+        }}
+      >
+        <table className="w-full table-auto overflow-y-scroll" style={{}}>
           {/* Table Header */}
           <thead className="bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -77,7 +84,10 @@ function DataTable<T extends object>({
                       className="px-6 py-4 text-sm text-gray-700 truncate max-w-xs"
                       title={String(cell.getValue() || "")}
                     >
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
                     </td>
                   ))}
                 </tr>

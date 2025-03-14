@@ -41,7 +41,7 @@ const Entry: React.FC = () => {
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
       <Divider />
-      <div className="h-4/5 bg-white rounded-md px-2 py-1.5">
+      <div className="sm:h-3/5 xl:h-full rounded-md py-1.5 overflow-scroll">
         <EntryRecordsTable />
       </div>
     </div>
