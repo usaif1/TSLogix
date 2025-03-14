@@ -477,8 +477,8 @@ const NewEntryOrderForm: React.FC = () => {
           <label htmlFor="expiration_date">Palettes</label>
           <input
             type="text"
-            id="lot_series"
-            name="lot_series"
+            id="palettes"
+            name="palettes"
             value={formData.palettes}
             onChange={handleChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
@@ -490,8 +490,8 @@ const NewEntryOrderForm: React.FC = () => {
           <label htmlFor="lot_series">Insured Value</label>
           <input
             type="text"
-            id="lot_series"
-            name="lot_series"
+            id="insured_value"
+            name="insured_value"
             value={formData.insured_value}
             onChange={handleChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
@@ -521,8 +521,8 @@ const NewEntryOrderForm: React.FC = () => {
           <label htmlFor="expiration_date">Entry Transfer Note</label>
           <input
             type="text"
-            id="lot_series"
-            name="lot_series"
+            id="entry_transfer_note"
+            name="entry_transfer_note"
             value={formData.entry_transfer_note}
             onChange={handleChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
@@ -534,8 +534,8 @@ const NewEntryOrderForm: React.FC = () => {
           <label htmlFor="lot_series">Type</label>
           <input
             type="text"
-            id="lot_series"
-            name="lot_series"
+            id="type"
+            name="type"
             value={formData.type}
             onChange={handleChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
