@@ -60,16 +60,17 @@ const NewEntryOrderForm: React.FC = () => {
   });
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>
+    e:
+      | React.ChangeEvent<HTMLInputElement>
+      | React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-  
+
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
     }));
   };
-  
 
   const handleSelectChange = (name: string, selectedOption: any) => {
     console.log("selected option", selectedOption);
@@ -91,37 +92,15 @@ const NewEntryOrderForm: React.FC = () => {
     }));
   };
 
-  // Function to check if all fields are filled
-  const isFormValid = () => {
-    for (const key in formData) {
-      const fieldValue = formData[key as keyof EntryFormData];
-
-      if (typeof fieldValue === "string") {
-        if (fieldValue === "") {
-          return false; // If it's an empty string, return false
-        }
-      } else if (
-        fieldValue &&
-        typeof fieldValue === "object" &&
-        "option" in fieldValue
-      ) {
-        if (fieldValue.option === "" || fieldValue.value === "") {
-          return false; // If 'option' or 'value' is empty, return false
-        }
-      }
-    }
-    return true; // All fields are valid
-  };
-
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     try {
       setIsSubmitting(true);
       setSubmitStatus({});
-  
+
       const submissionData = { ...formData };
-      
+
       const apiSubmissionData = {
         ...submissionData,
         document_status: formData.document_status?.value || "REGISTERED",
@@ -131,17 +110,19 @@ const NewEntryOrderForm: React.FC = () => {
         supplier: formData.supplier?.value || "",
         order_type: "ENTRY",
       };
-      const response = await ProcessService.createNewEntryOrder(apiSubmissionData);
-  
+      const response = await ProcessService.createNewEntryOrder(
+        apiSubmissionData
+      );
+
       console.log("Entry order created successfully:", response.data);
-  
+
       setSubmitStatus({
         success: true,
         message: "Entry order created successfully",
       });
     } catch (error) {
       console.error("Error creating entry order:", error);
-  
+
       setSubmitStatus({
         success: false,
         message: "Failed to create entry order. Please try again.",

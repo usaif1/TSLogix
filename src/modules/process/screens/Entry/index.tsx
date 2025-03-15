@@ -29,7 +29,6 @@ const Entry: React.FC = () => {
         route: "/processes/entry/mass",
       },
     ];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
