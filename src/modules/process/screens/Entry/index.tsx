@@ -1,17 +1,21 @@
 // dependencies
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Plus } from "@phosphor-icons/react";
 
 // components
 import { OrderBtnGroup } from "../../components";
-import { Divider, Text, Searchbar } from "@/components";
-import {
-  EntryRecordsTable,
-  // NewEntryOrderForm,
-  // NewMassEntryOrderForm,
-} from "./components";
+import { Divider, Text, Searchbar, LoaderSync } from "@/components";
+import { EntryRecordsTable } from "./components";
+
+// services
+import { ProcessService } from "@/globalService";
+
+// store
+import { ProcessesStore } from "@/globalStore";
 
 const Entry: React.FC = () => {
+  const { loaders } = ProcessesStore();
+
   const buttonGroup = useMemo(() => {
     return [
       {
@@ -28,6 +32,10 @@ const Entry: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    ProcessService.fetchAllEntryOrders();
+  }, []);
+
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
@@ -38,8 +46,15 @@ const Entry: React.FC = () => {
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
       <Divider />
-      <div className="h-4/5 bg-white rounded-md px-2 py-1.5">
-        <EntryRecordsTable />
+      <div className="sm:h-3/5 2xl:h-full rounded-md py-1.5 overflow-scroll">
+        {loaders["processes/fetch-entry-orders"] ? (
+          <>
+            <Divider height="md" />
+            <LoaderSync loaderText="Fetching Entry Orders. Please Wait" />
+          </>
+        ) : (
+          <EntryRecordsTable />
+        )}
       </div>
     </div>
   );

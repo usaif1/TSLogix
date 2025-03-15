@@ -1,0 +1,35 @@
+import { ReactSelectValue } from "@/types/FormTypes";
+
+export type EntryFormData = {
+  origin: ReactSelectValue;
+  palettes: string;
+  product_description: string;
+  insured_value: string;
+  entry_date: Date;
+  entry_transfer_note: string;
+  entry_order_no: string;
+  document_type_id: ReactSelectValue;
+  registration_date: Date;
+  document_date: Date;
+  admission_date_time: Date;
+  personnel_incharge_id: ReactSelectValue;
+  document_status: ReactSelectValue;
+  order_status: string;
+  observation: string;
+  total_volume: string;
+  total_weight: string;
+  cif_value: string;
+  supplier: ReactSelectValue;
+  product: string;
+  certificate_protocol_analysis: File | null;
+  mfd_date_time: Date;
+  expiration_date: Date;
+  lot_series: string;
+  quantity_packaging: string;
+  presentation: string;
+  total_qty: string;
+  technical_specification: File | null;
+  temperature: string;
+  humidity: string;
+  type: string;
+};

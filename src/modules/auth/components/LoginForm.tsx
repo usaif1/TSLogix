@@ -1,37 +1,60 @@
 // dependencies
-import React from "react";
+import React, { useState } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
 
 // components
 import { Button, Text } from "@/components";
 
-// store
-import { AuthStore } from "@/globalStore";
+// service
+import { AuthService } from "@/globalService";
 
 const LoginForm: React.FC = () => {
+  const [formData, setFormData] = useState({
+    userId: "",
+    loginPassword: "",
+  });
+
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    AuthStore.setState((prevState) => ({
+    console.log("formData", formData);
+
+    AuthService.login({
+      userId: formData.userId,
+      password: formData.loginPassword,
+    });
+  };
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData((prevState) => ({
       ...prevState,
-      authUser: true,
+      [e.target.name]: e.target.value,
     }));
   };
 
   return (
     <form className="login_form" onSubmit={onSubmit}>
       <div className="login_form_block">
-        <label>Email</label>
+        <label htmlFor="userId">User ID</label>
         <input
-          type="email"
+          type="text"
+          onChange={onChange}
+          value={formData.userId}
           className="login_input mt-1.5"
-          placeholder="johndoe@text.com"
+          placeholder="CA TS 11"
           autoComplete="off"
+          name="userId"
         />
       </div>
       <div className="login_form_block">
-        <label>Password</label>
-        <input type="password" className="login_input mt-1.5" />
+        <label htmlFor="loginPassword">Password</label>
+        <input
+          type="password"
+          value={formData.loginPassword}
+          onChange={onChange}
+          className="login_input mt-1.5"
+          name="loginPassword"
+        />
       </div>
 
       <Button type="submit">

@@ -49,6 +49,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         {/* registration date */}
+
         <div className="w-full flex flex-col">
           <label htmlFor="registration_date">Registration Date</label>
           <DatePicker
@@ -64,6 +65,7 @@ const DepartureApprovedForm: React.FC = () => {
       </div>
 
       <Divider />
+
       <div className="w-full flex items-center gap-x-6">
         {/* document type */}
         <div className="w-full flex flex-col">
@@ -102,6 +104,7 @@ const DepartureApprovedForm: React.FC = () => {
       </div>
 
       <Divider />
+
       <div className="w-full flex items-center gap-x-6">
         {/* transfer date and time */}
         <div className="w-full flex flex-col">
@@ -144,6 +147,7 @@ const DepartureApprovedForm: React.FC = () => {
       </div>
 
       <Divider />
+
       <div className="w-full flex items-center gap-x-6">
         {/* arrival point */}
         <div className="w-full flex flex-col">
@@ -248,6 +252,7 @@ const DepartureApprovedForm: React.FC = () => {
       </div>
 
       <Divider />
+
       <div>
         <Button variant="action" additionalClass="w-40">
           Add Product
