@@ -49,14 +49,17 @@ function DataTable<T extends object>({
         }}
       >
         <table className="w-full table-auto overflow-y-scroll" style={{}}>
+
           {/* Table Header */}
           <thead className="bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b border-gray-200">
-                {headerGroup.headers.map((header) => (
+                {headerGroup.headers.map((header, index) => (
                   <th
                     key={header.id}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider"
+                    className={`px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider ${
+                      index === 0 ? "sticky left-0 bg-gray-50 shadow-md" : ""
+                    }`}
                   >
                     {flexRender(
                       header.column.columnDef.header,
@@ -78,10 +81,12 @@ function DataTable<T extends object>({
                     rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                   } hover:bg-gray-100 transition-colors`}
                 >
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map((cell, index) => (
                     <td
                       key={cell.id}
-                      className="px-6 py-4 text-sm text-gray-700 truncate max-w-xs"
+                      className={`px-6 py-4 text-sm text-gray-700 truncate max-w-xs ${
+                        index === 0 ? "sticky left-0 bg-white shadow-md" : ""
+                      }`}
                       title={String(cell.getValue() || "")}
                     >
                       {flexRender(
