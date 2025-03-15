@@ -1,4 +1,4 @@
-import React from "react";
+// dependencies
 import {
   useReactTable,
   getCoreRowModel,
@@ -39,9 +39,17 @@ function DataTable<T extends object>({
 
   return (
     <div className={`rounded-md shadow-sm border border-gray-200 ${className}`}>
-      {/* Scrollable Table Container */}
-      <div className="w-[92%] overflow-x-auto">
-        <table className="w-full min-w-full table-auto">
+      {/* Table Container for horizontal scroll */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(1, minmax(0, 1fr))",
+          overflow: "auto",
+          whiteSpace: "normal",
+        }}
+      >
+        <table className="w-full table-auto overflow-y-scroll" style={{}}>
+
           {/* Table Header */}
           <thead className="bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (

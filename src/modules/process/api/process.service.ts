@@ -4,18 +4,27 @@ import api from "@/utils/api/axios.config";
 
 // store
 import { ProcessesStore } from "@/globalStore";
-import { create } from "domain";
 
 const baseURL = "/processes";
 
 const setEntryOrders = ProcessesStore.getState().setEntryOrders;
+const startLoader = ProcessesStore.getState().startLoader;
+const stopLoader = ProcessesStore.getState().stopLoader;
+
 
 export const ProcessService = {
   // fetch all entry orders
   fetchAllEntryOrders: async () => {
-    const response = await api.get(`${baseURL}/entry-orders`);
-
-    setEntryOrders(response.data.data);
+    try {
+      startLoader('processes/fetch-entry-orders')
+      const response = await api.get(`${baseURL}/entry-orders`);
+      setEntryOrders(response.data.data);
+    } catch (err) {
+      console.log("fetch entry orders error", err)
+      throw new Error('Failed to fetch entry orders')
+    }finally{
+      stopLoader('processes/fetch-entry-orders')
+    }
   },
 
   //   fetch all dropdown fields for new entry order form
