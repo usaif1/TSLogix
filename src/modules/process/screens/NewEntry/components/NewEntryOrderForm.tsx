@@ -108,6 +108,8 @@ const NewEntryOrderForm: React.FC = () => {
         document_type_id: formData.document_type_id?.value || "",
         personnel_incharge_id: formData.personnel_incharge_id?.value || "",
         supplier: formData.supplier?.value || "",
+        certificate_protocol_analysis: "",
+        technical_specification: "",
         order_type: "ENTRY",
       };
       const response = await ProcessService.createNewEntryOrder(
