@@ -8,6 +8,7 @@ import { ProcessesStore } from "@/globalStore";
 const baseURL = "/processes";
 
 const setEntryOrders = ProcessesStore.getState().setEntryOrders;
+const setDepartureOrders = ProcessesStore.getState().setDepartureOrders;
 const startLoader = ProcessesStore.getState().startLoader;
 const stopLoader = ProcessesStore.getState().stopLoader;
 
@@ -33,7 +34,7 @@ export const ProcessService = {
 
     console.log(response.data);
 
-    const { origins, users, suppliers, documentTypes } = response.data;
+    const { origins, users, suppliers, documentTypes, customers } = response.data;
 
     // change to react-select compatible dropdown options -
     const formattedOrigins = origins.map((origin: any) => {
@@ -66,6 +67,12 @@ export const ProcessService = {
       };
     });
 
+    const formattedCusomters = customers.map((customers: any) => {
+      return {
+        value: customers.customer_id,
+        label: customers.name,
+      };
+    });
     // { value: "originOption1", label: "originOption1" },
 
     ProcessesStore.setState((prevState) => ({
@@ -74,6 +81,7 @@ export const ProcessService = {
       users: formattedUsers,
       suppliers: formattedSuppliers,
       documentTypes: formattedDocumentTypes,
+      customers: formattedCusomters,
     }));
   },
   //   create new entry order
@@ -88,5 +96,29 @@ export const ProcessService = {
     });
 
     return response;
+  },
+
+  createNewDepartureOrder: async (formData: any) => {
+    const response = await api.post(`${baseURL}/create-departure-order`, {
+      ...formData,
+      organisation_id: localStorage.getItem("organisation_id"),
+      order_type: "DEPARTURE",
+      created_by: localStorage.getItem("id"),
+    });
+
+    return response;
+  },
+
+  fetchAllDepartureOrders: async () => {
+    try {
+      startLoader('processes/fetch-departure-orders')
+      const response = await api.get(`${baseURL}/departure-orders`);
+      setDepartureOrders(response.data.data);
+    } catch (err) {
+      console.log("fetch entry orders error", err)
+      throw new Error('Failed to fetch entry orders')
+    }finally{
+      stopLoader('processes/fetch-entry-orders')
+    }
   },
 };
