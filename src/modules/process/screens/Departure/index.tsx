@@ -1,16 +1,21 @@
 // dependencies
-import React from "react";
+import React, { useEffect } from "react";
 import { Plus } from "@phosphor-icons/react";
+
+// services
+import { ProcessService } from "@/globalService";
 
 // components
 import { Divider, Text, Searchbar, Button } from "@/components";
-import { EntryRecordsTable } from "@/modules/process/screens/Entry/components";
-import { DepartureOptions } from "./components";
+import { DepartureOptions, DepartureRecordsTable } from "./components";
 
 // store
 import { GlobalStore } from "@/globalStore";
 
 const Entry: React.FC = () => {
+  useEffect(() => {
+    ProcessService.fetchAllDepartureOrders();
+  }, []);
   const openModal = GlobalStore.use.openModal();
 
   const onClick = () => {
@@ -38,7 +43,7 @@ const Entry: React.FC = () => {
       </Button>
       <Divider />
       <div className="h-4/5 bg-white rounded-md px-2 py-1.5">
-        <EntryRecordsTable />
+        <DepartureRecordsTable />
       </div>
     </div>
   );
