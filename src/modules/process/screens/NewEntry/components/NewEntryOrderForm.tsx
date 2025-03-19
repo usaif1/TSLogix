@@ -409,7 +409,7 @@ const NewEntryOrderForm: React.FC = () => {
               readOnly
               value={
                 formData.certificate_protocol_analysis
-                  ? formData.certificate_protocol_analysis.name
+                  ? (formData.certificate_protocol_analysis as File)?.name
                   : "No file selected"
               }
             />
