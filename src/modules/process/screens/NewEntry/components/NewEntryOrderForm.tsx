@@ -4,7 +4,7 @@ import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
 
 // components
-import { Button, Divider, Text } from "@/components";
+import { Button, Divider, Text, Fileupload } from "@/components";
 import { ProcessesStore } from "@/globalStore";
 import { EntryFormData } from "@/modules/process/types";
 import { ProcessService } from "@/modules/process/api/process.service";
@@ -80,7 +80,7 @@ const NewEntryOrderForm: React.FC = () => {
       [name]: selectedOption,
     }));
   };
-
+  // @ts-expect-error - File type is not supported by react-select
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: string
@@ -397,45 +397,18 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* protocol/ analysis certificate */}
         <div className="w-full flex flex-col">
-          <label htmlFor="protocol_analysis_certificate">
-            Protocol/ Analysis Certificate
-          </label>
 
           <div className="flex items-center gap-x-2">
             {/* White box that displays file name or "No file selected" */}
-            <input
-              type="text"
-              className="w-[60%] h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-              readOnly
-              value={
-                formData.certificate_protocol_analysis
-                  ? (formData.certificate_protocol_analysis as File)?.name
-                  : "No file selected"
-              }
+            <Fileupload
+              label="Protocol/ Analysis Certificate"
+              onUpload={(url) => {
+                setFormData((prevState) => ({
+                  ...prevState,
+                  certificate_protocol_analysis: url,
+                }));
+              }}
             />
-
-            {/* Hidden input for file */}
-            <input
-              type="file"
-              accept=".png, .jpg, .jpeg, .webp"
-              id="protocol_analysis_certificate"
-              className="hidden"
-              onChange={(e) =>
-                handleFileChange(e, "protocol_analysis_certificate")
-              }
-            />
-
-            {/* Select file button */}
-            <Button
-              type="button"
-              onClick={() =>
-                document
-                  .getElementById("protocol_analysis_certificate")
-                  ?.click()
-              }
-            >
-              Select File
-            </Button>
           </div>
         </div>
       </div>
@@ -625,35 +598,15 @@ const NewEntryOrderForm: React.FC = () => {
 
           <div className="flex items-center gap-x-2">
             {/* White box that displays file name or "No file selected" */}
-            <input
-              type="text"
-              className="w-[60%] h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-              readOnly
-              value={
-                formData.technical_specification
-                  ? formData.technical_specification.name
-                  : "No file selected"
-              }
+            <Fileupload
+              label="Technical Specification"
+              onUpload={(url) => {
+                setFormData((prevState) => ({
+                  ...prevState,
+                  technical_specification: url,
+                }));
+              }}
             />
-
-            {/* Hidden input for file */}
-            <input
-              type="file"
-              accept=".png, .jpg, .jpeg, .webp"
-              id="technical_specification"
-              className="hidden"
-              onChange={(e) => handleFileChange(e, "technical_specification")}
-            />
-
-            {/* Select file button */}
-            <Button
-              type="button"
-              onClick={() =>
-                document.getElementById("technical_specification")?.click()
-              }
-            >
-              Select File
-            </Button>
           </div>
         </div>
 
