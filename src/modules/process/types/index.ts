@@ -28,7 +28,7 @@ export type EntryFormData = {
   quantity_packaging: string;
   presentation: string;
   total_qty: string;
-  technical_specification: File | null;
+  technical_specification: File | string | null;
   temperature: string;
   humidity: string;
   type: string;
