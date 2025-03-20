@@ -80,7 +80,7 @@ const NewEntryOrderForm: React.FC = () => {
       [name]: selectedOption,
     }));
   };
-
+  // @ts-expect-error - File type is not supported by react-select
   const handleFileChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     field: string
