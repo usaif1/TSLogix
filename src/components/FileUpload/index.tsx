@@ -17,7 +17,6 @@ const FileUpload = ({
   const [fileName, setFileName] = useState("");
 
   const handleUpload = async (file: File) => {
-    debugger;
     setIsUploading(true);
     try {
       const fileName = `${Date.now()}_${file.name}`;
