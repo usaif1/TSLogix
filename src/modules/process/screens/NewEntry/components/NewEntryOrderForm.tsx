@@ -80,17 +80,17 @@ const NewEntryOrderForm: React.FC = () => {
       [name]: selectedOption,
     }));
   };
-  // @ts-expect-error - File type is not supported by react-select
-  const handleFileChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    field: string
-  ) => {
-    const file = e.target.files ? e.target.files[0] : null;
-    setFormData((prevState) => ({
-      ...prevState,
-      [field]: file,
-    }));
-  };
+
+  // const handleFileChange = (
+  //   e: React.ChangeEvent<HTMLInputElement>,
+  //   field: string
+  // ) => {
+  //   const file = e.target.files ? e.target.files[0] : null;
+  //   setFormData((prevState) => ({
+  //     ...prevState,
+  //     [field]: file,
+  //   }));
+  // };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -397,7 +397,6 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* protocol/ analysis certificate */}
         <div className="w-full flex flex-col">
-
           <div className="flex items-center gap-x-2">
             {/* White box that displays file name or "No file selected" */}
             <Fileupload
