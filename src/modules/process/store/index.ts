@@ -18,6 +18,7 @@ type ProcessesStore = {
   customers: any[];
   suppliers: any[];
   documentTypes: any[];
+  products: any[];
 
   // loading states
   loaders: Record<LoaderTypes, boolean>;
@@ -45,6 +46,7 @@ const authInitialState: ProcessesStore = {
   suppliers: [],
   documentTypes: [],
   departureOrders: [],
+  products: [],
 
   loaders: {
     "processes/fetch-entry-orders": false,

@@ -1,42 +1,24 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/supabaseClient";
 import { Button } from "@/components";
 
 interface FileUploadProps {
   label: string;
-  onUpload: (url: string) => void;
+  onFileSelected: (file: File) => void;
   accept?: string;
 }
 
 const FileUpload = ({
   label,
-  onUpload,
-  accept = "*",
+  onFileSelected,
+  accept = ".pdf,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.gif",
 }: FileUploadProps) => {
-  const [isUploading, setIsUploading] = useState(false);
   const [fileName, setFileName] = useState("");
 
-  const handleUpload = async (file: File) => {
-    debugger;
-    setIsUploading(true);
-    try {
-      const fileName = `${Date.now()}_${file.name}`;
-      const { error } = await supabase.storage
-        .from("order")
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: urlData } = await supabase.storage
-        .from("order")
-        .getPublicUrl(fileName);
-
-      onUpload(urlData.publicUrl);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (file) {
       setFileName(file.name);
-    } catch (error) {
-      console.error("Upload error:", error);
-    } finally {
-      setIsUploading(false);
+      onFileSelected(file);
     }
   };
 
@@ -55,17 +37,13 @@ const FileUpload = ({
           id="fileInput"
           className="hidden"
           accept={accept}
-          onChange={(e) =>
-            e.target.files?.[0] && handleUpload(e.target.files[0])
-          }
-          disabled={isUploading}
+          onChange={handleFileChange}
         />
         <Button
           type="button"
           onClick={() => document.getElementById("fileInput")?.click()}
-          disabled={isUploading}
         >
-          {isUploading ? "Uploading..." : "Select File"}
+          Select File
         </Button>
       </div>
     </div>
