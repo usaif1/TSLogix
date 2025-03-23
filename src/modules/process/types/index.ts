@@ -20,7 +20,7 @@ export type EntryFormData = {
   total_weight: string;
   cif_value: string;
   supplier: ReactSelectValue;
-  product: string;
+  product: ReactSelectValue;
   certificate_protocol_analysis: File | string | null;
   mfd_date_time: Date;
   expiration_date: Date;
@@ -29,7 +29,8 @@ export type EntryFormData = {
   presentation: string;
   total_qty: string;
   technical_specification: File | string | null;
-  temperature: string;
+  max_temperature: string;
+  min_temperature: string;
   humidity: string;
   type: string;
 };

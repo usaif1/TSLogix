@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
+import { useNavigate } from "react-router-dom";
 
 // components
-import { Button, Divider, Text, Fileupload } from "@/components";
+import { Button, Divider, Text } from "@/components";
+import FileUpload from "@/components/FileUpload";
 import { ProcessesStore } from "@/globalStore";
 import { EntryFormData } from "@/modules/process/types";
 import { ProcessService } from "@/modules/process/api/process.service";
+import { supabase } from "@/lib/supabase/supabaseClient";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -17,20 +20,34 @@ const reactSelectStyle = {
 };
 
 const NewEntryOrderForm: React.FC = () => {
-  const { documentTypes, origins, users, suppliers } = ProcessesStore();
+  const navigate = useNavigate();
+  const {
+    documentTypes,
+    origins,
+    users,
+    products,
+    suppliers,
+    currentEntryOrderNo,
+  } = ProcessesStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     success?: boolean;
     message?: string;
   }>({});
 
-  // Define states for all form fields
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
+    }));
+  }, [currentEntryOrderNo]);
+
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "" },
     palettes: "",
     product_description: "",
     insured_value: "",
-    entry_order_no: "",
+    entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
     document_type_id: { option: "", value: "" },
     registration_date: new Date(),
     document_date: new Date(),
@@ -45,19 +62,41 @@ const NewEntryOrderForm: React.FC = () => {
     total_weight: "",
     cif_value: "",
     supplier: { option: "", value: "" },
-    product: "",
-    certificate_protocol_analysis: null,
+    product: { option: "", value: "" },
+    certificate_protocol_analysis: "",
     mfd_date_time: new Date(),
     expiration_date: new Date(),
     lot_series: "",
     quantity_packaging: "",
     presentation: "",
     total_qty: "",
-    technical_specification: null,
-    temperature: "",
+    technical_specification: "",
+    max_temperature: "",
+    min_temperature: "",
     humidity: "",
     type: "",
   });
+
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [techSpecFile, setTechSpecFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (submitStatus.success) {
+      navigate("/processes/entry");
+    }
+  }, [submitStatus.success, navigate]);
+
+  const handleEntryOrderNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    const prefix = currentEntryOrderNo?.currentOrderNo || "";
+
+    if (newValue.startsWith(prefix)) {
+      setFormData((prev) => ({
+        ...prev,
+        entry_order_no: newValue,
+      }));
+    }
+  };
 
   const handleChange = (
     e:
@@ -73,31 +112,44 @@ const NewEntryOrderForm: React.FC = () => {
   };
 
   const handleSelectChange = (name: string, selectedOption: any) => {
-    console.log("selected option", selectedOption);
-
     setFormData((prevState) => ({
       ...prevState,
       [name]: selectedOption,
     }));
   };
 
-  // const handleFileChange = (
-  //   e: React.ChangeEvent<HTMLInputElement>,
-  //   field: string
-  // ) => {
-  //   const file = e.target.files ? e.target.files[0] : null;
-  //   setFormData((prevState) => ({
-  //     ...prevState,
-  //     [field]: file,
-  //   }));
-  // };
-
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    setIsSubmitting(true);
+    setSubmitStatus({});
+
     try {
-      setIsSubmitting(true);
-      setSubmitStatus({});
+      let certificateUrl = "";
+      if (certificateFile) {
+        const fileName = `${Date.now()}_${certificateFile.name}`;
+        const { error } = await supabase.storage
+          .from("order")
+          .upload(fileName, certificateFile);
+        if (error) throw error;
+        const { data: urlData } = supabase.storage
+          .from("order")
+          .getPublicUrl(fileName);
+        certificateUrl = urlData.publicUrl;
+      }
+
+      let techSpecUrl = "";
+      if (techSpecFile) {
+        const fileName = `${Date.now()}_${techSpecFile.name}`;
+        const { error } = await supabase.storage
+          .from("order")
+          .upload(fileName, techSpecFile);
+        if (error) throw error;
+        const { data: urlData } = supabase.storage
+          .from("order")
+          .getPublicUrl(fileName);
+        techSpecUrl = urlData.publicUrl;
+      }
 
       const submissionData = { ...formData };
 
@@ -108,15 +160,54 @@ const NewEntryOrderForm: React.FC = () => {
         document_type_id: formData.document_type_id?.value || "",
         personnel_incharge_id: formData.personnel_incharge_id?.value || "",
         supplier: formData.supplier?.value || "",
-        certificate_protocol_analysis: "",
-        technical_specification: "",
+        certificate_protocol_analysis: certificateUrl,
+        product: formData.product?.value || "",
+        technical_specification: techSpecUrl,
         order_type: "ENTRY",
       };
-      const response = await ProcessService.createNewEntryOrder(
+
+      await ProcessService.createNewEntryOrder(
         apiSubmissionData
       );
 
-      console.log("Entry order created successfully:", response.data);
+      const initialFormData = {
+        origin: { option: "", value: "" },
+        palettes: "",
+        product_description: "",
+        insured_value: "",
+        entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
+        document_type_id: { option: "", value: "" },
+        registration_date: new Date(),
+        document_date: new Date(),
+        admission_date_time: new Date(),
+        entry_date: new Date(),
+        entry_transfer_note: "",
+        personnel_incharge_id: { option: "", value: "" },
+        document_status: { option: "Registered", value: "REGISTERED" },
+        order_status: "",
+        observation: "",
+        total_volume: "",
+        total_weight: "",
+        cif_value: "",
+        supplier: { option: "", value: "" },
+        product: { option: "", value: "" },
+        certificate_protocol_analysis: "",
+        mfd_date_time: new Date(),
+        expiration_date: new Date(),
+        lot_series: "",
+        quantity_packaging: "",
+        presentation: "",
+        total_qty: "",
+        technical_specification: "",
+        max_temperature: "",
+        min_temperature: "",
+        humidity: "",
+        type: "",
+      };
+
+      setFormData(initialFormData);
+      setCertificateFile(null);
+      setTechSpecFile(null);
 
       setSubmitStatus({
         success: true,
@@ -124,7 +215,6 @@ const NewEntryOrderForm: React.FC = () => {
       });
     } catch (error) {
       console.error("Error creating entry order:", error);
-
       setSubmitStatus({
         success: false,
         message: "Failed to create entry order. Please try again.",
@@ -165,7 +255,7 @@ const NewEntryOrderForm: React.FC = () => {
             id="entry_order_no"
             name="entry_order_no"
             value={formData.entry_order_no}
-            onChange={handleChange}
+            onChange={handleEntryOrderNoChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />
         </div>
@@ -177,7 +267,7 @@ const NewEntryOrderForm: React.FC = () => {
             options={documentTypes}
             styles={reactSelectStyle}
             inputId="document_type_id"
-            name="documen_type_id"
+            name="document_type_id"
             value={formData.document_type_id}
             onChange={(selectedOption) =>
               handleSelectChange("document_type_id", selectedOption)
@@ -198,6 +288,7 @@ const NewEntryOrderForm: React.FC = () => {
             id="registration_date"
             name="registration_date"
             selected={formData.registration_date}
+            disabled
             onChange={(date) =>
               setFormData({ ...formData, registration_date: date as Date })
             }
@@ -215,6 +306,10 @@ const NewEntryOrderForm: React.FC = () => {
             onChange={(date) =>
               setFormData({ ...formData, document_date: date as Date })
             }
+            showYearDropdown
+            scrollableYearDropdown
+            yearDropdownItemNumber={20}
+            dateFormat="MM/dd/yyyy"
           />
         </div>
 
@@ -241,6 +336,7 @@ const NewEntryOrderForm: React.FC = () => {
       </div>
 
       <Divider />
+
       <div className="w-full flex items-center gap-x-6">
         {/* personnel in charge */}
         <div className="w-full flex flex-col">
@@ -275,30 +371,28 @@ const NewEntryOrderForm: React.FC = () => {
 
       <Divider />
 
-      <div>
-        <div className="w-full flex items-center gap-x-6">
-          <div>
-            <input
-              type="radio"
-              id="order_in_process"
-              name="order_status"
-              value="order_in_process"
-              checked={formData.order_status === "order_in_process"}
-              onChange={handleChange}
-            />
-            <label htmlFor="order_in_process"> Order in Process</label>
-          </div>
-          <div>
-            <input
-              type="radio"
-              id="send_order"
-              name="order_status"
-              value="send_order"
-              checked={formData.order_status === "send_order"}
-              onChange={handleChange}
-            />
-            <label htmlFor="send_order"> Send Order</label>
-          </div>
+      <div className="w-full flex items-center gap-x-6">
+        <div>
+          <input
+            type="radio"
+            id="order_in_process"
+            name="order_status"
+            value="order_in_process"
+            checked={formData.order_status === "order_in_process"}
+            onChange={handleChange}
+          />
+          <label htmlFor="order_in_process"> Order in Process</label>
+        </div>
+        <div>
+          <input
+            type="radio"
+            id="send_order"
+            name="order_status"
+            value="send_order"
+            checked={formData.order_status === "send_order"}
+            onChange={handleChange}
+          />
+          <label htmlFor="send_order"> Send Order</label>
         </div>
       </div>
 
@@ -317,7 +411,6 @@ const NewEntryOrderForm: React.FC = () => {
       </div>
 
       <Divider />
-
       <div className="w-full flex items-center gap-x-6">
         {/* total volume */}
         <div className="w-full flex flex-col">
@@ -385,37 +478,33 @@ const NewEntryOrderForm: React.FC = () => {
         {/* product */}
         <div className="w-full flex flex-col">
           <label htmlFor="product">Product</label>
-          <input
-            type="text"
-            id="product"
+          <Select
+            options={products}
+            styles={reactSelectStyle}
+            inputId="product"
             name="product"
             value={formData.product}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            onChange={(selectedOption) =>
+              handleSelectChange("product", selectedOption)
+            }
           />
         </div>
 
         {/* protocol/ analysis certificate */}
         <div className="w-full flex flex-col">
-          <div className="flex items-center gap-x-2">
-            {/* White box that displays file name or "No file selected" */}
-            <Fileupload
-              label="Protocol/ Analysis Certificate"
-              onUpload={(url) => {
-                setFormData((prevState) => ({
-                  ...prevState,
-                  certificate_protocol_analysis: url,
-                }));
-              }}
-            />
-          </div>
+          <FileUpload
+            id="certificate_protocol_analysis"
+            label="Protocol/ Analysis Certificate"
+            onFileSelected={(file: File) => setCertificateFile(file)}
+          />
+
         </div>
       </div>
 
       <Divider />
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="observation">Product Description</label>
+          <label htmlFor="product_description">Product Description</label>
           <textarea
             id="product_description"
             name="product_description"
@@ -474,9 +563,9 @@ const NewEntryOrderForm: React.FC = () => {
 
       <Divider />
       <div className="w-full flex items-center gap-x-6">
-        {/* expiration date */}
+        {/* palettes */}
         <div className="w-full flex flex-col">
-          <label htmlFor="expiration_date">Palettes</label>
+          <label htmlFor="palettes">Palettes</label>
           <input
             type="text"
             id="palettes"
@@ -487,9 +576,9 @@ const NewEntryOrderForm: React.FC = () => {
           />
         </div>
 
-        {/* lot/ series */}
+        {/* insured value */}
         <div className="w-full flex flex-col">
-          <label htmlFor="lot_series">Insured Value</label>
+          <label htmlFor="insured_value">Insured Value</label>
           <input
             type="text"
             id="insured_value"
@@ -502,11 +591,10 @@ const NewEntryOrderForm: React.FC = () => {
       </div>
 
       <Divider />
-
       <div className="w-full flex items-center gap-x-6">
-        {/* manufacturing date */}
+        {/* entry date */}
         <div className="w-full flex flex-col">
-          <label htmlFor="manufacturing_date">Entry Date</label>
+          <label htmlFor="entry_date">Entry Date</label>
           <DatePicker
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             id="entry_date"
@@ -518,9 +606,9 @@ const NewEntryOrderForm: React.FC = () => {
           />
         </div>
 
-        {/* expiration date */}
+        {/* entry transfer note */}
         <div className="w-full flex flex-col">
-          <label htmlFor="expiration_date">Entry Transfer Note</label>
+          <label htmlFor="entry_transfer_note">Entry Transfer Note</label>
           <input
             type="text"
             id="entry_transfer_note"
@@ -531,9 +619,9 @@ const NewEntryOrderForm: React.FC = () => {
           />
         </div>
 
-        {/* lot/ series */}
+        {/* type */}
         <div className="w-full flex flex-col">
-          <label htmlFor="lot_series">Type</label>
+          <label htmlFor="type">Type</label>
           <input
             type="text"
             id="type"
@@ -573,7 +661,7 @@ const NewEntryOrderForm: React.FC = () => {
           />
         </div>
 
-        {/* total qty (units) */}
+        {/* total qty */}
         <div className="w-full flex flex-col">
           <label htmlFor="total_qty">Total Qty (Units)</label>
           <input
@@ -591,32 +679,36 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* technical specification */}
         <div className="w-full flex flex-col">
-          <label htmlFor="technical_specification">
-            Technical Specification
-          </label>
-
-          <div className="flex items-center gap-x-2">
-            {/* White box that displays file name or "No file selected" */}
-            <Fileupload
-              label="Technical Specification"
-              onUpload={(url) => {
-                setFormData((prevState) => ({
-                  ...prevState,
-                  technical_specification: url,
-                }));
-              }}
-            />
-          </div>
+          <FileUpload
+            id="technical_specification"
+            label="Technical Specification"
+            onFileSelected={(file: File) => {
+              console.log("Tech spec file selected:", file.name);
+              setTechSpecFile(file);
+            }}
+          />
         </div>
 
         {/* temperature */}
         <div className="w-full flex flex-col">
-          <label htmlFor="temperature">Temperature</label>
+          <label htmlFor="max_temperature">Max. Temp</label>
           <input
             type="number"
-            id="temperature"
-            name="temperature"
-            value={formData.temperature}
+            id="max_temperature"
+            name="max_temperature"
+            value={formData.max_temperature}
+            onChange={handleChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        <div className="w-full flex flex-col">
+          <label htmlFor="min_temperature">Min Temp</label>
+          <input
+            type="number"
+            id="min_temperature"
+            name="min_temperature"
+            value={formData.min_temperature}
             onChange={handleChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />

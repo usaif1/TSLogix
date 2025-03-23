@@ -34,7 +34,7 @@ export const ProcessService = {
 
     console.log(response.data);
 
-    const { origins, users, suppliers, documentTypes, customers } = response.data;
+    const { origins, users, suppliers, documentTypes, customers, products } = response.data;
 
     // change to react-select compatible dropdown options -
     const formattedOrigins = origins.map((origin: any) => {
@@ -73,6 +73,13 @@ export const ProcessService = {
         label: customers.name,
       };
     });
+
+    const formattedProducts = products.map((product: any) => {
+      return {
+        value: product.product_id,
+        label: product.name,
+      };
+    });
     // { value: "originOption1", label: "originOption1" },
 
     ProcessesStore.setState((prevState) => ({
@@ -82,6 +89,7 @@ export const ProcessService = {
       suppliers: formattedSuppliers,
       documentTypes: formattedDocumentTypes,
       customers: formattedCusomters,
+      products: formattedProducts,
     }));
   },
   //   create new entry order
@@ -107,6 +115,17 @@ export const ProcessService = {
     });
 
     return response;
+  },
+
+  // fetch last order number
+  fetchCurrentOrderNumber: async () => {
+    const response = await api.get(`${baseURL}/current-order-number`);
+    ProcessesStore.setState((prevState) => ({
+      ...prevState,
+      currentEntryOrderNo: response.data
+    }));
+
+    return response.data;
   },
 
   fetchAllDepartureOrders: async () => {

@@ -1,47 +1,32 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabase/supabaseClient";
 import { Button } from "@/components";
 
 interface FileUploadProps {
+  id: string;
   label: string;
-  onUpload: (url: string) => void;
+  onFileSelected: (file: File) => void;
   accept?: string;
 }
 
 const FileUpload = ({
+  id,
   label,
-  onUpload,
-  accept = "*",
+  onFileSelected,
+  accept = ".pdf,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.gif",
 }: FileUploadProps) => {
-  const [isUploading, setIsUploading] = useState(false);
   const [fileName, setFileName] = useState("");
 
-  const handleUpload = async (file: File) => {
-    setIsUploading(true);
-    try {
-      const fileName = `${Date.now()}_${file.name}`;
-      const { error } = await supabase.storage
-        .from("order")
-        .upload(fileName, file);
-
-      if (error) throw error;
-
-      const { data: urlData } = await supabase.storage
-        .from("order")
-        .getPublicUrl(fileName);
-
-      onUpload(urlData.publicUrl);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (file) {
       setFileName(file.name);
-    } catch (error) {
-      console.error("Upload error:", error);
-    } finally {
-      setIsUploading(false);
+      onFileSelected(file);
     }
   };
 
   return (
     <div className="w-full flex flex-col">
-      <label>{label}</label>
+      <label htmlFor={id}>{label}</label>
       <div className="flex items-center gap-x-2">
         <input
           type="text"
@@ -51,20 +36,16 @@ const FileUpload = ({
         />
         <input
           type="file"
-          id="fileInput"
+          id={id}
           className="hidden"
           accept={accept}
-          onChange={(e) =>
-            e.target.files?.[0] && handleUpload(e.target.files[0])
-          }
-          disabled={isUploading}
+          onChange={handleFileChange}
         />
         <Button
           type="button"
-          onClick={() => document.getElementById("fileInput")?.click()}
-          disabled={isUploading}
+          onClick={() => document.getElementById(id)?.click()}
         >
-          {isUploading ? "Uploading..." : "Select File"}
+          Select File
         </Button>
       </div>
     </div>
