@@ -497,6 +497,7 @@ const NewEntryOrderForm: React.FC = () => {
             label="Protocol/ Analysis Certificate"
             onFileSelected={(file: File) => setCertificateFile(file)}
           />
+
         </div>
       </div>
 
