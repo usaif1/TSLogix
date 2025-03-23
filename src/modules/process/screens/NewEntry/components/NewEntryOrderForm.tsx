@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
+import { useNavigate } from "react-router-dom";
 
 // components
 import { Button, Divider, Text } from "@/components";
@@ -19,21 +20,34 @@ const reactSelectStyle = {
 };
 
 const NewEntryOrderForm: React.FC = () => {
-  const { documentTypes, origins, users, products, suppliers } =
-    ProcessesStore();
+  const navigate = useNavigate();
+  const {
+    documentTypes,
+    origins,
+    users,
+    products,
+    suppliers,
+    currentEntryOrderNo,
+  } = ProcessesStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     success?: boolean;
     message?: string;
   }>({});
 
-  // Define states for all form fields
+  useEffect(() => {
+    setFormData((prev) => ({
+      ...prev,
+      entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
+    }));
+  }, [currentEntryOrderNo]);
+
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "" },
     palettes: "",
     product_description: "",
     insured_value: "",
-    entry_order_no: "",
+    entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
     document_type_id: { option: "", value: "" },
     registration_date: new Date(),
     document_date: new Date(),
@@ -49,24 +63,40 @@ const NewEntryOrderForm: React.FC = () => {
     cif_value: "",
     supplier: { option: "", value: "" },
     product: { option: "", value: "" },
-    certificate_protocol_analysis: "", // will store URL after upload
+    certificate_protocol_analysis: "",
     mfd_date_time: new Date(),
     expiration_date: new Date(),
     lot_series: "",
     quantity_packaging: "",
     presentation: "",
     total_qty: "",
-    technical_specification: "", // will store URL after upload
-    temperature: "",
+    technical_specification: "",
+    max_temperature: "",
+    min_temperature: "",
     humidity: "",
     type: "",
   });
 
-  // To store selected files (instead of immediate upload)
-  const [selectedFiles, setSelectedFiles] = useState<{
-    certificate?: File;
-    technicalSpecification?: File;
-  }>({});
+  const [certificateFile, setCertificateFile] = useState<File | null>(null);
+  const [techSpecFile, setTechSpecFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    if (submitStatus.success) {
+      navigate("/processes/entry");
+    }
+  }, [submitStatus.success, navigate]);
+
+  const handleEntryOrderNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    const prefix = currentEntryOrderNo?.currentOrderNo || "";
+
+    if (newValue.startsWith(prefix)) {
+      setFormData((prev) => ({
+        ...prev,
+        entry_order_no: newValue,
+      }));
+    }
+  };
 
   const handleChange = (
     e:
@@ -95,14 +125,12 @@ const NewEntryOrderForm: React.FC = () => {
     setSubmitStatus({});
 
     try {
-      // Upload files if they exist and update formData with their public URLs
       let certificateUrl = "";
-      if (selectedFiles.certificate) {
-        const file = selectedFiles.certificate;
-        const fileName = `${Date.now()}_${file.name}`;
+      if (certificateFile) {
+        const fileName = `${Date.now()}_${certificateFile.name}`;
         const { error } = await supabase.storage
           .from("order")
-          .upload(fileName, file);
+          .upload(fileName, certificateFile);
         if (error) throw error;
         const { data: urlData } = supabase.storage
           .from("order")
@@ -111,12 +139,11 @@ const NewEntryOrderForm: React.FC = () => {
       }
 
       let techSpecUrl = "";
-      if (selectedFiles.technicalSpecification) {
-        const file = selectedFiles.technicalSpecification;
-        const fileName = `${Date.now()}_${file.name}`;
+      if (techSpecFile) {
+        const fileName = `${Date.now()}_${techSpecFile.name}`;
         const { error } = await supabase.storage
           .from("order")
-          .upload(fileName, file);
+          .upload(fileName, techSpecFile);
         if (error) throw error;
         const { data: urlData } = supabase.storage
           .from("order")
@@ -135,15 +162,52 @@ const NewEntryOrderForm: React.FC = () => {
         supplier: formData.supplier?.value || "",
         certificate_protocol_analysis: certificateUrl,
         product: formData.product?.value || "",
-        technical_specification: techSpecUrl, 
+        technical_specification: techSpecUrl,
         order_type: "ENTRY",
       };
 
-      const response = await ProcessService.createNewEntryOrder(
+      await ProcessService.createNewEntryOrder(
         apiSubmissionData
       );
 
-      console.log("Entry order created successfully:", response.data);
+      const initialFormData = {
+        origin: { option: "", value: "" },
+        palettes: "",
+        product_description: "",
+        insured_value: "",
+        entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
+        document_type_id: { option: "", value: "" },
+        registration_date: new Date(),
+        document_date: new Date(),
+        admission_date_time: new Date(),
+        entry_date: new Date(),
+        entry_transfer_note: "",
+        personnel_incharge_id: { option: "", value: "" },
+        document_status: { option: "Registered", value: "REGISTERED" },
+        order_status: "",
+        observation: "",
+        total_volume: "",
+        total_weight: "",
+        cif_value: "",
+        supplier: { option: "", value: "" },
+        product: { option: "", value: "" },
+        certificate_protocol_analysis: "",
+        mfd_date_time: new Date(),
+        expiration_date: new Date(),
+        lot_series: "",
+        quantity_packaging: "",
+        presentation: "",
+        total_qty: "",
+        technical_specification: "",
+        max_temperature: "",
+        min_temperature: "",
+        humidity: "",
+        type: "",
+      };
+
+      setFormData(initialFormData);
+      setCertificateFile(null);
+      setTechSpecFile(null);
 
       setSubmitStatus({
         success: true,
@@ -191,7 +255,7 @@ const NewEntryOrderForm: React.FC = () => {
             id="entry_order_no"
             name="entry_order_no"
             value={formData.entry_order_no}
-            onChange={handleChange}
+            onChange={handleEntryOrderNoChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />
         </div>
@@ -242,6 +306,10 @@ const NewEntryOrderForm: React.FC = () => {
             onChange={(date) =>
               setFormData({ ...formData, document_date: date as Date })
             }
+            showYearDropdown
+            scrollableYearDropdown
+            yearDropdownItemNumber={20}
+            dateFormat="MM/dd/yyyy"
           />
         </div>
 
@@ -268,6 +336,7 @@ const NewEntryOrderForm: React.FC = () => {
       </div>
 
       <Divider />
+
       <div className="w-full flex items-center gap-x-6">
         {/* personnel in charge */}
         <div className="w-full flex flex-col">
@@ -424,10 +493,9 @@ const NewEntryOrderForm: React.FC = () => {
         {/* protocol/ analysis certificate */}
         <div className="w-full flex flex-col">
           <FileUpload
+            id="certificate_protocol_analysis"
             label="Protocol/ Analysis Certificate"
-            onFileSelected={(file: File) =>
-              setSelectedFiles((prev) => ({ ...prev, certificate: file }))
-            }
+            onFileSelected={(file: File) => setCertificateFile(file)}
           />
         </div>
       </div>
@@ -611,24 +679,35 @@ const NewEntryOrderForm: React.FC = () => {
         {/* technical specification */}
         <div className="w-full flex flex-col">
           <FileUpload
+            id="technical_specification"
             label="Technical Specification"
-            onFileSelected={(file: File) =>
-              setSelectedFiles((prev) => ({
-                ...prev,
-                technicalSpecification: file,
-              }))
-            }
+            onFileSelected={(file: File) => {
+              console.log("Tech spec file selected:", file.name);
+              setTechSpecFile(file);
+            }}
           />
         </div>
 
         {/* temperature */}
         <div className="w-full flex flex-col">
-          <label htmlFor="temperature">Temperature</label>
+          <label htmlFor="max_temperature">Max. Temp</label>
           <input
             type="number"
-            id="temperature"
-            name="temperature"
-            value={formData.temperature}
+            id="max_temperature"
+            name="max_temperature"
+            value={formData.max_temperature}
+            onChange={handleChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        <div className="w-full flex flex-col">
+          <label htmlFor="min_temperature">Min Temp</label>
+          <input
+            type="number"
+            id="min_temperature"
+            name="min_temperature"
+            value={formData.min_temperature}
             onChange={handleChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />

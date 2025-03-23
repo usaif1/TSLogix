@@ -29,7 +29,8 @@ export type EntryFormData = {
   presentation: string;
   total_qty: string;
   technical_specification: File | string | null;
-  temperature: string;
+  max_temperature: string;
+  min_temperature: string;
   humidity: string;
   type: string;
 };

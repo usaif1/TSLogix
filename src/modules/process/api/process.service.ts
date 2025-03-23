@@ -117,6 +117,17 @@ export const ProcessService = {
     return response;
   },
 
+  // fetch last order number
+  fetchCurrentOrderNumber: async () => {
+    const response = await api.get(`${baseURL}/current-order-number`);
+    ProcessesStore.setState((prevState) => ({
+      ...prevState,
+      currentEntryOrderNo: response.data
+    }));
+
+    return response.data;
+  },
+
   fetchAllDepartureOrders: async () => {
     try {
       startLoader('processes/fetch-departure-orders')

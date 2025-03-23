@@ -2,12 +2,14 @@ import { useState } from "react";
 import { Button } from "@/components";
 
 interface FileUploadProps {
+  id: string;
   label: string;
   onFileSelected: (file: File) => void;
   accept?: string;
 }
 
 const FileUpload = ({
+  id,
   label,
   onFileSelected,
   accept = ".pdf,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.gif",
@@ -24,7 +26,7 @@ const FileUpload = ({
 
   return (
     <div className="w-full flex flex-col">
-      <label>{label}</label>
+      <label htmlFor={id}>{label}</label>
       <div className="flex items-center gap-x-2">
         <input
           type="text"
@@ -34,14 +36,14 @@ const FileUpload = ({
         />
         <input
           type="file"
-          id="fileInput"
+          id={id}
           className="hidden"
           accept={accept}
           onChange={handleFileChange}
         />
         <Button
           type="button"
-          onClick={() => document.getElementById("fileInput")?.click()}
+          onClick={() => document.getElementById(id)?.click()}
         >
           Select File
         </Button>

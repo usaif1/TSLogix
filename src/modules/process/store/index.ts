@@ -20,6 +20,9 @@ type ProcessesStore = {
   documentTypes: any[];
   products: any[];
 
+  // last order no
+  currentEntryOrderNo: any;
+
   // loading states
   loaders: Record<LoaderTypes, boolean>;
 };
@@ -29,6 +32,7 @@ type ProcessesStoreActions = {
   setEntryOrders: (data: any) => void;
   setDepartureOrders: (data: any) => void;
   resetProcessesStore: () => void;
+
 
   // loader actions
   startLoader: (loaderType: LoaderTypes) => void;
@@ -47,6 +51,7 @@ const authInitialState: ProcessesStore = {
   documentTypes: [],
   departureOrders: [],
   products: [],
+  currentEntryOrderNo: "",
 
   loaders: {
     "processes/fetch-entry-orders": false,

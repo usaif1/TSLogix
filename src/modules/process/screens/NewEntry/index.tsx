@@ -11,8 +11,8 @@ import { ProcessService } from "@/globalService";
 const NewEntry: React.FC = () => {
   useEffect(() => {
     ProcessService.fetchEntryOrderFormFields();
+    ProcessService.fetchCurrentOrderNumber();
   }, []);
-
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
