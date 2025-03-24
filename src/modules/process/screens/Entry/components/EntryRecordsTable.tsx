@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { ProcessesStore } from "@/globalStore";
 import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
+import { formatDate } from "@/utils/dateUtils";
 
 const EntryRecordsTable: React.FC = () => {
   const entryOrders = ProcessesStore.use.entryOrders();
@@ -15,7 +16,15 @@ const EntryRecordsTable: React.FC = () => {
       { accessor: 'total_qty', header: 'Quantity' },
       { accessor: 'total_weight', header: 'Weight' },
       { accessor: 'insured_value', header: 'Insured Value' },
-      { accessor: 'entry_date', header: 'Date of Entry' },
+      { 
+        accessor: 'entry_date', 
+        header: 'Date of Entry',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        cell: (info: any) => {
+          const dateString = info.getValue() as string;
+          return formatDate(dateString);
+        }
+      },
       { accessor: 'entry_transfer_note', header: 'Entry Transfer Note' },
       { accessor: 'presentation', header: 'Presentation' },
       { accessor: 'status', header: 'Status' },

@@ -17,11 +17,13 @@ const LoginForm: React.FC = () => {
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    console.log("formData", formData);
+    const UserId = formData.userId.trim();
+    const Password = formData.loginPassword.trim();
+
 
     AuthService.login({
-      userId: formData.userId,
-      password: formData.loginPassword,
+      userId: UserId,
+      password: Password,
     });
   };
 

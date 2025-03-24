@@ -14,7 +14,7 @@ export type EntryFormData = {
   admission_date_time: Date;
   personnel_incharge_id: ReactSelectValue;
   document_status: ReactSelectValue;
-  order_status: string;
+  order_status: ReactSelectValue;
   observation: string;
   total_volume: string;
   total_weight: string;

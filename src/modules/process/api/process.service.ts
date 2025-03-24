@@ -34,7 +34,7 @@ export const ProcessService = {
 
     console.log(response.data);
 
-    const { origins, users, suppliers, documentTypes, customers, products } = response.data;
+    const { origins, users, suppliers, documentTypes, customers, products, orderStatus } = response.data;
 
     // change to react-select compatible dropdown options -
     const formattedOrigins = origins.map((origin: any) => {
@@ -67,19 +67,25 @@ export const ProcessService = {
       };
     });
 
-    const formattedCusomters = customers.map((customers: any) => {
+    const formattedCusomters = (customers || []).map((customers: any) => {
       return {
         value: customers.customer_id,
         label: customers.name,
       };
     });
 
-    const formattedProducts = products.map((product: any) => {
+    const formattedProducts = (products || []).map((product: any) => {
       return {
         value: product.product_id,
         label: product.name,
       };
     });
+
+    const formattedStatus = (orderStatus || []).map((status: any) => ({
+      value: status.status_id,
+      label: status.name,
+    }));
+    
     // { value: "originOption1", label: "originOption1" },
 
     ProcessesStore.setState((prevState) => ({
@@ -90,6 +96,7 @@ export const ProcessService = {
       documentTypes: formattedDocumentTypes,
       customers: formattedCusomters,
       products: formattedProducts,
+      entryOrderStatus: formattedStatus,
     }));
   },
   //   create new entry order
