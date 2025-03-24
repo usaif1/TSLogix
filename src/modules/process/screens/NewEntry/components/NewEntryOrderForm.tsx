@@ -375,7 +375,7 @@ const NewEntryOrderForm: React.FC = () => {
             styles={reactSelectStyle}
             inputId="order_status"
             name="order_status"
-            value={documentStatusOptions[0]}
+            value={formData.order_status}
             onChange={(selectedOption) =>
               handleSelectChange("order_status", selectedOption)
             }
