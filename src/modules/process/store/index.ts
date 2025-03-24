@@ -19,6 +19,7 @@ type ProcessesStore = {
   suppliers: any[];
   documentTypes: any[];
   products: any[];
+  entryOrderStatus: any[];
 
   // last order no
   currentEntryOrderNo: any;
@@ -51,6 +52,7 @@ const authInitialState: ProcessesStore = {
   documentTypes: [],
   departureOrders: [],
   products: [],
+  entryOrderStatus: [],
   currentEntryOrderNo: "",
 
   loaders: {

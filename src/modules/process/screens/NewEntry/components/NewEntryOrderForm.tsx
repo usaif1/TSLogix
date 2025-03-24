@@ -28,6 +28,7 @@ const NewEntryOrderForm: React.FC = () => {
     products,
     suppliers,
     currentEntryOrderNo,
+    entryOrderStatus,
   } = ProcessesStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
@@ -56,7 +57,7 @@ const NewEntryOrderForm: React.FC = () => {
     entry_transfer_note: "",
     personnel_incharge_id: { option: "", value: "" },
     document_status: { option: "Registered", value: "REGISTERED" },
-    order_status: "",
+    order_status: { option: "", value: "" },
     observation: "",
     total_volume: "",
     total_weight: "",
@@ -163,6 +164,7 @@ const NewEntryOrderForm: React.FC = () => {
         certificate_protocol_analysis: certificateUrl,
         product: formData.product?.value || "",
         technical_specification: techSpecUrl,
+        order_status: formData.order_status?.value || "",
         order_type: "ENTRY",
       };
 
@@ -182,7 +184,7 @@ const NewEntryOrderForm: React.FC = () => {
         entry_transfer_note: "",
         personnel_incharge_id: { option: "", value: "" },
         document_status: { option: "Registered", value: "REGISTERED" },
-        order_status: "",
+        order_status: { option: "", value: "" },
         observation: "",
         total_volume: "",
         total_weight: "",
@@ -366,32 +368,18 @@ const NewEntryOrderForm: React.FC = () => {
             }
           />
         </div>
-      </div>
-
-      <Divider />
-
-      <div className="w-full flex items-center gap-x-6">
-        <div>
-          <input
-            type="radio"
-            id="order_in_process"
+        <div className="w-full flex flex-col">
+          <label htmlFor="order_status">Order Status</label>
+          <Select
+            options={entryOrderStatus}
+            styles={reactSelectStyle}
+            inputId="order_status"
             name="order_status"
-            value="order_in_process"
-            checked={formData.order_status === "order_in_process"}
-            onChange={handleChange}
+            value={documentStatusOptions[0]}
+            onChange={(selectedOption) =>
+              handleSelectChange("order_status", selectedOption)
+            }
           />
-          <label htmlFor="order_in_process"> Order in Process</label>
-        </div>
-        <div>
-          <input
-            type="radio"
-            id="send_order"
-            name="order_status"
-            value="send_order"
-            checked={formData.order_status === "send_order"}
-            onChange={handleChange}
-          />
-          <label htmlFor="send_order"> Send Order</label>
         </div>
       </div>
 
@@ -453,7 +441,7 @@ const NewEntryOrderForm: React.FC = () => {
               name="cif_value"
               value={formData.cif_value}
               onChange={handleChange}
-              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+              className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
             />
             <Text>$</Text>
           </div>
@@ -499,7 +487,6 @@ const NewEntryOrderForm: React.FC = () => {
             label="Protocol/ Analysis Certificate"
             onFileSelected={(file: File) => setCertificateFile(file)}
           />
-
         </div>
       </div>
 
@@ -588,6 +575,18 @@ const NewEntryOrderForm: React.FC = () => {
             value={formData.insured_value}
             onChange={handleChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+          />
+        </div>
+
+        {/* technical specification */}
+        <div className="w-full flex flex-col">
+          <FileUpload
+            id="technical_specification"
+            label="Technical Specification"
+            onFileSelected={(file: File) => {
+              console.log("Tech spec file selected:", file.name);
+              setTechSpecFile(file);
+            }}
           />
         </div>
       </div>
@@ -679,18 +678,6 @@ const NewEntryOrderForm: React.FC = () => {
 
       <Divider />
       <div className="w-full flex items-center gap-x-6">
-        {/* technical specification */}
-        <div className="w-full flex flex-col">
-          <FileUpload
-            id="technical_specification"
-            label="Technical Specification"
-            onFileSelected={(file: File) => {
-              console.log("Tech spec file selected:", file.name);
-              setTechSpecFile(file);
-            }}
-          />
-        </div>
-
         {/* temperature */}
         <div className="w-full flex flex-col">
           <label htmlFor="max_temperature">Max. Temp</label>
