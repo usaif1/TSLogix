@@ -166,9 +166,7 @@ const NewEntryOrderForm: React.FC = () => {
         order_type: "ENTRY",
       };
 
-      await ProcessService.createNewEntryOrder(
-        apiSubmissionData
-      );
+      await ProcessService.createNewEntryOrder(apiSubmissionData);
 
       const initialFormData = {
         origin: { option: "", value: "" },
@@ -256,6 +254,7 @@ const NewEntryOrderForm: React.FC = () => {
             name="entry_order_no"
             value={formData.entry_order_no}
             onChange={handleEntryOrderNoChange}
+            disabled
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />
         </div>
@@ -447,14 +446,17 @@ const NewEntryOrderForm: React.FC = () => {
         {/* CIF value/ Purchase Value */}
         <div className="w-full flex flex-col">
           <label htmlFor="cif_value">CIF Value/ Purchase Value</label>
-          <input
-            type="number"
-            id="cif_value"
-            name="cif_value"
-            value={formData.cif_value}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
+          <div className="w-full flex items-end gap-x-2">
+            <input
+              type="number"
+              id="cif_value"
+              name="cif_value"
+              value={formData.cif_value}
+              onChange={handleChange}
+              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            />
+            <Text>$</Text>
+          </div>
         </div>
       </div>
 
