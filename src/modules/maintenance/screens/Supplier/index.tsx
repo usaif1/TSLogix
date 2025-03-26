@@ -1,10 +1,11 @@
 // dependencies
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 
 // components
 import { Divider, Text, Searchbar } from "@/components";
 import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
 import { Plus, MagnifyingGlass } from "@phosphor-icons/react";
+import { SupplierService } from "../../api/maintenance.service";
 
 const Supplier: React.FC = () => {
   const buttonGroup = useMemo(() => {
@@ -22,6 +23,9 @@ const Supplier: React.FC = () => {
     ];
   }, []);
 
+    useEffect(() => {
+      SupplierService.fetchAllSuppliers();
+    }, []);
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
