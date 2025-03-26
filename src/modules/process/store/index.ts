@@ -5,7 +5,17 @@ import { create } from "zustand";
 // utils
 import createSelectors from "@/utils/selectors";
 
-type LoaderTypes = "processes/fetch-entry-orders" | "processes/fetch-departure-orders";
+type LoaderTypes =
+  | "processes/fetch-entry-orders"
+  | "processes/fetch-departure-orders";
+
+type DepartureFormFields = {
+  customers: any[];
+  documentTypes: any[];
+  users: any[];
+  packagingTypes: any[];
+  labels: any[];
+};
 
 type ProcessesStore = {
   // auth user
@@ -21,6 +31,9 @@ type ProcessesStore = {
   products: any[];
   entryOrderStatus: any[];
 
+  // departure form fields
+  departureFormFields: DepartureFormFields;
+
   // last order no
   currentEntryOrderNo: any;
 
@@ -34,10 +47,12 @@ type ProcessesStoreActions = {
   setDepartureOrders: (data: any) => void;
   resetProcessesStore: () => void;
 
-
   // loader actions
   startLoader: (loaderType: LoaderTypes) => void;
   stopLoader: (loaderType: LoaderTypes) => void;
+
+  // action to set departure form fields
+  setDepartureFormFields: (data: DepartureFormFields) => void;
 };
 
 const authInitialState: ProcessesStore = {
@@ -55,6 +70,15 @@ const authInitialState: ProcessesStore = {
   entryOrderStatus: [],
   currentEntryOrderNo: "",
 
+  // departure form fields initial state
+  departureFormFields: {
+    customers: [],
+    documentTypes: [],
+    users: [],
+    packagingTypes: [],
+    labels: [],
+  },
+
   loaders: {
     "processes/fetch-entry-orders": false,
     "processes/fetch-departure-orders": false,
@@ -67,19 +91,24 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>(
 
     // loader actions
     startLoader: (loaderType: LoaderTypes) =>
-      set((state) => {
-        return { ...state, loaders: { ...state.loaders, [loaderType]: true } };
-      }),
+      set((state) => ({
+        ...state,
+        loaders: { ...state.loaders, [loaderType]: true },
+      })),
 
     stopLoader: (loaderType: LoaderTypes) =>
-      set((state) => {
-        return { ...state, loaders: { ...state.loaders, [loaderType]: false } };
-      }),
+      set((state) => ({
+        ...state,
+        loaders: { ...state.loaders, [loaderType]: false },
+      })),
 
-    // reset address store
+    // reset store
     resetProcessesStore: () => set(authInitialState),
     setEntryOrders: (data: any) => set({ entryOrders: data }),
     setDepartureOrders: (data: any) => set({ departureOrders: data }),
+
+    setDepartureFormFields: (data: DepartureFormFields) =>
+      set({ departureFormFields: data }),
   })
 );
 
