@@ -23,9 +23,9 @@ const Supplier: React.FC = () => {
     ];
   }, []);
 
-    useEffect(() => {
-      SupplierService.fetchAllSuppliers();
-    }, []);
+  useEffect(() => {
+    SupplierService.fetchAllSuppliers();
+  }, []);
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">

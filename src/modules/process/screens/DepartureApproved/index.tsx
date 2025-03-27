@@ -9,7 +9,7 @@ import { ProcessService } from "@/globalService";
 
 const DepartureApproved: React.FC = () => {
   useEffect(() => {
-    ProcessService.fetchEntryOrderFormFields();
+    ProcessService.fetchDepartureFormFields();
   }, []);
   return (
     <div className="flex flex-col h-full">

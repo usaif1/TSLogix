@@ -1,4 +1,3 @@
-// dependencies
 import React, { useMemo, useEffect } from "react";
 import { Plus } from "@phosphor-icons/react";
 
@@ -31,6 +30,12 @@ const Entry: React.FC = () => {
     ];
   }, []);
 
+  // Handler for search functionality. It passes the search value to fetchAllEntryOrders.
+  const handleSearch = (searchValue: string) => {
+    ProcessService.fetchAllEntryOrders(searchValue);
+  };
+
+  // Fetch all entry orders on initial load (without search filter)
   useEffect(() => {
     ProcessService.fetchAllEntryOrders();
   }, []);
@@ -41,7 +46,8 @@ const Entry: React.FC = () => {
         Entry Order
       </Text>
       <Divider />
-      <Searchbar placeholder="Enter Document Number" />
+      {/* Pass the onSearch callback to the Searchbar component */}
+      <Searchbar placeholder="Enter Document Number" onSearch={handleSearch} />
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
       <Divider />

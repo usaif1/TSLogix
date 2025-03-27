@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, {useState, useEffect } from "react";
+import React, { useState } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
 
@@ -21,14 +21,8 @@ const reactSelectStyle = {
 };
 
 const DepartureApprovedForm: React.FC = () => {
-  const { documentTypes, users, customers } = ProcessesStore();
+  const { departureFormFields } = ProcessesStore();
 
-  useEffect(() => {
-    console.log("ProcessesStore data:", {
-      documentTypes,
-      users,
-    });
-  }, [documentTypes, users]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     success?: boolean;
@@ -86,14 +80,16 @@ const DepartureApprovedForm: React.FC = () => {
 
       const submissionData = {
         ...formData,
-        customer: formData.customer?.value || "",
+        customer_id: formData.customer?.value || "",
         document_type_id: formData.document_type_id?.value || "",
-        personnel_incharge_id: formData.personnel_incharge_id?.value || "",
-        packaging_type: formData.packaging_type?.value || "",
-        departure_status: formData.departure_status?.value || "",
+        personnel_in_charge_id: formData.personnel_incharge_id?.value || "",
+        packaging_id: formData.packaging_type?.value || "",
+        status_id: formData.departure_status?.value || "",
+        document_no: formData.document_number,
         organisation_id: localStorage.getItem("organisation_id"),
         created_by: localStorage.getItem("id"),
       };
+
       await ProcessService.createNewDepartureOrder(submissionData);
 
       setSubmitStatus({
@@ -102,8 +98,8 @@ const DepartureApprovedForm: React.FC = () => {
       });
 
       // Reset form after success
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         departure_order_no: "",
         document_number: "",
         order_code: "",
@@ -120,7 +116,12 @@ const DepartureApprovedForm: React.FC = () => {
         product_description: "",
         insured_value: "",
         presentation: "",
-      });
+        document_type_id: { option: "", value: "" },
+        customer: { option: "", value: "" },
+        personnel_incharge_id: { option: "", value: "" },
+        packaging_type: { option: "", value: "" },
+        departure_status: { option: "", value: "" },
+      }));
     } catch (error) {
       console.error("Departure order creation failed:", error);
       setSubmitStatus({
@@ -134,25 +135,12 @@ const DepartureApprovedForm: React.FC = () => {
 
   return (
     <form className="order_entry_form" onSubmit={handleSubmit}>
-      {/* Status Feedback */}
-      {submitStatus.message && (
-        <Text
-          additionalClass={`text-center p-2 mb-4 rounded-md ${
-            submitStatus.success
-              ? "bg-green-100 text-green-800"
-              : "bg-red-100 text-red-800"
-          }`}
-        >
-          {submitStatus.message}
-        </Text>
-      )}
-
       {/* First Row */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
           <label htmlFor="customer">Customer</label>
           <Select
-            options={customers}
+            options={departureFormFields.customers}
             styles={reactSelectStyle}
             inputId="customer"
             name="customer"
@@ -194,7 +182,7 @@ const DepartureApprovedForm: React.FC = () => {
         <div className="w-full flex flex-col">
           <label htmlFor="document_type_id">Document Type</label>
           <Select
-            options={documentTypes}
+            options={departureFormFields.documentTypes}
             styles={reactSelectStyle}
             inputId="document_type_id"
             name="document_type_id"
@@ -261,7 +249,7 @@ const DepartureApprovedForm: React.FC = () => {
         <div className="w-full flex flex-col">
           <label htmlFor="packaging_type">Packaging Type</label>
           <Select
-            // options={packagingOptions}
+            options={departureFormFields.packagingTypes}
             styles={reactSelectStyle}
             inputId="packaging_type"
             name="packaging_type"
@@ -269,7 +257,6 @@ const DepartureApprovedForm: React.FC = () => {
             onChange={(selected) =>
               handleSelectChange("packaging_type", selected)
             }
-            isDisabled
           />
         </div>
       </div>
@@ -340,7 +327,7 @@ const DepartureApprovedForm: React.FC = () => {
         <div className="w-full flex flex-col">
           <label htmlFor="personnel_incharge_id">Personnel In Charge</label>
           <Select
-            options={users}
+            options={departureFormFields.users}
             styles={reactSelectStyle}
             inputId="personnel_incharge_id"
             name="personnel_incharge_id"
@@ -388,7 +375,8 @@ const DepartureApprovedForm: React.FC = () => {
         <div className="w-full flex flex-col">
           <label htmlFor="departure_status">Departure Status</label>
           <Select
-            // options={documentStatusOptions}
+            // If you have specific departure status options stored elsewhere, adjust here
+            options={departureFormFields.documentTypes} // example placeholder
             styles={reactSelectStyle}
             inputId="departure_status"
             name="departure_status"
@@ -396,7 +384,6 @@ const DepartureApprovedForm: React.FC = () => {
             onChange={(selected) =>
               handleSelectChange("departure_status", selected)
             }
-            isDisabled
           />
         </div>
 
@@ -414,7 +401,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="labeled">Palettes</label>
+          <label htmlFor="palettes">Palettes</label>
           <input
             type="text"
             id="palettes"
@@ -429,30 +416,28 @@ const DepartureApprovedForm: React.FC = () => {
 
       <Divider />
 
-      <div>
-        <div className="w-full flex items-center gap-x-6">
-          <div>
-            <input
-              type="radio"
-              id="order_in_process"
-              name="order_status"
-              value="order_in_process"
-              checked={formData.order_status === "order_in_process"}
-              onChange={handleChange}
-            />
-            <label htmlFor="order_in_process"> Order in Process</label>
-          </div>
-          <div>
-            <input
-              type="radio"
-              id="send_order"
-              name="order_status"
-              value="send_order"
-              checked={formData.order_status === "send_order"}
-              onChange={handleChange}
-            />
-            <label htmlFor="send_order"> Send Order</label>
-          </div>
+      <div className="w-full flex items-center gap-x-6">
+        <div>
+          <input
+            type="radio"
+            id="order_in_process"
+            name="order_status"
+            value="order_in_process"
+            checked={formData.order_status === "order_in_process"}
+            onChange={handleChange}
+          />
+          <label htmlFor="order_in_process"> Order in Process</label>
+        </div>
+        <div>
+          <input
+            type="radio"
+            id="send_order"
+            name="order_status"
+            value="send_order"
+            checked={formData.order_status === "send_order"}
+            onChange={handleChange}
+          />
+          <label htmlFor="send_order"> Send Order</label>
         </div>
       </div>
       <Divider />
@@ -476,6 +461,18 @@ const DepartureApprovedForm: React.FC = () => {
           {isSubmitting ? "Submitting..." : "Register"}
         </Button>
       </div>
+      {/* Status Feedback */}
+      {submitStatus.message && (
+        <Text
+          additionalClass={`text-center p-2 mb-4 rounded-md ${
+            submitStatus.success
+              ? "bg-green-100 text-green-800"
+              : "bg-red-100 text-red-800"
+          }`}
+        >
+          {submitStatus.message}
+        </Text>
+      )}
     </form>
   );
 };
