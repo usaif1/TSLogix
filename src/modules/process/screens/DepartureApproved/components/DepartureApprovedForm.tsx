@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
 
@@ -78,7 +78,6 @@ const DepartureApprovedForm: React.FC = () => {
       setIsSubmitting(true);
       setSubmitStatus({});
 
-
       const submissionData = {
         ...formData,
         customer_id: formData.customer?.value || "",
@@ -122,7 +121,6 @@ const DepartureApprovedForm: React.FC = () => {
         personnel_incharge_id: { option: "", value: "" },
         packaging_type: { option: "", value: "" },
         departure_status: { option: "", value: "" },
-
       }));
     } catch (error) {
       console.error("Departure order creation failed:", error);

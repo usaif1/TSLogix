@@ -4,7 +4,7 @@ import TextInput from "../TextInput";
 
 type Props = {
   placeholder: string;
-  onSearch: (searchValue: string) => void;
+  onSearch?: (searchValue: string) => void;
 };
 
 const Searchbar: React.FC<Props> = ({ placeholder, onSearch }) => {
@@ -12,14 +12,16 @@ const Searchbar: React.FC<Props> = ({ placeholder, onSearch }) => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSearch(searchValue);
+    if (onSearch) {
+      onSearch(searchValue);
+    }
   };
 
   return (
     <form className="searchbar" onSubmit={handleSubmit}>
       <MagnifyingGlass size={16} className="text-zinc-900" weight="bold" />
-      <TextInput 
-        placeholder={placeholder} 
+      <TextInput
+        placeholder={placeholder}
         value={searchValue}
         onChange={(e) => setSearchValue(e.target.value)}
       />
