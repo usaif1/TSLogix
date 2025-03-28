@@ -18,6 +18,10 @@ const Entry: React.FC = () => {
   }, []);
   const openModal = GlobalStore.use.openModal();
 
+  const handleSearch = (searchValue: string) => {
+    ProcessService.fetchAllDepartureOrders(searchValue);
+  };
+
   const onClick = () => {
     GlobalStore.setState((prevState) => ({
       ...prevState,
@@ -33,7 +37,14 @@ const Entry: React.FC = () => {
         Departure Order
       </Text>
       <Divider />
-      <Searchbar placeholder="Enter Document Number" />
+      <div className="w-1/2">
+        <Searchbar
+          iconHidden={true}
+          searchButton={true}
+          placeholder="Enter Document Number"
+          onSearch={handleSearch}
+        />
+      </div>
       <Divider />
       <Button variant="action" additionalClass="!w-56" onClick={onClick}>
         <div className="flex items-center gap-x-2">
