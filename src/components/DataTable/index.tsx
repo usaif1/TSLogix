@@ -113,7 +113,7 @@ function DataTable<T extends object>({
 
       {/* Pagination */}
       {showPagination && data.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 w-[92%]">
+        <div className="flex items-center sticky bottom-0 justify-between px-4 py-3 bg-white border-t border-gray-200 w-full">
           <div className="text-sm text-gray-700">
             Showing{" "}
             <span className="font-medium">

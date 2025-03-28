@@ -4,6 +4,8 @@ import Select, { CSSObjectWithLabel } from "react-select";
 import { Divider } from "@/components";
 import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
+import { OrderBtnGroup } from "@/modules/process/components";
+import { Plus } from "@phosphor-icons/react";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -71,6 +73,17 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
     []
   );
 
+  const buttonGroup = useMemo(
+    () => [
+      {
+        title: "Add",
+        icon: Plus,
+        route: "/maintenance/product/new",
+      },
+    ],
+    []
+  );
+
   return (
     <div>
       {/* Filter section */}
@@ -80,6 +93,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
           <Select
             inputId="product_line"
             name="product_line"
+            className="!z-20"
             options={productLineOptions}
             styles={reactSelectStyle}
             onChange={(option) => setSelectedProductLine(option)}
@@ -106,7 +120,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
       <Divider />
 
       {/* Search field for product name or id */}
-      <div className="w-full flex items-center gap-x-6">
+      <div className="w-full flex items-end gap-x-6">
         <div className="w-1/2 flex flex-col">
           <label htmlFor="searchText">Product Name or ID</label>
           <input
@@ -119,6 +133,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
             placeholder="Search by product name or id"
           />
         </div>
+        <OrderBtnGroup items={buttonGroup} />
       </div>
 
       <Divider />
