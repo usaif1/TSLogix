@@ -22,11 +22,11 @@ const Entry: React.FC = () => {
         icon: Plus,
         route: "/processes/entry/new",
       },
-      {
-        title: "Generate Mass Order",
-        icon: Plus,
-        route: "/processes/entry/mass",
-      },
+      // {
+      //   title: "Generate Mass Order",
+      //   icon: Plus,
+      //   route: "/processes/entry/mass",
+      // },
     ];
   }, []);
 

@@ -92,7 +92,7 @@ const SupplierRegistration: React.FC = () => {
       });
 
       // Navigate to /maintenance/supplier after successful submission
-      navigate("/maintenance/supplier");
+      navigate(-1);
     } catch (error) {
       console.error("Error creating supplier:", error);
       alert("Failed to create supplier");
@@ -221,9 +221,7 @@ const SupplierRegistration: React.FC = () => {
           type="submit"
           disabled={loaders["suppliers/create-supplier"]}
         >
-          {loaders["suppliers/create-supplier"]
-            ? "Registering..."
-            : "Register"}
+          {loaders["suppliers/create-supplier"] ? "Registering..." : "Register"}
         </Button>
 
         <Button
