@@ -4,6 +4,6 @@
 
 @layer components {
   .order_entry_form {
-    @apply w-full lg:h-9/12 2xl:h-10/12 bg-white rounded-md px-8 py-4 overflow-y-scroll;
+    @apply w-full sm:h-8/12 lg:h-9/12 2xl:h-10/12 bg-white rounded-md px-8 py-4 overflow-y-scroll;
   }
 }

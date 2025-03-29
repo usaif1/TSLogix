@@ -81,7 +81,7 @@ const NewEntryOrderForm: React.FC = () => {
 
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [techSpecFile, setTechSpecFile] = useState<File | null>(null);
-  
+
   const isFormComplete = useFormComplete(formData, [
     "technical_specification",
     "certificate_protocol_analysis",
