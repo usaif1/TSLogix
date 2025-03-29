@@ -129,7 +129,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
             name="searchText"
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
             placeholder="Search by product name or id"
           />
         </div>
