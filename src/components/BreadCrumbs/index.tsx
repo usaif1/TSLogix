@@ -8,8 +8,8 @@ const Breadcrumbs: React.FC = () => {
 
   return (
     <div className="w-full flex items-center gap-x-2">
-      {breadcrumbs.map(({ breadcrumb }, index) => (
-        <div key={index} className="flex items-center gap-x-2">
+      {breadcrumbs.map(({ breadcrumb, key }, index) => (
+        <div key={key} className="flex items-center gap-x-2">
           {index > 0 ? (
             <CaretRight
               className="text-breadcrumb-inactive"
@@ -18,7 +18,7 @@ const Breadcrumbs: React.FC = () => {
             />
           ) : null}
 
-          <span className="anchor text-breadcrumb">{breadcrumb}</span>
+          <span className="text-breadcrumb">{breadcrumb}</span>
         </div>
       ))}
     </div>
