@@ -11,6 +11,7 @@ import { ProcessesStore } from "@/globalStore";
 import { EntryFormData } from "@/modules/process/types";
 import { ProcessService } from "@/modules/process/api/process.service";
 import { supabase } from "@/lib/supabase/supabaseClient";
+import useFormComplete from "@/hooks/useFormComplete";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -80,6 +81,11 @@ const NewEntryOrderForm: React.FC = () => {
 
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [techSpecFile, setTechSpecFile] = useState<File | null>(null);
+
+  const isFormComplete = useFormComplete(formData, [
+    "technical_specification",
+    "certificate_protocol_analysis",
+  ]);
 
   useEffect(() => {
     if (submitStatus.success) {
@@ -733,7 +739,12 @@ const NewEntryOrderForm: React.FC = () => {
       <Divider height="2xl" />
 
       <div>
-        <Button variant="action" additionalClass="w-40" type="submit">
+        <Button
+          disabled={!isFormComplete || isSubmitting}
+          variant="action"
+          additionalClass="w-40"
+          type="submit"
+        >
           {isSubmitting ? "Submitting..." : "Register"}
         </Button>
       </div>

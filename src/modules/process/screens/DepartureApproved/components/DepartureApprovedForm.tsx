@@ -8,6 +8,7 @@ import { Button, Divider, Text } from "@/components";
 import { ProcessesStore } from "@/globalStore";
 import { DepartureFormData } from "@/modules/process/types";
 import { ProcessService } from "@/modules/process/api/process.service";
+import useFormComplete from "@/hooks/useFormComplete";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -56,6 +57,12 @@ const DepartureApprovedForm: React.FC = () => {
     dispatch_date: new Date(),
     presentation: "",
   });
+
+  const isFormComplete = useFormComplete(formData, [
+    "presentation",
+    "order_code",
+    "departure_transfer_note",
+  ]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -457,7 +464,12 @@ const DepartureApprovedForm: React.FC = () => {
       <Divider height="2xl" />
 
       <div>
-        <Button variant="action" additionalClass="w-40" type="submit">
+        <Button
+          disabled={!isFormComplete || isSubmitting}
+          variant="action"
+          additionalClass="w-40"
+          type="submit"
+        >
           {isSubmitting ? "Submitting..." : "Register"}
         </Button>
       </div>

@@ -1,25 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Divider, Text } from "@/components";
 import ProductRegisterComponent from "./components/product";
-import { Plus } from "@phosphor-icons/react";
-import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
+// import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
 import { ProductService } from "../../api/maintenance.service";
 import { MaintenanceStore } from "@/globalStore";
 
 const Product: React.FC = () => {
   const { productLineOptions, groupOptions, products } = MaintenanceStore();
 
-  const buttonGroup = useMemo(
-    () => [
-      {
-        title: "Add",
-        icon: Plus,
-        route: "/maintenance/product/new",
-      },
-    ],
-    []
-  );
+  // const buttonGroup = useMemo(
+  //   () => [
+  //     {
+  //       title: "Add",
+  //       icon: Plus,
+  //       route: "/maintenance/product/new",
+  //     },
+  //   ],
+  //   []
+  // );
 
   const [selectedProductLine, setSelectedProductLine] = useState<any>(null);
   const [selectedGroup, setSelectedGroup] = useState<any>(null);
@@ -68,7 +67,7 @@ const Product: React.FC = () => {
         setSearchText={setSearchText}
       />
       <Divider />
-      <OrderBtnGroup items={buttonGroup} />
+      {/* <OrderBtnGroup items={buttonGroup} /> */}
     </div>
   );
 };

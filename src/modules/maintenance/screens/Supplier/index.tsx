@@ -6,6 +6,7 @@ import { Divider, Text, Searchbar } from "@/components";
 import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
 import { Plus, MagnifyingGlass } from "@phosphor-icons/react";
 import { SupplierService } from "../../api/maintenance.service";
+import SuppliersTable from "./components/SuppliersTable";
 
 const Supplier: React.FC = () => {
   const buttonGroup = useMemo(() => {
@@ -35,6 +36,8 @@ const Supplier: React.FC = () => {
       <Searchbar placeholder="Search Supplier" />
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
+      <Divider />
+      <SuppliersTable />
     </div>
   );
 };

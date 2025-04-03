@@ -137,10 +137,14 @@ export const ProcessService = {
     return response.data;
   },
 
-  fetchAllDepartureOrders: async () => {
+  fetchAllDepartureOrders: async (searchQuery = "") => {
     try {
-      startLoader('processes/fetch-departure-orders')
-      const response = await api.get(`${baseURL}/departure-orders`);
+      startLoader('processes/fetch-departure-orders');
+      let endpoint = `${baseURL}/departure-orders`;
+      if (searchQuery) {
+        endpoint += `?orderNo=${encodeURIComponent(searchQuery)}`;
+      }
+      const response = await api.get(endpoint);
       setDepartureOrders(response.data.data);
     } catch (err) {
       console.log("fetch entry orders error", err)

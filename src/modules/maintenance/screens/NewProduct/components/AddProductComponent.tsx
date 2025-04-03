@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, Divider } from "@/components";
 import { ProductService } from "@/modules/maintenance/api/maintenance.service";
 import { MaintenanceStore } from "@/globalStore";
+import useFormComplete from "@/hooks/useFormComplete";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -45,6 +46,8 @@ const NewProductForm: React.FC = () => {
     group: null,
     temperature_range: null,
   });
+
+  const isFormComplete = useFormComplete(formData);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
@@ -216,10 +219,10 @@ const NewProductForm: React.FC = () => {
       {/* Submit Buttons */}
       <div className="flex gap-10">
         <Button
+          disabled={!isFormComplete || isSubmitting}
           variant="action"
           type="submit"
           additionalClass="w-40"
-          disabled={isSubmitting}
         >
           {isSubmitting ? "Submitting..." : "Add Product"}
         </Button>
@@ -227,7 +230,7 @@ const NewProductForm: React.FC = () => {
           variant="cancel"
           type="button"
           additionalClass="w-40"
-          onClick={() => navigate("/products")}
+          onClick={() => navigate("/maintenance/product")}
         >
           Cancel
         </Button>

@@ -22,11 +22,11 @@ const Entry: React.FC = () => {
         icon: Plus,
         route: "/processes/entry/new",
       },
-      {
-        title: "Generate Mass Order",
-        icon: Plus,
-        route: "/processes/entry/mass",
-      },
+      // {
+      //   title: "Generate Mass Order",
+      //   icon: Plus,
+      //   route: "/processes/entry/mass",
+      // },
     ];
   }, []);
 
@@ -47,7 +47,9 @@ const Entry: React.FC = () => {
       </Text>
       <Divider />
       {/* Pass the onSearch callback to the Searchbar component */}
-      <Searchbar placeholder="Enter Document Number" onSearch={handleSearch} />
+      <div className="w-1/2">
+      <Searchbar searchButton={true} iconHidden={true} placeholder="Enter Document Number" onSearch={handleSearch} />
+      </div>
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
       <Divider />
