@@ -18,6 +18,14 @@ const Searchbar: React.FC<Props> = ({
 }) => {
   const [searchValue, setSearchValue] = useState("");
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setSearchValue(newValue);
+    if (onSearch) {
+      onSearch(newValue);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (onSearch) {
@@ -33,7 +41,7 @@ const Searchbar: React.FC<Props> = ({
       <TextInput
         placeholder={placeholder}
         value={searchValue}
-        onChange={(e) => setSearchValue(e.target.value)}
+        onChange={handleChange}
       />
       {searchButton && (
         <Button type="submit" additionalClass="w-12 h-8 mr-1" variant="action">

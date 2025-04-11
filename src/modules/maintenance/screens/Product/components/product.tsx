@@ -145,7 +145,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
         </div>
 
         {/* Container with fixed maximum height */}
-        <div className="mt-2 min-w-[800px] max-h-100 overflow-y-auto">
+        <div className="mt-2 overflow-y-auto">
           <DataTable
             data={products}
             columns={columns}

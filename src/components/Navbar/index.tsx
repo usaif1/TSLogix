@@ -8,6 +8,7 @@ import {
 import { useLocation } from "react-router";
 
 // components
+import LogoutButton from "@/components/Logout";
 import SubRoute from "./SubRoute";
 import Route from "./Route";
 
@@ -65,6 +66,9 @@ const Navbar: React.FC = () => {
           </AccordionItem>
         ))}
       </ControlledAccordion>
+      <div className="mt-auto">
+        <LogoutButton />
+      </div>
     </nav>
   );
 };

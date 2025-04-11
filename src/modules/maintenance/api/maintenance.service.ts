@@ -23,10 +23,12 @@ const {
 } = MaintenanceStore.getState();
 
 export const SupplierService = {
-  fetchAllSuppliers: async () => {
+  fetchAllSuppliers: async (search?: string) => {
     try {
       startLoader("suppliers/fetch-suppliers");
-      const response = await api.get(supplierBaseURL);
+      const response = await api.get(supplierBaseURL, {
+        params: { search },
+      });
       setSuppliers(response.data.data);
       return response.data;
     } catch (err) {
@@ -119,12 +121,13 @@ export const SupplierService = {
 };
 
 export const ProductService = {
-
-  fetchAllProducts: async (filters: {
-    product_line_id?: string;
-    group_id?: string;
-    name?: string;
-  } = {}) => {
+  fetchAllProducts: async (
+    filters: {
+      product_line_id?: string;
+      group_id?: string;
+      name?: string;
+    } = {}
+  ) => {
     try {
       const response = await api.get(productBaseURL, {
         params: filters,
@@ -160,8 +163,8 @@ export const ProductService = {
           meta: {
             rangeName: tr.range,
             min: tr.min_celsius,
-            max: tr.max_celsius
-          }
+            max: tr.max_celsius,
+          },
         })
       );
 
