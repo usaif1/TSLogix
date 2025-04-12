@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo } from "react";
 
 function isEmptyField(value: any): boolean {
@@ -35,9 +36,7 @@ function useFormComplete(
         }
       }
     }
-    if (emptyFields.length > 0) {
-      console.log("Empty fields:", emptyFields);
-    }
+
     return true;
   }, [formData, excludedKeys]);
 }

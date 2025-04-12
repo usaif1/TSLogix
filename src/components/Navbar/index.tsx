@@ -26,10 +26,6 @@ const Navbar: React.FC = () => {
   });
 
   useEffect(() => {
-    console.log("navbar useEffect");
-    // const normalizePath = (path: string) => path.replace(/\/$/, ""); // Remove trailing slashes
-    // const currentPath = normalizePath(location.pathname);
-    // location.pathname.includes(item.route);
     const activeRoute = links.find((link) =>
       location.pathname.includes(link.route)
     );

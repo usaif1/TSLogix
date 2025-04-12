@@ -42,12 +42,14 @@ const Supplier: React.FC = () => {
         Supplier Maintenance
       </Text>
       <Divider />
-      <Searchbar
-        searchButton={true}
-        iconHidden={true}
-        placeholder="Enter Supplier Name"
-        onSearch={handleSearch}
-      />
+      <div className="w-1/2">
+        <Searchbar
+          searchButton={true}
+          iconHidden={true}
+          placeholder="Enter Supplier Name"
+          onSearch={handleSearch}
+        />
+      </div>
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
       <Divider />

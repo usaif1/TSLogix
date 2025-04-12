@@ -14,7 +14,6 @@ const Dropdown = ({ items }: DropdownProps) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log("running");
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&

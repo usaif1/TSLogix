@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Select, { CSSObjectWithLabel, SingleValue } from "react-select";
 import { Button, Divider } from "@/components";
@@ -42,10 +43,6 @@ const SupplierRegistration: React.FC = () => {
     email: "",
   });
 
-  useEffect(() => {
-    console.log("Fetched countries: ", countries);
-  }, [countries]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -70,6 +67,7 @@ const SupplierRegistration: React.FC = () => {
     }
 
     startLoader("suppliers/create-supplier");
+
     try {
       await SupplierService.createSupplier({
         name: formData.companyName,
@@ -185,11 +183,22 @@ const SupplierRegistration: React.FC = () => {
         <div className="w-full flex flex-col">
           <label htmlFor="phone">Phone</label>
           <input
-            type="tel"
+            type="text"
             id="phone"
             name="phone"
             value={formData.phone}
             onChange={handleInputChange}
+            onInput={(e: any) => {
+              const regex = /^[+]?[0-9]*$/; // Allow only numbers and one optional '+' at the start
+              const inputValue = e.target.value;
+
+              // If the value matches the regex, update the form data
+              if (regex.test(inputValue)) {
+                handleInputChange(e); // Call the handleInputChange if valid
+              } else {
+                e.target.value = formData.phone; // Revert to the previous value if invalid
+              }
+            }}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
           />
         </div>
