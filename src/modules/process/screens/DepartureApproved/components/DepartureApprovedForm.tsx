@@ -9,6 +9,7 @@ import { ProcessesStore } from "@/globalStore";
 import { DepartureFormData } from "@/modules/process/types";
 import { ProcessService } from "@/modules/process/api/process.service";
 import useFormComplete from "@/hooks/useFormComplete";
+import { useNavigate } from "react-router";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -22,6 +23,8 @@ const reactSelectStyle = {
 };
 
 const DepartureApprovedForm: React.FC = () => {
+  const navigate = useNavigate();
+
   const { departureFormFields } = ProcessesStore();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,6 +132,8 @@ const DepartureApprovedForm: React.FC = () => {
         packaging_type: { option: "", value: "", label: "" },
         departure_status: { option: "", value: "", label: "" },
       }));
+
+      navigate(-1);
     } catch (error) {
       console.error("Departure order creation failed:", error);
       setSubmitStatus({

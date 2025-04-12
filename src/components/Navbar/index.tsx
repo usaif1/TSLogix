@@ -65,7 +65,7 @@ const Navbar: React.FC = () => {
             </Accordion>
           </AccordionItem>
         ))}
-        <div className="absolute md:bottom-24 xl:bottom-12 left-10 right-10 mx-auto">
+        <div className="absolute bottom-24 left-10 right-10 mx-auto">
           <LogoutButton />
         </div>
       </ControlledAccordion>
