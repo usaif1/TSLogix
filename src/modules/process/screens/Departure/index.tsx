@@ -49,7 +49,7 @@ const Entry: React.FC = () => {
         <Searchbar
           iconHidden={true}
           searchButton={true}
-          placeholder="Enter Document Number"
+          placeholder="Enter Order Number"
           onSearch={handleSearch}
         />
       </div>
