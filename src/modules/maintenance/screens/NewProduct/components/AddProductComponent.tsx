@@ -148,7 +148,7 @@ const NewProductForm: React.FC = () => {
             value={formData.name}
             onChange={handleChange}
             placeholder="Enter product name"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
           />
         </div>
 
@@ -161,7 +161,7 @@ const NewProductForm: React.FC = () => {
             value={formData.manufacturer}
             onChange={handleChange}
             placeholder="Enter manufacturer"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
           />
         </div>
       </div>
@@ -194,7 +194,7 @@ const NewProductForm: React.FC = () => {
             value={formData.humidity}
             onChange={handleChange}
             placeholder="Enter humidity"
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
           />
         </div>
       </div>
@@ -210,7 +210,7 @@ const NewProductForm: React.FC = () => {
           value={formData.storage_conditions}
           onChange={handleChange}
           placeholder="Enter storage conditions"
-          className="h-20 border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-1 focus-visible:outline-primary-500"
+          className="h-20 border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
         />
       </div>
 
