@@ -26,7 +26,7 @@ const Navbar: React.FC = () => {
   });
 
   useEffect(() => {
-    console.log("navbar useEffect")
+    console.log("navbar useEffect");
     // const normalizePath = (path: string) => path.replace(/\/$/, ""); // Remove trailing slashes
     // const currentPath = normalizePath(location.pathname);
     // location.pathname.includes(item.route);
@@ -39,7 +39,7 @@ const Navbar: React.FC = () => {
   }, []);
 
   return (
-    <nav className="w-64 h-full bg-primary-500 px-5 py-1.5 flex flex-col">
+    <nav className="relative w-64 h-full bg-primary-500 px-5 py-1.5 flex flex-col">
       <ControlledAccordion providerValue={providerValue} className="w-full">
         <HomeRoute item={home} />
         {links.map((link) => (
@@ -65,10 +65,10 @@ const Navbar: React.FC = () => {
             </Accordion>
           </AccordionItem>
         ))}
+        <div className="absolute md:bottom-24 xl:bottom-12 left-10 right-10 mx-auto">
+          <LogoutButton />
+        </div>
       </ControlledAccordion>
-      <div className="mt-auto">
-        <LogoutButton />
-      </div>
     </nav>
   );
 };

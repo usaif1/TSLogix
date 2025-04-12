@@ -125,29 +125,34 @@ const NewEntryOrderForm: React.FC = () => {
     // These fields are always optional
     const baseSkipFields = [
       "technical_specification",
-      "certificate_protocol_analysis"
+      "certificate_protocol_analysis",
     ];
-    
+
     // For Return or Reconditioned origins, these fields should be skipped
     if (isReturnOrigin || isReconditionedOrigin) {
       const additionalSkipFields = [
         "max_temperature",
-        "min_temperature", 
-        "humidity"
+        "min_temperature",
+        "humidity",
       ];
-      
+
       // For Reconditioned origin only, supplier is not required
-      const originSpecificSkipFields = isReconditionedOrigin ? ["supplier"] : [];
-      
-      return [...baseSkipFields, ...additionalSkipFields, ...originSpecificSkipFields];
+      const originSpecificSkipFields = isReconditionedOrigin
+        ? ["supplier"]
+        : [];
+
+      return [
+        ...baseSkipFields,
+        ...additionalSkipFields,
+        ...originSpecificSkipFields,
+      ];
     }
-    
+
     return baseSkipFields;
   }, [isReturnOrigin, isReconditionedOrigin]);
 
-
   const isFormComplete = useFormComplete(formData, fieldsToSkipValidation);
-  
+
   useEffect(() => {
     if (submitStatus.success) {
       navigate("/processes/entry");
@@ -505,7 +510,11 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* CIF value/ Purchase Value */}
         <div className="w-full flex flex-col">
-          <label htmlFor="cif_value">CIF Value/ Purchase Value</label>
+          <label htmlFor="cif_value">
+            <span>$</span>
+            CIF Value/ Purchase Value
+          </label>
+
           <div className="w-full flex items-end gap-x-2">
             <input
               type="number"
@@ -515,7 +524,6 @@ const NewEntryOrderForm: React.FC = () => {
               onChange={handleChange}
               className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
             />
-            <Text>$</Text>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 // dependencies
 import React from "react";
-import { CaretUp } from "@phosphor-icons/react";
+import { CaretDown } from "@phosphor-icons/react";
 import { Icon } from "@phosphor-icons/react";
 
 type Props = {
@@ -21,7 +21,7 @@ const Route: React.FC<Props> = ({ item, isOpen }) => {
         <item.icon size={20} weight={isActive ? "bold" : "regular"} />
         {item.title}
       </div>
-      <CaretUp
+      <CaretDown
         className={`caret_icon ${isOpen ? "-rotate-180" : "rotate-0"}`}
       />
     </div>
