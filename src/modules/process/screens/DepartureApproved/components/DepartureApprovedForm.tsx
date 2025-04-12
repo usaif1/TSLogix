@@ -31,21 +31,21 @@ const DepartureApprovedForm: React.FC = () => {
   }>({});
 
   const [formData, setFormData] = useState<DepartureFormData>({
-    customer: { option: "", value: "" },
+    customer: { option: "", value: "", label: "" },
     palettes: "",
     departure_date: new Date(),
     departure_order_no: "",
-    document_type_id: { option: "", value: "" },
+    document_type_id: { option: "", value: "", label: "" },
     document_number: "",
     document_date: new Date(),
-    departure_status: { option: "", value: "" },
+    departure_status: { option: "", value: "", label: "" },
     departure_transfer_note: "",
-    personnel_incharge_id: { option: "", value: "" },
+    personnel_incharge_id: { option: "", value: "", label: "" },
     observation: "",
     total_volume: "",
     total_weight: "",
     arrival_point: "",
-    packaging_type: { option: "", value: "" },
+    packaging_type: { option: "", value: "", label: "" },
     labeled: "",
     id_responsible: "",
     reponsible_for_collection: "",
@@ -123,11 +123,11 @@ const DepartureApprovedForm: React.FC = () => {
         product_description: "",
         insured_value: "",
         presentation: "",
-        document_type_id: { option: "", value: "" },
-        customer: { option: "", value: "" },
-        personnel_incharge_id: { option: "", value: "" },
-        packaging_type: { option: "", value: "" },
-        departure_status: { option: "", value: "" },
+        document_type_id: { option: "", value: "", label: "" },
+        customer: { option: "", value: "", label: "" },
+        personnel_incharge_id: { option: "", value: "", label: "" },
+        packaging_type: { option: "", value: "", label: "" },
+        departure_status: { option: "", value: "", label: "" },
       }));
     } catch (error) {
       console.error("Departure order creation failed:", error);
