@@ -11,5 +11,6 @@ export { default as Navbar } from "./Navbar";
 export { default as Header } from "./Header";
 export { default as Searchbar } from "./Searchbar";
 export { default as Anchor } from "./Anchor";
-export {default as LoaderSync} from "./Loaders/LoaderSync"
+export {default as LoaderSync} from "./Loaders/LoaderSync";
+export {default as LogoutButton} from "./Logout";
 export {default as Fileupload} from "./FileUpload"

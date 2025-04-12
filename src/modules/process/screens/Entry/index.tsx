@@ -1,5 +1,6 @@
-import React, { useMemo, useEffect } from "react";
+import React, { useMemo, useEffect, useCallback } from "react";
 import { Plus } from "@phosphor-icons/react";
+import debounce from "lodash.debounce";
 
 // components
 import { OrderBtnGroup } from "../../components";
@@ -15,27 +16,25 @@ import { ProcessesStore } from "@/globalStore";
 const Entry: React.FC = () => {
   const { loaders } = ProcessesStore();
 
-  const buttonGroup = useMemo(() => {
-    return [
+  const buttonGroup = useMemo(
+    () => [
       {
         title: "Generate Order",
         icon: Plus,
         route: "/processes/entry/new",
       },
-      // {
-      //   title: "Generate Mass Order",
-      //   icon: Plus,
-      //   route: "/processes/entry/mass",
-      // },
-    ];
-  }, []);
+    ],
+    []
+  );
 
-  // Handler for search functionality. It passes the search value to fetchAllEntryOrders.
-  const handleSearch = (searchValue: string) => {
-    ProcessService.fetchAllEntryOrders(searchValue);
-  };
+  // Debounced search function
+  const handleSearch = useCallback(
+    debounce((searchValue: string) => {
+      ProcessService.fetchAllEntryOrders(searchValue);
+    }, 800),
+    []
+  );
 
-  // Fetch all entry orders on initial load (without search filter)
   useEffect(() => {
     ProcessService.fetchAllEntryOrders();
   }, []);
@@ -46,9 +45,13 @@ const Entry: React.FC = () => {
         Entry Order
       </Text>
       <Divider />
-      {/* Pass the onSearch callback to the Searchbar component */}
       <div className="w-1/2">
-      <Searchbar searchButton={true} iconHidden={true} placeholder="Enter Document Number" onSearch={handleSearch} />
+        <Searchbar
+          searchButton={true}
+          iconHidden={true}
+          placeholder="Enter Document Number"
+          onSearch={handleSearch}
+        />
       </div>
       <Divider />
       <OrderBtnGroup items={buttonGroup} />

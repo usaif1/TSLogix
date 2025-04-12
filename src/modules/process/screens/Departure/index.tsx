@@ -1,5 +1,5 @@
-// dependencies
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
+import debounce from "lodash.debounce";
 import { Plus } from "@phosphor-icons/react";
 
 // services
@@ -16,10 +16,19 @@ const Entry: React.FC = () => {
   useEffect(() => {
     ProcessService.fetchAllDepartureOrders();
   }, []);
+
   const openModal = GlobalStore.use.openModal();
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const debouncedSearch = useCallback(
+    debounce((searchValue: string) => {
+      ProcessService.fetchAllDepartureOrders(searchValue);
+    }, 800),
+    []
+  );
+
   const handleSearch = (searchValue: string) => {
-    ProcessService.fetchAllDepartureOrders(searchValue);
+    debouncedSearch(searchValue);
   };
 
   const onClick = () => {
@@ -27,7 +36,6 @@ const Entry: React.FC = () => {
       ...prevState,
       ModalComponent: DepartureOptions,
     }));
-
     openModal();
   };
 

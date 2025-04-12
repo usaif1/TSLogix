@@ -17,9 +17,9 @@ const EntryRecordsTable: React.FC = () => {
         { accessor: "address", header: "Address" },
         { accessor: "city", header: "City" },
         {
-          accessor: "country", // still just a string
+          accessor: "country",
           header: "Country",
-          cell: ({ row }) => row.original.country?.name || "", // custom cell renderer
+          cell: ({ row }) => row.original.country?.name || "", 
         },
         { accessor: "ruc", header: "RUC" },
       ]),

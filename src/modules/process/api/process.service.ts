@@ -12,12 +12,11 @@ const setDepartureOrders = ProcessesStore.getState().setDepartureOrders;
 const startLoader = ProcessesStore.getState().startLoader;
 const stopLoader = ProcessesStore.getState().stopLoader;
 
-
 export const ProcessService = {
   // fetch all entry orders
   fetchAllEntryOrders: async (searchQuery = "") => {
     try {
-      startLoader('processes/fetch-entry-orders');
+      startLoader("processes/fetch-entry-orders");
       let endpoint = `${baseURL}/entry-orders`;
       if (searchQuery) {
         endpoint += `?orderNo=${encodeURIComponent(searchQuery)}`;
@@ -26,12 +25,11 @@ export const ProcessService = {
       setEntryOrders(response.data.data);
     } catch (err) {
       console.log("fetch entry orders error", err);
-      throw new Error('Failed to fetch entry orders');
+      throw new Error("Failed to fetch entry orders");
     } finally {
-      stopLoader('processes/fetch-entry-orders');
+      stopLoader("processes/fetch-entry-orders");
     }
   },
-  
 
   //   fetch all dropdown fields for new entry order form
   fetchEntryOrderFormFields: async () => {
@@ -39,7 +37,15 @@ export const ProcessService = {
 
     console.log(response.data);
 
-    const { origins, users, suppliers, documentTypes, customers, products, orderStatus } = response.data;
+    const {
+      origins,
+      users,
+      suppliers,
+      documentTypes,
+      customers,
+      products,
+      orderStatus,
+    } = response.data;
 
     // change to react-select compatible dropdown options -
     const formattedOrigins = origins.map((origin: any) => {
@@ -90,7 +96,7 @@ export const ProcessService = {
       value: status.status_id,
       label: status.name,
     }));
-    
+
     // { value: "originOption1", label: "originOption1" },
 
     ProcessesStore.setState((prevState) => ({
@@ -106,13 +112,11 @@ export const ProcessService = {
   },
   //   create new entry order
   createNewEntryOrder: async (formData: any) => {
-    
     const response = await api.post(`${baseURL}/create-entry-order`, {
       ...formData,
       organisation_id: localStorage.getItem("organisation_id"),
       order_type: "ENTRY",
       created_by: localStorage.getItem("id"),
-
     });
 
     return response;
@@ -131,7 +135,7 @@ export const ProcessService = {
     const response = await api.get(`${baseURL}/current-order-number`);
     ProcessesStore.setState((prevState) => ({
       ...prevState,
-      currentEntryOrderNo: response.data
+      currentEntryOrderNo: response.data,
     }));
 
     return response.data;
@@ -139,7 +143,7 @@ export const ProcessService = {
 
   fetchAllDepartureOrders: async (searchQuery = "") => {
     try {
-      startLoader('processes/fetch-departure-orders');
+      startLoader("processes/fetch-departure-orders");
       let endpoint = `${baseURL}/departure-orders`;
       if (searchQuery) {
         endpoint += `?orderNo=${encodeURIComponent(searchQuery)}`;
@@ -147,43 +151,48 @@ export const ProcessService = {
       const response = await api.get(endpoint);
       setDepartureOrders(response.data.data);
     } catch (err) {
-      console.log("fetch entry orders error", err)
-      throw new Error('Failed to fetch entry orders')
-    }finally{
-      stopLoader('processes/fetch-entry-orders')
+      console.log("fetch departure orders error", err);
+      throw new Error("Failed to fetch departure orders");
+    } finally {
+      stopLoader("processes/fetch-departure-orders");
     }
   },
 
   fetchDepartureFormFields: async () => {
     try {
       const response = await api.get(`${baseURL}/departure-formfields`);
-      const { customers, documentTypes, users, packagingTypes, labels } = response.data.data;
-      
+      const { customers, documentTypes, users, packagingTypes, labels } =
+        response.data.data;
+
       const formattedCustomers = customers.map((customer: any) => ({
         value: customer.customer_id,
         label: customer.name,
       }));
-  
+
       const formattedDocumentTypes = documentTypes.map((documentType: any) => ({
         value: documentType.document_type_id,
         label: documentType.name,
       }));
-  
+
       const formattedUsers = users.map((user: any) => ({
-        value: user.id, // or user.user_id if that's preferred
-        label: `${user.first_name || ""} ${user.middle_name || ""} ${user.last_name || ""}`,
+        value: user.id,
+        label: `${user.first_name || ""} ${user.middle_name || ""} ${
+          user.last_name || ""
+        }`,
       }));
-  
-      const formattedPackagingTypes = packagingTypes.map((packagingType: any) => ({
-        value: packagingType.packaging_type_id,
-        label: packagingType.name,
-      }));
-  
+
+      const formattedPackagingTypes = packagingTypes.map(
+        (packagingType: any) => ({
+          value: packagingType.packaging_type_id,
+          label: packagingType.name,
+        })
+      );
+
       const formattedLabels = labels.map((label: any) => ({
         value: label.label_id,
         label: label.name,
       }));
-  
+
       // Update your global store with the formatted data.
       ProcessesStore.setState((prevState) => ({
         ...prevState,
@@ -200,5 +209,4 @@ export const ProcessService = {
       throw new Error("Failed to fetch departure form fields");
     }
   },
-  
 };

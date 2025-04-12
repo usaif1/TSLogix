@@ -21,4 +21,10 @@ export const AuthService = {
     localStorage.setItem("id", response.data.data.id);
     return response.data;
   },
+  logout: async () => {
+    setAuthUser(null);
+    localStorage.removeItem("liu");
+    localStorage.removeItem("organisation_id");
+    localStorage.removeItem("id");
+  },
 };
