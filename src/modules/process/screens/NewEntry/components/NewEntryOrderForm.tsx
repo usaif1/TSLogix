@@ -45,26 +45,30 @@ const NewEntryOrderForm: React.FC = () => {
   }, [currentEntryOrderNo]);
 
   const [formData, setFormData] = useState<EntryFormData>({
-    origin: { option: "", value: "" },
+    origin: { option: "", value: "", label: "" },
     palettes: "",
     product_description: "",
     insured_value: "",
     entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
-    document_type_id: { option: "", value: "" },
+    document_type_id: { option: "", value: "", label: "" },
     registration_date: new Date(),
     document_date: new Date(),
     admission_date_time: new Date(),
     entry_date: new Date(),
     entry_transfer_note: "",
-    personnel_incharge_id: { option: "", value: "" },
-    document_status: { option: "Registered", value: "REGISTERED" },
-    order_status: { option: "", value: "" },
+    personnel_incharge_id: { option: "", value: "", label: "" },
+    document_status: {
+      option: "Registered",
+      value: "REGISTERED",
+      label: "REGISTERED",
+    },
+    order_status: { option: "", value: "", label: "" },
     observation: "",
     total_volume: "",
     total_weight: "",
     cif_value: "",
-    supplier: { option: "", value: "" },
-    product: { option: "", value: "" },
+    supplier: { option: "", value: "", label: "" },
+    product: { option: "", value: "", label: "" },
     certificate_protocol_analysis: "",
     mfd_date_time: new Date(),
     expiration_date: new Date(),
@@ -82,11 +86,68 @@ const NewEntryOrderForm: React.FC = () => {
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [techSpecFile, setTechSpecFile] = useState<File | null>(null);
 
-  const isFormComplete = useFormComplete(formData, [
-    "technical_specification",
-    "certificate_protocol_analysis",
-  ]);
+  const isReturnOrigin = useMemo(() => {
+    return (
+      formData.origin?.label === "Return" || formData.origin?.label === "RETURN"
+    );
+  }, [formData.origin]);
 
+  const isReconditionedOrigin = useMemo(() => {
+    return (
+      formData.origin?.label === "Reconditioned" ||
+      formData.origin?.label === "Reconditioned"
+    );
+  }, [formData.origin]);
+
+  const shouldDisableFields = useMemo(() => {
+    return isReturnOrigin || isReconditionedOrigin;
+  }, [isReturnOrigin, isReconditionedOrigin]);
+
+  useEffect(() => {
+    if (shouldDisableFields) {
+      setCertificateFile(null);
+      setTechSpecFile(null);
+      setFormData((prev) => ({
+        ...prev,
+        max_temperature: "",
+        min_temperature: "",
+        humidity: "",
+        technical_specification: "",
+        certificate_protocol_analysis: "",
+        ...(isReconditionedOrigin
+          ? { supplier: { option: "", value: "", label: "" } }
+          : {}),
+      }));
+    }
+  }, [shouldDisableFields, isReconditionedOrigin]);
+
+  const fieldsToSkipValidation = useMemo(() => {
+    // These fields are always optional
+    const baseSkipFields = [
+      "technical_specification",
+      "certificate_protocol_analysis"
+    ];
+    
+    // For Return or Reconditioned origins, these fields should be skipped
+    if (isReturnOrigin || isReconditionedOrigin) {
+      const additionalSkipFields = [
+        "max_temperature",
+        "min_temperature", 
+        "humidity"
+      ];
+      
+      // For Reconditioned origin only, supplier is not required
+      const originSpecificSkipFields = isReconditionedOrigin ? ["supplier"] : [];
+      
+      return [...baseSkipFields, ...additionalSkipFields, ...originSpecificSkipFields];
+    }
+    
+    return baseSkipFields;
+  }, [isReturnOrigin, isReconditionedOrigin]);
+
+
+  const isFormComplete = useFormComplete(formData, fieldsToSkipValidation);
+  
   useEffect(() => {
     if (submitStatus.success) {
       navigate("/processes/entry");
@@ -133,7 +194,7 @@ const NewEntryOrderForm: React.FC = () => {
 
     try {
       let certificateUrl = "";
-      if (certificateFile) {
+      if (certificateFile && !isReturnOrigin) {
         const fileName = `${Date.now()}_${certificateFile.name}`;
         const { error } = await supabase.storage
           .from("order")
@@ -146,7 +207,7 @@ const NewEntryOrderForm: React.FC = () => {
       }
 
       let techSpecUrl = "";
-      if (techSpecFile) {
+      if (techSpecFile && !isReturnOrigin) {
         const fileName = `${Date.now()}_${techSpecFile.name}`;
         const { error } = await supabase.storage
           .from("order")
@@ -177,26 +238,30 @@ const NewEntryOrderForm: React.FC = () => {
       await ProcessService.createNewEntryOrder(apiSubmissionData);
 
       const initialFormData = {
-        origin: { option: "", value: "" },
+        origin: { option: "", value: "", label: "" },
         palettes: "",
         product_description: "",
         insured_value: "",
         entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
-        document_type_id: { option: "", value: "" },
+        document_type_id: { option: "", value: "", label: "" },
         registration_date: new Date(),
         document_date: new Date(),
         admission_date_time: new Date(),
         entry_date: new Date(),
         entry_transfer_note: "",
-        personnel_incharge_id: { option: "", value: "" },
-        document_status: { option: "Registered", value: "REGISTERED" },
-        order_status: { option: "", value: "" },
+        personnel_incharge_id: { option: "", value: "", label: "" },
+        document_status: {
+          option: "Registered",
+          value: "REGISTERED",
+          label: "Registered",
+        },
+        order_status: { option: "", value: "", label: "" },
         observation: "",
         total_volume: "",
         total_weight: "",
         cif_value: "",
-        supplier: { option: "", value: "" },
-        product: { option: "", value: "" },
+        supplier: { option: "", value: "", label: "" },
+        product: { option: "", value: "", label: "" },
         certificate_protocol_analysis: "",
         mfd_date_time: new Date(),
         expiration_date: new Date(),
@@ -372,6 +437,7 @@ const NewEntryOrderForm: React.FC = () => {
             onChange={(selectedOption) =>
               handleSelectChange("document_status", selectedOption)
             }
+            isDisabled
           />
         </div>
         <div className="w-full flex flex-col">
@@ -458,7 +524,12 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* supplier */}
         <div className="w-full flex flex-col">
-          <label htmlFor="supplier">Supplier</label>
+          <label
+            htmlFor="supplier"
+            className={isReconditionedOrigin ? "text-gray-400" : ""}
+          >
+            Supplier
+          </label>
           <Select
             options={suppliers}
             styles={reactSelectStyle}
@@ -468,7 +539,14 @@ const NewEntryOrderForm: React.FC = () => {
             onChange={(selectedOption) =>
               handleSelectChange("supplier", selectedOption)
             }
+            isDisabled={isReconditionedOrigin}
+            className={isReconditionedOrigin ? "react-select--is-disabled" : ""}
           />
+          {isReconditionedOrigin && (
+            <p className="text-xs text-amber-600 mt-1">
+              Not applicable for reconditioned products
+            </p>
+          )}
         </div>
 
         {/* product */}
@@ -486,14 +564,18 @@ const NewEntryOrderForm: React.FC = () => {
           />
         </div>
 
-        {/* protocol/ analysis certificate */}
-        <div className="w-full flex flex-col">
-          <FileUpload
-            id="certificate_protocol_analysis"
-            label="Protocol/ Analysis Certificate"
-            onFileSelected={(file: File) => setCertificateFile(file)}
-          />
-        </div>
+        {/* protocol/ analysis certificate - hide when Return is selected */}
+        {!shouldDisableFields && (
+          <div className="w-full flex flex-col">
+            <FileUpload
+              id="certificate_protocol_analysis"
+              label="Protocol/ Analysis Certificate"
+              onFileSelected={(file: File) => setCertificateFile(file)}
+            />
+          </div>
+        )}
+        {/* Placeholder div to maintain grid layout when hiding file upload */}
+        {shouldDisableFields && <div className="w-full" />}
       </div>
 
       <Divider />
@@ -516,8 +598,10 @@ const NewEntryOrderForm: React.FC = () => {
         <div className="w-full flex flex-col">
           <label htmlFor="manufacturing_date">Manufacturing Date</label>
           <DatePicker
-            showTimeSelect
-            dateFormat="Pp"
+            showYearDropdown
+            scrollableYearDropdown
+            yearDropdownItemNumber={20}
+            dateFormat="MM/dd/yyyy"
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             id="manufacturing_date"
             name="manufacturing_date"
@@ -584,17 +668,21 @@ const NewEntryOrderForm: React.FC = () => {
           />
         </div>
 
-        {/* technical specification */}
-        <div className="w-full flex flex-col">
-          <FileUpload
-            id="technical_specification"
-            label="Technical Specification"
-            onFileSelected={(file: File) => {
-              console.log("Tech spec file selected:", file.name);
-              setTechSpecFile(file);
-            }}
-          />
-        </div>
+        {/* technical specification - hide when Return is selected */}
+        {!shouldDisableFields && (
+          <div className="w-full flex flex-col">
+            <FileUpload
+              id="technical_specification"
+              label="Technical Specification"
+              onFileSelected={(file: File) => {
+                console.log("Tech spec file selected:", file.name);
+                setTechSpecFile(file);
+              }}
+            />
+          </div>
+        )}
+        {/* Placeholder div to maintain grid layout when hiding file upload */}
+        {shouldDisableFields && <div className="w-full" />}
       </div>
 
       <Divider />
@@ -684,44 +772,77 @@ const NewEntryOrderForm: React.FC = () => {
 
       <Divider />
       <div className="w-full flex items-center gap-x-6">
-        {/* temperature */}
+        {/* temperature and humidity section - disable when Return is selected */}
         <div className="w-full flex flex-col">
-          <label htmlFor="max_temperature">Max. Temp</label>
+          <label
+            htmlFor="max_temperature"
+            className={shouldDisableFields ? "text-gray-400" : ""}
+          >
+            Max. Temp
+          </label>
           <input
             type="number"
             id="max_temperature"
             name="max_temperature"
             value={formData.max_temperature}
             onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            disabled={shouldDisableFields}
+            className={`h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 ${
+              shouldDisableFields ? "bg-gray-100 text-gray-500" : ""
+            }`}
           />
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="min_temperature">Min Temp</label>
+          <label
+            htmlFor="min_temperature"
+            className={shouldDisableFields ? "text-gray-400" : ""}
+          >
+            Min Temp
+          </label>
           <input
             type="number"
             id="min_temperature"
             name="min_temperature"
             value={formData.min_temperature}
             onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            disabled={shouldDisableFields}
+            className={`h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 ${
+              shouldDisableFields ? "bg-gray-100 text-gray-500" : ""
+            }`}
           />
         </div>
 
         {/* humidity */}
         <div className="w-full flex flex-col">
-          <label htmlFor="humidity">Humidity</label>
+          <label
+            htmlFor="humidity"
+            className={shouldDisableFields ? "text-gray-400" : ""}
+          >
+            Humidity
+          </label>
           <input
             type="number"
             id="humidity"
             name="humidity"
             value={formData.humidity}
             onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            disabled={shouldDisableFields}
+            className={`h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 ${
+              shouldDisableFields ? "bg-gray-100 text-gray-500" : ""
+            }`}
           />
         </div>
       </div>
+
+      {shouldDisableFields && (
+        <div className="mt-4 p-3 rounded-md bg-blue-50 text-blue-800 border border-blue-200">
+          <p className="text-sm">
+            <strong>Note:</strong> For returned products, file uploads,
+            temperature, and humidity fields are not required.
+          </p>
+        </div>
+      )}
 
       {/* Submission status message */}
       {submitStatus.message && (
