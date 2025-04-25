@@ -41,7 +41,13 @@ const Navbar: React.FC = () => {
         {links.map((link) => (
           <AccordionItem
             className="w-full cursor-pointer"
-            header={({ state }) => <Route item={link} isOpen={state.isEnter} />}
+            header={({ state }) => (
+              <Route
+                item={link}
+                isOpen={state.isEnter}
+                hasSubroutes={link.subroutes.length > 0}
+              />
+            )}
             key={link.title}
             itemKey={link.route}
           >
