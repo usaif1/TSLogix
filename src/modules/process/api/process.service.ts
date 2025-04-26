@@ -9,8 +9,7 @@ import { ProcessesStore } from "@/globalStore";
 const entryBaseURL = "/entry";
 const departureBaseURL = "/departure";
 
-const { setEntryOrders, setDepartureOrders } =
-  ProcessesStore.getState();
+const { setEntryOrders, setDepartureOrders } = ProcessesStore.getState();
 
 export const ProcessService = {
   fetchAllEntryOrders: async (searchQuery = "") => {
@@ -24,7 +23,7 @@ export const ProcessService = {
     } catch (err) {
       console.error("fetch entry orders error", err);
       throw new Error("Failed to fetch entry orders");
-    } 
+    }
   },
 
   // fetch all dropdown fields for new entry order form
@@ -131,7 +130,7 @@ export const ProcessService = {
     } catch (err) {
       console.error("fetch departure orders error", err);
       throw new Error("Failed to fetch departure orders");
-    } 
+    }
   },
 
   // fetch dropdown fields for departure form
@@ -189,5 +188,26 @@ export const ProcessService = {
       formData
     );
     return response;
+  },
+
+  fetchEntryOrderByNo: async (orderNo: string) => {
+    const { startLoader, stopLoader, setCurrentEntryOrder } =
+      ProcessesStore.getState();
+    startLoader("processes/fetch-entry-order");
+    try {
+      const endpoint = `${entryBaseURL}/entry-order/${encodeURIComponent(
+        orderNo
+      )}`;
+      const response = await api.get(endpoint);
+      const entry = response.data.data;
+      setCurrentEntryOrder(entry); // <-- store it
+      return entry;
+    } catch (err) {
+      console.error("fetch entry order by no error", err);
+      setCurrentEntryOrder(null);
+      throw new Error("Failed to fetch entry order details");
+    } finally {
+      stopLoader("processes/fetch-entry-order");
+    }
   },
 };

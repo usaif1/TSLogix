@@ -7,7 +7,8 @@ import createSelectors from "@/utils/selectors";
 
 type LoaderTypes =
   | "processes/fetch-entry-orders"
-  | "processes/fetch-departure-orders";
+  | "processes/fetch-departure-orders"
+  | "processes/fetch-entry-order";
 
 type DepartureFormFields = {
   customers: any[];
@@ -17,9 +18,12 @@ type DepartureFormFields = {
   labels: any[];
 };
 
+type EntryOrder = any; 
+
 type ProcessesStore = {
   // auth user
-  entryOrders: any[];
+  entryOrders: EntryOrder[];
+  currentEntryOrder: EntryOrder | null; 
   departureOrders: any[];
 
   //   entry order form fields
@@ -44,6 +48,7 @@ type ProcessesStore = {
 type ProcessesStoreActions = {
   // reset modal store
   setEntryOrders: (data: any) => void;
+  setCurrentEntryOrder: (data: EntryOrder | null) => void;
   setDepartureOrders: (data: any) => void;
   resetProcessesStore: () => void;
 
@@ -58,6 +63,7 @@ type ProcessesStoreActions = {
 const authInitialState: ProcessesStore = {
   // entry orders
   entryOrders: [],
+  currentEntryOrder: null,
 
   //   entry order form fields
   origins: [],
@@ -82,6 +88,7 @@ const authInitialState: ProcessesStore = {
   loaders: {
     "processes/fetch-entry-orders": false,
     "processes/fetch-departure-orders": false,
+    "processes/fetch-entry-order": false,
   },
 };
 
@@ -106,6 +113,7 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>(
     resetProcessesStore: () => set(authInitialState),
     setEntryOrders: (data: any) => set({ entryOrders: data }),
     setDepartureOrders: (data: any) => set({ departureOrders: data }),
+    setCurrentEntryOrder: (data) => set({ currentEntryOrder: data }),
 
     setDepartureFormFields: (data: DepartureFormFields) =>
       set({ departureFormFields: data }),
