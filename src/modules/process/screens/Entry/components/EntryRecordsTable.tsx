@@ -16,22 +16,40 @@ const EntryRecordsTable: React.FC = () => {
     navigate(`/processes/entry/audit?orderNo=${encodeURIComponent(orderCode)}`);
   };
 
+  const getBgColor = (auditStatus: string) => {
+    switch (auditStatus) {
+      case "PASSED":
+        return "bg-emerald-600";
+
+      case "PENDING":
+        return "bg-sky-600";
+
+      case "FAILED":
+        return "bg-orange-400";
+
+      default:
+        break;
+    }
+  };
+
   const columns = useMemo(
     () =>
       createTableColumns([
         { accessor: "entry_order_no", header: "Order" },
         {
           accessor: "actions",
-          header: "Actions",
+          header: "Audit Status",
           cell: (info: any) => {
             const entry = info.row.original;
             const encoded = encodeURIComponent(entry.entry_order_no);
             return (
               <button
-                className="text-blue-500 hover:underline cursor-pointer"
+                className={`w-20 cursor-pointer border rounded-md flex justify-center items-center py-0.5 ${getBgColor(
+                  entry?.audit_status
+                )} text-white`}
                 onClick={() => actions(encoded)}
               >
-                Click to Audit
+                <p className="text-xs font-bold">{entry?.audit_status}</p>
               </button>
             );
           },
