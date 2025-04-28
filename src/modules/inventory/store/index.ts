@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import createSelectors from "@/utils/selectors";
-import { Inventory } from "@/modules/inventory/api/inventory.service";
+import { create } from "zustand";
+
+
+
+type Inventory = any;
 
 // Loader keys matching service
 type LoaderKey =
