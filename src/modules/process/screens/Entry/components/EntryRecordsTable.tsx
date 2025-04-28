@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 
 // store
 import { ProcessesStore } from "@/globalStore";
-import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
 import { formatDate } from "@/utils/dateUtils";
+import { EntryOrdersTable } from ".";
 
 const EntryRecordsTable: React.FC = () => {
   const entryOrders = ProcessesStore.use.entryOrders();
@@ -20,6 +20,22 @@ const EntryRecordsTable: React.FC = () => {
     () =>
       createTableColumns([
         { accessor: "entry_order_no", header: "Order" },
+        {
+          accessor: "actions",
+          header: "Actions",
+          cell: (info: any) => {
+            const entry = info.row.original;
+            const encoded = encodeURIComponent(entry.entry_order_no);
+            return (
+              <button
+                className="text-blue-500 hover:underline cursor-pointer"
+                onClick={() => actions(encoded)}
+              >
+                Click to Audit
+              </button>
+            );
+          },
+        },
         { accessor: "palettes", header: "Palettes" },
         { accessor: "total_qty", header: "Quantity" },
         { accessor: "total_weight", header: "Weight" },
@@ -38,29 +54,14 @@ const EntryRecordsTable: React.FC = () => {
         { accessor: "type", header: "Type" },
         { accessor: "comments", header: "Comments" },
         { accessor: "documentType.name", header: "Document Type" },
-        {
-          accessor: "actions",
-          header: "Actions",
-          cell: (info: any) => {
-            const entry = info.row.original;
-            const encoded = encodeURIComponent(entry.entry_order_no);
-            return (
-              <button
-                className="text-blue-500 hover:underline cursor-pointer"
-                onClick={() => actions(encoded)}
-              >
-                Click to Audit
-              </button>
-            );
-          },
-        },
       ]),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [navigate]
   );
 
   return (
     <div className="max-w-full h-full">
-      <DataTable
+      <EntryOrdersTable
         data={entryOrders}
         columns={columns}
         showPagination={true}
