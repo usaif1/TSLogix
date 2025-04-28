@@ -81,6 +81,7 @@ export const ProcessService = {
         products: formattedProducts,
         entryOrderStatus: formattedStatus,
       }));
+      console.log("Updated ProcessesStore state:", ProcessesStore.getState());
     } catch (err) {
       console.error("fetch entry form fields error", err);
       throw new Error("Failed to fetch entry form fields");
@@ -147,7 +148,7 @@ export const ProcessService = {
         label: dt.name,
       }));
       const formattedUsers = users.map((u: any) => ({
-        value: u.user_id,
+        value: u.id,
         label: [u.first_name, u.middle_name, u.last_name]
           .filter(Boolean)
           .join(" "),
