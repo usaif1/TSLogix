@@ -1,17 +1,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// api client
 import api from "@/utils/api/axios.config";
-
-// store
 import { ProcessesStore } from "@/globalStore";
 
-// Updated base URLs
 const entryBaseURL = "/entry";
 const departureBaseURL = "/departure";
+const auditBaseURL = "/audit";
 
 const { setEntryOrders, setDepartureOrders } = ProcessesStore.getState();
 
 export const ProcessService = {
+  /**
+   * Fetch all entry orders, optionally filtered by order number
+   */
   fetchAllEntryOrders: async (searchQuery = "") => {
     try {
       let endpoint = `${entryBaseURL}/entry-orders`;
@@ -26,7 +26,9 @@ export const ProcessService = {
     }
   },
 
-  // fetch all dropdown fields for new entry order form
+  /**
+   * Fetch dropdown fields for creating an entry order
+   */
   fetchEntryOrderFormFields: async () => {
     try {
       const response = await api.get(`${entryBaseURL}/entry-formfields`);
@@ -44,34 +46,26 @@ export const ProcessService = {
         value: origin.origin_id,
         label: origin.name,
       }));
-
       const formattedUsers = users.map((user: any) => ({
-        value: user.id,
-        label: [user.first_name, user.middle_name, user.last_name]
-          .filter(Boolean)
-          .join(" "),
+        value: user.user_id,
+        label: [user.first_name, user.last_name].filter(Boolean).join(" "),
       }));
-
-      const formattedSuppliers = suppliers.map((supplier: any) => ({
-        value: supplier.supplier_id,
-        label: supplier.name,
+      const formattedSuppliers = suppliers.map((s: any) => ({
+        value: s.supplier_id,
+        label: s.name,
       }));
-
       const formattedDocumentTypes = documentTypes.map((dt: any) => ({
         value: dt.document_type_id,
         label: dt.name,
       }));
-
       const formattedCustomers = (customers || []).map((c: any) => ({
         value: c.customer_id,
         label: c.name,
       }));
-
       const formattedProducts = (products || []).map((p: any) => ({
         value: p.product_id,
         label: p.name,
       }));
-
       const formattedStatus = (orderStatus || []).map((s: any) => ({
         value: s.status_id,
         label: s.name,
@@ -93,7 +87,9 @@ export const ProcessService = {
     }
   },
 
-  // create new entry order
+  /**
+   * Create a new entry order
+   */
   createNewEntryOrder: async (formData: any) => {
     const payload = {
       ...formData,
@@ -101,30 +97,28 @@ export const ProcessService = {
       order_type: "ENTRY",
       created_by: localStorage.getItem("id"),
     };
-    const response = await api.post(
-      `${entryBaseURL}/create-entry-order`,
-      payload
-    );
-    return response;
+    return await api.post(`${entryBaseURL}/create-entry-order`, payload);
   },
 
-  // fetch last order number
+  /**
+   * Fetch the current entry order number
+   */
   fetchCurrentOrderNumber: async () => {
+    const { setCurrentEntryOrderNo } = ProcessesStore.getState();
     const response = await api.get(`${entryBaseURL}/current-order-number`);
-    ProcessesStore.setState((prev) => ({
-      ...prev,
-      currentEntryOrderNo: response.data.currentOrderNo,
-    }));
-    return response.data.currentOrderNo;
+    const orderNo = response.data.currentOrderNo;
+    setCurrentEntryOrderNo(orderNo);
+    return orderNo;
   },
 
-  // fetch all departure orders
+  /**
+   * Fetch all departure orders, optionally filtered by order number
+   */
   fetchAllDepartureOrders: async (searchQuery = "") => {
     try {
       let endpoint = `${departureBaseURL}/departure-orders`;
-      if (searchQuery) {
+      if (searchQuery)
         endpoint += `?orderNo=${encodeURIComponent(searchQuery)}`;
-      }
       const response = await api.get(endpoint);
       setDepartureOrders(response.data.data);
     } catch (err) {
@@ -133,7 +127,9 @@ export const ProcessService = {
     }
   },
 
-  // fetch dropdown fields for departure form
+  /**
+   * Fetch dropdown fields for departure order form
+   */
   fetchDepartureFormFields: async () => {
     try {
       const response = await api.get(
@@ -151,7 +147,7 @@ export const ProcessService = {
         label: dt.name,
       }));
       const formattedUsers = users.map((u: any) => ({
-        value: u.id,
+        value: u.user_id,
         label: [u.first_name, u.middle_name, u.last_name]
           .filter(Boolean)
           .join(" "),
@@ -181,15 +177,25 @@ export const ProcessService = {
     }
   },
 
-  // create new departure order
+  /**
+   * Create a new departure order
+   */
   createNewDepartureOrder: async (formData: any) => {
-    const response = await api.post(
+    const payload = {
+      ...formData,
+      organisation_id: localStorage.getItem("organisation_id"),
+      order_type: "DEPARTURE",
+      created_by: localStorage.getItem("id"),
+    };
+    return await api.post(
       `${departureBaseURL}/create-departure-order`,
-      formData
+      payload
     );
-    return response;
   },
 
+  /**
+   * Fetch a single entry order by order number
+   */
   fetchEntryOrderByNo: async (orderNo: string) => {
     const { startLoader, stopLoader, setCurrentEntryOrder } =
       ProcessesStore.getState();
@@ -200,7 +206,7 @@ export const ProcessService = {
       )}`;
       const response = await api.get(endpoint);
       const entry = response.data.data;
-      setCurrentEntryOrder(entry); // <-- store it
+      setCurrentEntryOrder(entry);
       return entry;
     } catch (err) {
       console.error("fetch entry order by no error", err);
@@ -208,6 +214,93 @@ export const ProcessService = {
       throw new Error("Failed to fetch entry order details");
     } finally {
       stopLoader("processes/fetch-entry-order");
+    }
+  },
+
+  /**
+   * Create an audit record for an entry order
+   */
+  createAudit: async (data: {
+    entry_order_id: string | number;
+    audit_result: string;
+    comments?: string;
+  }) => {
+    try {
+      const response = await api.post(`${auditBaseURL}`, data);
+      await ProcessService.fetchEntryOrderAudits(
+        data.entry_order_id.toString()
+      );
+      return response.data;
+    } catch (err) {
+      console.error("create audit error", err);
+      throw new Error("Failed to create audit");
+    }
+  },
+
+  /**
+   * Fetch audits for a specific entry order
+   */
+  fetchEntryOrderAudits: async (entryOrderId: string) => {
+    const { setCurrentEntryOrder } = ProcessesStore.getState();
+    try {
+      const response = await api.get(
+        `${auditBaseURL}/entry-order/${encodeURIComponent(entryOrderId)}`
+      );
+      setCurrentEntryOrder(response.data.data);
+      return response.data.data;
+    } catch (err) {
+      console.error("fetch entry order audits error", err);
+      throw new Error("Failed to fetch audits for entry order");
+    }
+  },
+
+  /**
+   * Fetch a single audit by its ID
+   */
+  fetchAuditById: async (auditId: string) => {
+    try {
+      const response = await api.get(
+        `${auditBaseURL}/${encodeURIComponent(auditId)}`
+      );
+      return response.data.data;
+    } catch (err) {
+      console.error("fetch audit by id error", err);
+      throw new Error("Failed to fetch audit details");
+    }
+  },
+
+  /**
+   * Fetch all audits, with optional filters
+   */
+  fetchAllAudits: async (
+    filters: {
+      result?: string;
+      start_date?: string;
+      end_date?: string;
+      sort?: "asc" | "desc";
+    } = {}
+  ) => {
+    try {
+      const { setAllAudit } = ProcessesStore.getState();
+      const response = await api.get(`${auditBaseURL}`, { params: filters });
+      setAllAudit(response.data.data);
+      return response.data.data;
+    } catch (err) {
+      console.error("fetch all audits error", err);
+      throw new Error("Failed to fetch all audits");
+    }
+  },
+
+  /**
+   * Fetch audit summary statistics
+   */
+  fetchAuditStatistics: async () => {
+    try {
+      const response = await api.get(`${auditBaseURL}/statistics/summary`);
+      return response.data.data;
+    } catch (err) {
+      console.error("fetch audit statistics error", err);
+      throw new Error("Failed to fetch audit statistics");
     }
   },
 };

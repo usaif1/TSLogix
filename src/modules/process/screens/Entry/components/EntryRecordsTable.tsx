@@ -12,6 +12,10 @@ const EntryRecordsTable: React.FC = () => {
   const entryOrders = ProcessesStore.use.entryOrders();
   const navigate = useNavigate();
 
+  const actions = async (orderCode: string) => {
+    navigate(`/processes/entry/audit?orderNo=${encodeURIComponent(orderCode)}`);
+  };
+
   const columns = useMemo(
     () =>
       createTableColumns([
@@ -43,9 +47,7 @@ const EntryRecordsTable: React.FC = () => {
             return (
               <button
                 className="text-blue-500 hover:underline cursor-pointer"
-                onClick={() =>
-                  navigate(`/processes/entry/audit?orderNo=${encoded}`)
-                }
+                onClick={() => actions(encoded)}
               >
                 Click to Audit
               </button>

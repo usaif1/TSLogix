@@ -36,20 +36,22 @@ const NewEntryOrderForm: React.FC = () => {
     success?: boolean;
     message?: string;
   }>({});
+  
 
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
+      entry_order_no: currentEntryOrderNo || "",
     }));
   }, [currentEntryOrderNo]);
+  
 
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "", label: "" },
     palettes: "",
     product_description: "",
     insured_value: "",
-    entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
+    entry_order_no: currentEntryOrderNo || "",
     document_type_id: { option: "", value: "", label: "" },
     registration_date: new Date(),
     document_date: new Date(),
@@ -83,6 +85,8 @@ const NewEntryOrderForm: React.FC = () => {
     type: "",
   });
 
+
+  
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [techSpecFile, setTechSpecFile] = useState<File | null>(null);
 
@@ -121,8 +125,10 @@ const NewEntryOrderForm: React.FC = () => {
     }
   }, [shouldDisableFields, isReconditionedOrigin]);
 
+  
+
   const fieldsToSkipValidation = useMemo(() => {
-    // These fields are always optional
+  //  these fields are optional for all origins (need to remove entry_order_no)
     const baseSkipFields = [
       "technical_specification",
       "certificate_protocol_analysis",
@@ -151,6 +157,7 @@ const NewEntryOrderForm: React.FC = () => {
     return baseSkipFields;
   }, [isReturnOrigin, isReconditionedOrigin]);
 
+
   const isFormComplete = useFormComplete(formData, fieldsToSkipValidation);
 
   useEffect(() => {
@@ -161,7 +168,7 @@ const NewEntryOrderForm: React.FC = () => {
 
   const handleEntryOrderNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    const prefix = currentEntryOrderNo?.currentOrderNo || "";
+    const prefix = currentEntryOrderNo || "";
 
     if (newValue.startsWith(prefix)) {
       setFormData((prev) => ({
@@ -247,7 +254,7 @@ const NewEntryOrderForm: React.FC = () => {
         palettes: "",
         product_description: "",
         insured_value: "",
-        entry_order_no: currentEntryOrderNo?.currentOrderNo || "",
+        entry_order_no: currentEntryOrderNo || "",
         document_type_id: { option: "", value: "", label: "" },
         registration_date: new Date(),
         document_date: new Date(),
@@ -332,7 +339,7 @@ const NewEntryOrderForm: React.FC = () => {
             name="entry_order_no"
             value={formData.entry_order_no}
             onChange={handleEntryOrderNoChange}
-            disabled
+            readOnly
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
           />
         </div>

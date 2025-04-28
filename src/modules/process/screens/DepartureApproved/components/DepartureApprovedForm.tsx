@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
 
@@ -81,6 +81,21 @@ const DepartureApprovedForm: React.FC = () => {
   const handleDateChange = (date: Date | null, name: string) => {
     if (date) setFormData((prev) => ({ ...prev, [name]: date }));
   };
+
+    // Debug: log which form fields are currently empty
+    useEffect(() => {
+      const emptyFields: string[] = [];
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value == null) {
+          emptyFields.push(key);
+        } else if (typeof value === 'string' && value.trim() === '') {
+          emptyFields.push(key);
+        } else if (typeof value === 'object' && 'value' in value && !value.value) {
+          emptyFields.push(key);
+        }
+      });
+      console.log('Empty form fields:', emptyFields);
+    }, [formData]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
