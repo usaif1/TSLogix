@@ -89,7 +89,7 @@ const Audit: React.FC = () => {
     : [];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="flex flex-col h-full p-6 space-y-6 overflow-y-scroll">
       <Text size="3xl" weight="font-bold">
         Entry Order: {orderNo}
       </Text>
