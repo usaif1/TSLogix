@@ -1,13 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-// dependencies
 import { create } from "zustand";
-
 // utils
 import createSelectors from "@/utils/selectors";
 
 type LoaderTypes =
   | "processes/fetch-entry-orders"
-  | "processes/fetch-departure-orders";
+  | "processes/fetch-departure-orders"
+  | "processes/fetch-entry-order";
 
 type DepartureFormFields = {
   customers: any[];
@@ -17,12 +16,20 @@ type DepartureFormFields = {
   labels: any[];
 };
 
-type ProcessesStore = {
-  // auth user
-  entryOrders: any[];
+type EntryOrder = any;
+type AllAudit = any;
+
+export type ProcessesStore = {
+  // entry orders list
+  entryOrders: EntryOrder[];
+  // currently loaded entry order details
+  currentEntryOrder: EntryOrder | null;
+  // all audits
+  allAudit: AllAudit[] | null;
+  // departure orders list
   departureOrders: any[];
 
-  //   entry order form fields
+  // entry order form fields
   origins: any[];
   users: any[];
   customers: any[];
@@ -34,43 +41,43 @@ type ProcessesStore = {
   // departure form fields
   departureFormFields: DepartureFormFields;
 
-  // last order no
-  currentEntryOrderNo: any;
+  // last fetched entry order number
+  currentEntryOrderNo: string | null;
 
   // loading states
   loaders: Record<LoaderTypes, boolean>;
 };
 
 type ProcessesStoreActions = {
-  // reset modal store
-  setEntryOrders: (data: any) => void;
-  setDepartureOrders: (data: any) => void;
+  setEntryOrders: (data: EntryOrder[]) => void;
+  setCurrentEntryOrder: (data: EntryOrder | null) => void;
+  setAllAudit: (data: AllAudit[] | null) => void;
+  setDepartureOrders: (data: any[]) => void;
+  setCurrentEntryOrderNo: (data: string | null) => void;
   resetProcessesStore: () => void;
 
   // loader actions
   startLoader: (loaderType: LoaderTypes) => void;
   stopLoader: (loaderType: LoaderTypes) => void;
 
-  // action to set departure form fields
+  // departure form fields
   setDepartureFormFields: (data: DepartureFormFields) => void;
 };
 
 const authInitialState: ProcessesStore = {
-  // entry orders
   entryOrders: [],
+  currentEntryOrder: null,
+  allAudit: null,
+  departureOrders: [],
 
-  //   entry order form fields
   origins: [],
   users: [],
   customers: [],
   suppliers: [],
   documentTypes: [],
-  departureOrders: [],
   products: [],
   entryOrderStatus: [],
-  currentEntryOrderNo: "",
 
-  // departure form fields initial state
   departureFormFields: {
     customers: [],
     documentTypes: [],
@@ -79,9 +86,11 @@ const authInitialState: ProcessesStore = {
     labels: [],
   },
 
+  currentEntryOrderNo: null,
   loaders: {
     "processes/fetch-entry-orders": false,
     "processes/fetch-departure-orders": false,
+    "processes/fetch-entry-order": false,
   },
 };
 
@@ -89,26 +98,30 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>(
   (set) => ({
     ...authInitialState,
 
-    // loader actions
-    startLoader: (loaderType: LoaderTypes) =>
-      set((state) => ({
-        ...state,
-        loaders: { ...state.loaders, [loaderType]: true },
-      })),
+    // loader controls
+    startLoader: (loaderType) =>
+      set((state) => ({ loaders: { ...state.loaders, [loaderType]: true } })),
+    stopLoader: (loaderType) =>
+      set((state) => ({ loaders: { ...state.loaders, [loaderType]: false } })),
 
-    stopLoader: (loaderType: LoaderTypes) =>
-      set((state) => ({
-        ...state,
-        loaders: { ...state.loaders, [loaderType]: false },
-      })),
-
-    // reset store
+    // reset entire store
     resetProcessesStore: () => set(authInitialState),
-    setEntryOrders: (data: any) => set({ entryOrders: data }),
-    setDepartureOrders: (data: any) => set({ departureOrders: data }),
 
-    setDepartureFormFields: (data: DepartureFormFields) =>
-      set({ departureFormFields: data }),
+    // entry orders
+    setEntryOrders: (data) => set({ entryOrders: data }),
+    setCurrentEntryOrder: (data) => set({ currentEntryOrder: data }),
+
+    // audits
+    setAllAudit: (data) => set({ allAudit: data }),
+
+    // departure orders
+    setDepartureOrders: (data) => set({ departureOrders: data }),
+
+    // entry order number
+    setCurrentEntryOrderNo: (data) => set({ currentEntryOrderNo: data }),
+
+    // departure form
+    setDepartureFormFields: (data) => set({ departureFormFields: data }),
   })
 );
 

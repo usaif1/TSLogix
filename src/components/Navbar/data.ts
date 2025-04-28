@@ -1,5 +1,5 @@
 // dependencies
-import {  House, Gear, FolderSimple, FileText } from "@phosphor-icons/react";
+import {  House, Gear, FolderSimple, FileText, ChartBar  } from "@phosphor-icons/react";
 
 
 export const home= {
@@ -40,4 +40,10 @@ export const  links = [
         { title: "Product1", route: "/maintenance/product" },
       ],
     },
+    {
+      title: "Inventory",
+      route: "/inventory",
+      icon: ChartBar,
+      subroutes: []
+    }
   ];

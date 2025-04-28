@@ -17,6 +17,7 @@ import {
   DepartureApproved,
   DepartureCounter,
   DepartureReturned,
+  Audit,
 } from "@/modules/process/screens";
 
 import {
@@ -26,7 +27,13 @@ import {
   MaintenanceHome,
   Product,
   NewProduct,
+
 } from "@/modules/maintenance/screens";
+
+import {
+  // inventory
+  InventoryLog,
+} from "@/modules/inventory/screens";
 
 const ProtectedRoutes: React.FC = () => {
   return (
@@ -39,6 +46,7 @@ const ProtectedRoutes: React.FC = () => {
             <Route index element={<Entry />} />
             <Route path="new" element={<NewEntry />} />
             <Route path="mass" element={<MassEntry />} />
+            <Route path="audit" element={<Audit />} />
           </Route>
           <Route path="departure">
             <Route index element={<Departure />} />
@@ -57,6 +65,9 @@ const ProtectedRoutes: React.FC = () => {
             <Route index element={<Product />} />
             <Route path="new" element={<NewProduct />} />
           </Route>
+        </Route>
+        <Route path="inventory">
+          <Route index element={<InventoryLog />} />
         </Route>
       </Route>
     </Routes>
