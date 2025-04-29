@@ -11,7 +11,8 @@ import {
 
 type GlobalStore = {
   // modal
-  ModalComponent: React.FC;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ModalComponent: any;
   ModalCloseButton: React.FC;
   isModalOpen: boolean;
   closeModalCallback: () => void;
