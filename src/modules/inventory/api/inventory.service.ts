@@ -1,121 +1,92 @@
-// src/services/inventoryService.ts
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/utils/api/axios.config";
-import { InventoryStore } from "@/modules/inventory/store";
+import { useInventoryLogStore } from "@/modules/inventory/store";
 
-const { setInventories, setSelectedInventory, startLoader, stopLoader } =
-  InventoryStore.getState();
+const baseURL = "/inventory-logs";
+const {
+  setInventoryLogs,
+  setCurrentInventoryLog,
+  addInventoryLog,
+  updateInventoryLog,
+  deleteInventoryLog,
+  startLoader,
+  stopLoader,
+} = useInventoryLogStore.getState();
 
-const baseURL = "/inventory";
-
-type LoaderKey =
-  | "inventory/fetch-all"
-  | "inventory/fetch-one"
-  | "inventory/create"
-  | "inventory/update"
-  | "inventory/delete"
-  | "inventory/audit";
-
-export const InventoryService = {
-  // Fetch all inventories (optional filter by product_id)
-  fetchAllInventories: async (productId?: string) => {
-    const loader = "inventory/fetch-all" as LoaderKey;
+export const InventoryLogService = {
+  fetchAllLogs: async (filters?: Record<string, any>) => {
     try {
-      startLoader(loader);
-      let endpoint = baseURL;
-      if (productId) {
-        endpoint += `?product_id=${encodeURIComponent(productId)}`;
-      }
-      const resp = await api.get(endpoint);
-      setInventories(resp.data.data);
-    } catch (err) {
-      console.error("Error fetching inventories", err);
-      throw new Error("Failed to fetch inventories");
+      startLoader("inventoryLogs/fetch-logs");
+      const response = await api.get(baseURL, { params: filters });
+      const data = response.data.data || response.data;
+      setInventoryLogs(data);
+      return data;
+    } catch (error) {
+      console.error("Fetch inventory logs error:", error);
+      throw error;
     } finally {
-      stopLoader(loader);
+      stopLoader("inventoryLogs/fetch-logs");
     }
   },
 
-  // Fetch single inventory by ID
-  fetchInventoryById: async (id: string) => {
-    const loader = "inventory/fetch-one" as LoaderKey;
+  fetchLogById: async (id: string) => {
     try {
-      startLoader(loader);
-      const resp = await api.get(`${baseURL}/${id}`);
-      setSelectedInventory(resp.data.data);
-      return resp.data.data;
-    } catch (err) {
-      console.error(`Error fetching inventory ${id}`, err);
-      throw new Error("Failed to fetch inventory");
+      startLoader("inventoryLogs/fetch-log");
+      const response = await api.get(`${baseURL}/${id}`);
+      const data = response.data.data || response.data;
+      setCurrentInventoryLog(data);
+      return data;
+    } catch (error) {
+      console.error("Fetch inventory log error:", error);
+      throw error;
     } finally {
-      stopLoader(loader);
+      stopLoader("inventoryLogs/fetch-log");
     }
   },
 
-  // Create new inventory
-  createInventory: async (payload: any) => {
-    const loader = "inventory/create" as LoaderKey;
+  createLog: async (formData: any) => {
     try {
-      startLoader(loader);
-      const resp = await api.post(baseURL, payload);
-      return resp.data.data;
-    } catch (err) {
-      console.error("Error creating inventory", err);
-      throw new Error("Failed to create inventory");
+      startLoader("inventoryLogs/create-log");
+      const payload = { ...formData, user_id: localStorage.getItem("id") };
+      const response = await api.post(baseURL, payload);
+      const data = response.data.data || response.data;
+      addInventoryLog(data);
+      return data;
+    } catch (error) {
+      console.error("Create inventory log error:", error);
+      throw error;
     } finally {
-      stopLoader(loader);
+      stopLoader("inventoryLogs/create-log");
     }
   },
 
-  // Update inventory
-  updateInventory: async (id: string, payload: any) => {
-    const loader = "inventory/update" as LoaderKey;
+  updateLog: async (id: string, formData: any) => {
     try {
-      startLoader(loader);
-      const resp = await api.put(`${baseURL}/${id}`, payload);
-      return resp.data.data;
-    } catch (err) {
-      console.error(`Error updating inventory ${id}`, err);
-      throw new Error("Failed to update inventory");
+      startLoader("inventoryLogs/update-log");
+      const payload = { ...formData, updated_by: localStorage.getItem("id") };
+      const response = await api.put(`${baseURL}/${id}`, payload);
+      const data = response.data.data || response.data;
+      updateInventoryLog(id, data);
+      return data;
+    } catch (error) {
+      console.error("Update inventory log error:", error);
+      throw error;
     } finally {
-      stopLoader(loader);
+      stopLoader("inventoryLogs/update-log");
     }
   },
 
-  // Delete inventory
-  deleteInventory: async (id: string) => {
-    const loader = "inventory/delete" as LoaderKey;
+  deleteLog: async (id: string) => {
     try {
-      startLoader(loader);
-      const resp = await api.delete(`${baseURL}/${id}`);
-      return resp.data.data;
-    } catch (err) {
-      console.error(`Error deleting inventory ${id}`, err);
-      throw new Error("Failed to delete inventory");
+      startLoader("inventoryLogs/delete-log");
+      await api.delete(`${baseURL}/${id}`);
+      deleteInventoryLog(id);
+      return true;
+    } catch (error) {
+      console.error("Delete inventory log error:", error);
+      throw error;
     } finally {
-      stopLoader(loader);
-    }
-  },
-
-  // Audit inventory
-  auditInventory: async (
-    id: string,
-    auditPayload: {
-      newStatus: string;
-      reason?: string;
-      quantityAdjustment?: number;
-    }
-  ) => {
-    const loader = "inventory/audit" as LoaderKey;
-    try {
-      startLoader(loader);
-      const resp = await api.post(`${baseURL}/${id}/audit`, auditPayload);
-      return resp.data.data;
-    } catch (err) {
-      console.error(`Error auditing inventory ${id}`, err);
-      throw new Error("Failed to audit inventory");
-    } finally {
-      stopLoader(loader);
+      stopLoader("inventoryLogs/delete-log");
     }
   },
 };
