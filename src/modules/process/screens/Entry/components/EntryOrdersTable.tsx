@@ -6,6 +6,7 @@ import {
   ColumnDef,
 } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 
 interface DataTableProps<T extends object> {
   data: T[];
@@ -28,6 +29,7 @@ function DataTable<T extends object>({
 }: DataTableProps<T>) {
   const tableRef = useRef<HTMLTableElement>(null);
   const [stickyOffsets, setStickyOffsets] = useState<number[]>([]);
+  const navigate = useNavigate();
 
   const table = useReactTable({
     data,
@@ -93,8 +95,15 @@ function DataTable<T extends object>({
             {table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row, rowIndex) => (
                 <tr
+                  onClick={() => {
+                    navigate(
+                      `/processes/entry/audit?orderNo=${encodeURIComponent(
+                        row.getValue("entry_order_no")
+                      )}`
+                    );
+                  }}
                   key={row.id}
-                  className={`border-b border-gray-200 ${
+                  className={`cursor-pointer border-b border-gray-200 ${
                     rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
                   } hover:bg-gray-100 transition-colors`}
                 >

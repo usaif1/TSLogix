@@ -13,7 +13,7 @@ const EntryRecordsTable: React.FC = () => {
   const navigate = useNavigate();
 
   const actions = async (orderCode: string) => {
-    navigate(`/processes/entry/audit?orderNo=${encodeURIComponent(orderCode)}`);
+    // navigate(`/processes/entry/audit?orderNo=${encodeURIComponent(orderCode)}`);
   };
 
   const getBgColor = (auditStatus: string) => {
