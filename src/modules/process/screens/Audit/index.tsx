@@ -118,14 +118,14 @@ const Audit: React.FC = () => {
               </button>
             )}
 
-            {entry.audit_status === "FAILED" ? null : (
+            {entry.audit_status === "FAILED" ? (
               <button
                 className="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer"
                 onClick={openModal}
               >
                 Try Again
               </button>
-            )}
+            ) : null}
 
             <button
               className="px-4 py-2 bg-gray-300 text-gray-800 rounded cursor-pointer"
