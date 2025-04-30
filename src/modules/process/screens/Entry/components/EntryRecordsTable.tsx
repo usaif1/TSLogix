@@ -13,6 +13,7 @@ const EntryRecordsTable: React.FC = () => {
   const navigate = useNavigate();
 
   const actions = async (orderCode: string) => {
+    console.log(orderCode)
     // navigate(`/processes/entry/audit?orderNo=${encodeURIComponent(orderCode)}`);
   };
 
