@@ -89,7 +89,7 @@ const Audit: React.FC = () => {
     : [];
 
   return (
-    <div className="flex flex-col h-full p-6 space-y-6 overflow-y-scroll">
+    <div className="flex flex-col h-[85%] p-6 space-y-6 overflow-y-scroll">
       <Text size="3xl" weight="font-bold">
         Entry Order: {orderNo}
       </Text>
@@ -106,23 +106,36 @@ const Audit: React.FC = () => {
       ) : (
         <div className="text-red-500">Entry order not found.</div>
       )}
+      <div>
+        {entry && (
+          <div className="flex justify-start space-x-4">
+            {entry.audit_status === "PASSED" ? null : (
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer"
+                onClick={openModal}
+              >
+                Audit
+              </button>
+            )}
 
-      {entry && (
-        <div className="flex justify-end space-x-4">
-          <button
-            className="px-4 py-2 bg-blue-600 text-white rounded"
-            onClick={openModal}
-          >
-            Audit
-          </button>
-          <button
-            className="px-4 py-2 bg-gray-300 text-gray-800 rounded"
-            onClick={() => navigate(-1)}
-          >
-            Cancel
-          </button>
-        </div>
-      )}
+            {entry.audit_status === "FAILED" ? null : (
+              <button
+                className="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer"
+                onClick={openModal}
+              >
+                Try Again
+              </button>
+            )}
+
+            <button
+              className="px-4 py-2 bg-gray-300 text-gray-800 rounded cursor-pointer"
+              onClick={() => navigate(-1)}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
 
       {/* Audit Modal with slight background blur */}
       {showModal && (
