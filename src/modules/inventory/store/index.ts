@@ -8,16 +8,23 @@ export type InventoryLogLoaderTypes =
   | "inventoryLogs/fetch-log"
   | "inventoryLogs/create-log"
   | "inventoryLogs/update-log"
-  | "inventoryLogs/delete-log";
+  | "inventoryLogs/delete-log"
+  | "inventoryLogs/add-inventory"
+  | "inventoryLogs/fetch-warehouses"
+  | "inventoryLogs/fetch-cells";
 
 // InventoryLog type (replace with actual interface)
 type InventoryLog = any;
+type Warehouse = any;
+type Cell = any;
 
 // Store state
 export interface InventoryLogStore {
   inventoryLogs: InventoryLog[];
   currentInventoryLog: InventoryLog | null;
   loaders: Record<InventoryLogLoaderTypes, boolean>;
+  warehouses: Warehouse[];
+  cells: Cell[];
 }
 
 // Store actions
@@ -30,6 +37,8 @@ export interface InventoryLogStoreActions {
   startLoader: (loader: InventoryLogLoaderTypes) => void;
   stopLoader: (loader: InventoryLogLoaderTypes) => void;
   resetInventoryLogStore: () => void;
+  setWarehouses: (list: Warehouse[]) => void;
+  setCells: (list: Cell[]) => void;
 }
 
 const initialLoaders: Record<InventoryLogLoaderTypes, boolean> = {
@@ -38,12 +47,17 @@ const initialLoaders: Record<InventoryLogLoaderTypes, boolean> = {
   "inventoryLogs/create-log": false,
   "inventoryLogs/update-log": false,
   "inventoryLogs/delete-log": false,
+  "inventoryLogs/add-inventory": false,
+  "inventoryLogs/fetch-warehouses": false,
+  "inventoryLogs/fetch-cells": false,
 };
 
 const initialState: InventoryLogStore = {
   inventoryLogs: [],
   currentInventoryLog: null,
   loaders: initialLoaders,
+  warehouses: [],
+  cells: [],
 };
 
 export const useInventoryLogStore = create<
@@ -70,6 +84,9 @@ export const useInventoryLogStore = create<
         (l) => (l as any).log_id !== id
       ),
     })),
+
+  setWarehouses: (warehouses: any) => set({ warehouses }),
+  setCells: (cells: any) => set({ cells }),
 
   // Loader controls
   startLoader: (loader) =>

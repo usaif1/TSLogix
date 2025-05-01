@@ -304,4 +304,21 @@ export const ProcessService = {
       throw new Error("Failed to fetch audit statistics");
     }
   },
+
+  fetchPassedEntryOrders: async (searchQuery = "") => {
+    try {
+      const params: Record<string, any> = { audit_status: "PASSED" };
+      if (searchQuery) params.orderNo = searchQuery;
+
+      const response = await api.get(`${entryBaseURL}/entry-orders/passed`, {
+        params,
+      });
+      const data = response.data.data;
+      setEntryOrders(data);
+      return data;
+    } catch (err) {
+      console.error("fetch passed entry orders error", err);
+      throw new Error("Failed to fetch passed entry orders");
+    }
+  },
 };
