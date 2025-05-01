@@ -201,7 +201,7 @@ const InventoryLog: React.FC = () => {
     []
   );
 
-  const renderActions = (log: any) => (
+  const renderActions = () => (
     <div className="space-y-2">
       <Button variant="action" additionalClass="w-20">
         Edit
