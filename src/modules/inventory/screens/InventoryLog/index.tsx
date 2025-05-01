@@ -171,6 +171,11 @@ const InventoryLog: React.FC = () => {
         id: "userName",
       },
       {
+        header: "Entry Order",
+        accessorFn: (row: any) => row.entry_order?.entry_order_no || "-",
+        id: "entryOrderNo",
+      },
+      {
         header: "Product",
         accessorFn: (row: any) => row.product.name,
         id: "productName",
