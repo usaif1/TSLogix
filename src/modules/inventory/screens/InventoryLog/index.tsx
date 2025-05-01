@@ -40,8 +40,8 @@ interface EntryOrder {
 }
 
 interface AddInventoryForm {
-  entry_order_no?: string;
   entry_order_id?: string;
+  entry_order_no?: string;
   product_id?: string;
   product_name?: string;
   total_qty?: number;
@@ -68,7 +68,6 @@ const InventoryLog: React.FC = () => {
       .catch(console.error);
   }, []);
 
-  // When opening the Add modal, fetch available warehouses
   useEffect(() => {
     if (showAdd) {
       InventoryLogService.fetchWarehouses()
@@ -84,20 +83,19 @@ const InventoryLog: React.FC = () => {
   const isAdding = loaders["inventoryLogs/add-inventory"];
 
   const handleEntrySelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const orderNo = e.target.value;
-    if (!orderNo) {
-      
+    const entryOrderNo = e.target.value;
+    if (!entryOrderNo) {
       setFormData({});
       return;
     }
-
     try {
-      const details = await ProcessService.fetchEntryOrderByNo(orderNo);
+      // fetch by order code
+      const details = await ProcessService.fetchEntryOrderByNo(entryOrderNo);
       const qtyNumber =
         parseInt((details.total_qty || "").replace(/\D/g, ""), 10) || 0;
-
       setFormData({
         entry_order_no: details.entry_order_no,
+        entry_order_id: details.entry_order_id,
         product_id: details.product.product_id,
         product_name: details.product.name,
         total_qty: qtyNumber,
@@ -146,13 +144,12 @@ const InventoryLog: React.FC = () => {
   const handleSubmit = async () => {
     const payload = {
       product_id: formData.product_id,
-      quantity: formData.total_qty,   
+      quantity: formData.total_qty,
       entry_order_id: formData.entry_order_id,
       warehouse_id: formData.warehouse_id,
       cell_id: formData.cell_id,
       notes: formData.notes,
     };
-  
     try {
       await InventoryLogService.addInventory(payload);
       setShowAdd(false);
@@ -161,7 +158,6 @@ const InventoryLog: React.FC = () => {
       console.error(err);
     }
   };
-  
 
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
@@ -200,8 +196,7 @@ const InventoryLog: React.FC = () => {
       {
         header: "Date",
         accessorKey: "timestamp",
-        cell: (info: CellContext<any, any>) =>
-          new Date(info.getValue<string>()).toLocaleString(),
+        cell: (info) => new Date(info.getValue<string>()).toLocaleString(),
       },
     ],
     []
@@ -224,7 +219,6 @@ const InventoryLog: React.FC = () => {
         <h1 className="text-2xl font-bold">Inventory Logs</h1>
         <Button onClick={() => setShowAdd(true)}>+ Add Inventory</Button>
       </div>
-
       {isAdding ? (
         <Spinner />
       ) : (
@@ -234,7 +228,6 @@ const InventoryLog: React.FC = () => {
           renderActions={renderActions}
         />
       )}
-
       {showAdd && (
         <BasicModalComponent
           title="Add Inventory"
@@ -252,15 +245,20 @@ const InventoryLog: React.FC = () => {
                 <option value="">-- Select --</option>
                 {entryOrders.map((order) => (
                   <option
-                    key={order.entry_order_no}
+                    key={order.entry_order_id}
                     value={order.entry_order_no}
                   >
                     {order.entry_order_no}
                   </option>
                 ))}
               </select>
+              {/* hidden field to carry ID */}
+              <input
+                type="hidden"
+                name="entry_order_id"
+                value={formData.entry_order_id || ""}
+              />
             </div>
-
             <div>
               <label>Product</label>
               <input
@@ -276,7 +274,6 @@ const InventoryLog: React.FC = () => {
                 value={formData.product_id || ""}
               />
             </div>
-
             <div>
               <label>Quantity</label>
               <input
@@ -287,7 +284,6 @@ const InventoryLog: React.FC = () => {
                 className="mt-1 block w-full border rounded p-2"
               />
             </div>
-
             <div>
               <label>Warehouse</label>
               <select
@@ -304,7 +300,6 @@ const InventoryLog: React.FC = () => {
                 ))}
               </select>
             </div>
-
             <div>
               <label>Cell</label>
               <select
@@ -321,7 +316,6 @@ const InventoryLog: React.FC = () => {
                 ))}
               </select>
             </div>
-
             <div className="flex justify-end space-x-2">
               <Button variant="cancel" onClick={() => setShowAdd(false)}>
                 Cancel
