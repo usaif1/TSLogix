@@ -86,6 +86,7 @@ const InventoryLog: React.FC = () => {
   const handleEntrySelect = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const orderNo = e.target.value;
     if (!orderNo) {
+      
       setFormData({});
       return;
     }
@@ -169,6 +170,11 @@ const InventoryLog: React.FC = () => {
         accessorFn: (row: any) =>
           `${row.user.first_name} ${row.user.last_name}`,
         id: "userName",
+      },
+      {
+        header: "Entry Order",
+        accessorFn: (row: any) => row.entry_order?.entry_order_no || "-",
+        id: "entryOrderNo",
       },
       {
         header: "Product",
