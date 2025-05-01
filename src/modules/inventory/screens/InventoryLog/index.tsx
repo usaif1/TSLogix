@@ -89,7 +89,6 @@ const InventoryLog: React.FC = () => {
       return;
     }
     try {
-      // fetch by order code
       const details = await ProcessService.fetchEntryOrderByNo(entryOrderNo);
       const qtyNumber =
         parseInt((details.total_qty || "").replace(/\D/g, ""), 10) || 0;
@@ -153,10 +152,16 @@ const InventoryLog: React.FC = () => {
     try {
       await InventoryLogService.addInventory(payload);
       setShowAdd(false);
+      setFormData({});
       loadLogs();
     } catch (err) {
       console.error(err);
     }
+  };
+
+  const handleClose = () => {
+    setShowAdd(false);
+    setFormData({});
   };
 
   const columns = useMemo<ColumnDef<any, any>[]>(
@@ -229,10 +234,7 @@ const InventoryLog: React.FC = () => {
         />
       )}
       {showAdd && (
-        <BasicModalComponent
-          title="Add Inventory"
-          onClose={() => setShowAdd(false)}
-        >
+        <BasicModalComponent title="Add Inventory" onClose={handleClose}>
           <div className="space-y-4">
             <div>
               <label>Entry Order</label>
@@ -252,7 +254,6 @@ const InventoryLog: React.FC = () => {
                   </option>
                 ))}
               </select>
-              {/* hidden field to carry ID */}
               <input
                 type="hidden"
                 name="entry_order_id"
@@ -317,7 +318,7 @@ const InventoryLog: React.FC = () => {
               </select>
             </div>
             <div className="flex justify-end space-x-2">
-              <Button variant="cancel" onClick={() => setShowAdd(false)}>
+              <Button variant="cancel" onClick={handleClose}>
                 Cancel
               </Button>
               <Button onClick={handleSubmit}>Add</Button>
