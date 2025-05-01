@@ -191,6 +191,10 @@ const NewEntryOrderForm: React.FC = () => {
     }));
   };
 
+  function cleanFileName(name: string) {
+    return name.replace(/[\s.]/g, "");
+  }
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -200,9 +204,7 @@ const NewEntryOrderForm: React.FC = () => {
     try {
       let certificateUrl = "";
       if (certificateFile && !isReturnOrigin) {
-        const fileName = `${Date.now()}_${certificateFile.name
-          .split(" ")
-          .join("")}`;
+        const fileName = `${Date.now()}_${cleanFileName(certificateFile.name)}`;
         const { error } = await supabase.storage
           .from("order")
           .upload(fileName, certificateFile);
@@ -215,9 +217,7 @@ const NewEntryOrderForm: React.FC = () => {
 
       let techSpecUrl = "";
       if (techSpecFile && !isReturnOrigin) {
-        const fileName = `${Date.now()}_${techSpecFile.name
-          .split(" ")
-          .join("")}`;
+        const fileName = `${Date.now()}_${cleanFileName(techSpecFile.name)}`;
         const { error } = await supabase.storage
           .from("order")
           .upload(fileName, techSpecFile);
