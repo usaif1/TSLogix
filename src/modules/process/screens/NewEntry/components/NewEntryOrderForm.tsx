@@ -36,7 +36,6 @@ const NewEntryOrderForm: React.FC = () => {
     success?: boolean;
     message?: string;
   }>({});
-  
 
   useEffect(() => {
     setFormData((prev) => ({
@@ -44,7 +43,6 @@ const NewEntryOrderForm: React.FC = () => {
       entry_order_no: currentEntryOrderNo || "",
     }));
   }, [currentEntryOrderNo]);
-  
 
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "", label: "" },
@@ -85,8 +83,6 @@ const NewEntryOrderForm: React.FC = () => {
     type: "",
   });
 
-
-  
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
   const [techSpecFile, setTechSpecFile] = useState<File | null>(null);
 
@@ -125,10 +121,8 @@ const NewEntryOrderForm: React.FC = () => {
     }
   }, [shouldDisableFields, isReconditionedOrigin]);
 
-  
-
   const fieldsToSkipValidation = useMemo(() => {
-  //  these fields are optional for all origins (need to remove entry_order_no)
+    //  these fields are optional for all origins (need to remove entry_order_no)
     const baseSkipFields = [
       "technical_specification",
       "certificate_protocol_analysis",
@@ -156,7 +150,6 @@ const NewEntryOrderForm: React.FC = () => {
 
     return baseSkipFields;
   }, [isReturnOrigin, isReconditionedOrigin]);
-
 
   const isFormComplete = useFormComplete(formData, fieldsToSkipValidation);
 
@@ -207,7 +200,9 @@ const NewEntryOrderForm: React.FC = () => {
     try {
       let certificateUrl = "";
       if (certificateFile && !isReturnOrigin) {
-        const fileName = `${Date.now()}_${certificateFile.name}`;
+        const fileName = `${Date.now()}_${certificateFile.name
+          .split(" ")
+          .join("")}`;
         const { error } = await supabase.storage
           .from("order")
           .upload(fileName, certificateFile);
@@ -220,7 +215,9 @@ const NewEntryOrderForm: React.FC = () => {
 
       let techSpecUrl = "";
       if (techSpecFile && !isReturnOrigin) {
-        const fileName = `${Date.now()}_${techSpecFile.name}`;
+        const fileName = `${Date.now()}_${techSpecFile.name
+          .split(" ")
+          .join("")}`;
         const { error } = await supabase.storage
           .from("order")
           .upload(fileName, techSpecFile);
