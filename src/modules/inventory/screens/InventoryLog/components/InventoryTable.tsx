@@ -9,7 +9,7 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 
-interface InventoryTableProps<T> {
+interface InventoryTableProps<T extends object = any> {
   columns: ColumnDef<T, any>[];
   data: T[];
   renderActions?: (item: T) => React.ReactNode;
@@ -22,7 +22,7 @@ interface InventoryTableProps<T> {
 /**
  * Paginated table with improved UI, sticky headers, and custom styling.
  */
-export function InventoryTable<T extends object>({
+export function InventoryTable<T extends object = any>({
   columns,
   data,
   renderActions,

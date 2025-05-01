@@ -3,12 +3,15 @@ import api from "@/utils/api/axios.config";
 import { useInventoryLogStore } from "@/modules/inventory/store";
 
 const baseURL = "/inventory-logs";
+const warehouseURL = "/inventory-logs/warehouses";
 const {
   setInventoryLogs,
   setCurrentInventoryLog,
   addInventoryLog,
   updateInventoryLog,
   deleteInventoryLog,
+  setWarehouses,
+  setCells,
   startLoader,
   stopLoader,
 } = useInventoryLogStore.getState();
@@ -87,6 +90,51 @@ export const InventoryLogService = {
       throw error;
     } finally {
       stopLoader("inventoryLogs/delete-log");
+    }
+  },
+
+  addInventory: async (formData: any) => {
+    try {
+      startLoader("inventoryLogs/add-inventory");
+      const response = await api.post(`${baseURL}/add`, formData);
+      const data = response.data.data || response.data;
+      addInventoryLog(data.log);
+      return data;
+    } catch (error) {
+      console.error("Add inventory error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/add-inventory");
+    }
+  },
+
+  fetchWarehouses: async () => {
+    try {
+      startLoader("inventoryLogs/fetch-warehouses");
+      const res = await api.get(warehouseURL);
+      const data = res.data.data || res.data;
+      setWarehouses(data);
+      return data;
+    } catch (error) {
+      console.error("Fetch warehouses error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/fetch-warehouses");
+    }
+  },
+
+  fetchCells: async (warehouseId: string) => {
+    try {
+      startLoader("inventoryLogs/fetch-cells");
+      const res = await api.get(`${warehouseURL}/${warehouseId}/cells?status=AVAILABLE`);
+      const data = res.data.data || res.data;
+      setCells(data);
+      return data;
+    } catch (error) {
+      console.error("Fetch cells error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/fetch-cells");
     }
   },
 };
