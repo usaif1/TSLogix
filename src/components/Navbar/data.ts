@@ -36,8 +36,7 @@ export const  links = [
       route: "/reports",
       icon: FileText,
       subroutes: [
-        { title: "Supplier1", route: "/maintenance/supplier" },
-        { title: "Product1", route: "/maintenance/product" },
+        { title: "Warehouse Report", route: "/warehouse" },
       ],
     },
     {

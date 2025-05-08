@@ -27,13 +27,14 @@ import {
   MaintenanceHome,
   Product,
   NewProduct,
-
 } from "@/modules/maintenance/screens";
 
 import {
   // inventory
   InventoryLog,
 } from "@/modules/inventory/screens";
+
+import { WareHouse } from "@/modules/warehouse/screens";
 
 const ProtectedRoutes: React.FC = () => {
   return (
@@ -65,6 +66,9 @@ const ProtectedRoutes: React.FC = () => {
             <Route index element={<Product />} />
             <Route path="new" element={<NewProduct />} />
           </Route>
+        </Route>
+        <Route path="warehouse">
+          <Route index element={<WareHouse />} />
         </Route>
         <Route path="inventory">
           <Route index element={<InventoryLog />} />
