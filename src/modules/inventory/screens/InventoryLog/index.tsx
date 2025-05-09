@@ -12,41 +12,16 @@ import { CellContext, ColumnDef } from "@tanstack/react-table";
 interface EntryOrder {
   entry_order_id: string;
   entry_order_no: string;
-  total_qty: string;
   palettes: string;
-  total_weight: string;
-  presentation: string;
-  comments: string;
-  type: string | null;
-  insured_value: string;
-  entry_date: string;
-  document_date: string;
-  registration_date: string;
-  document_status: string;
-  order_progress: string | null;
+  product: { name: string; product_id: string };
   warehouse_id?: string;
-  cell_id?: string;
-  product: {
-    name: string;
-    product_id: string;
-  };
-  documentType: { name: string };
-  supplier: { name: string };
-  origin: { name: string };
-  entry_status: { name: string };
-  order: { organisation: { name: string } };
-  audit_status: { name: string };
-  status: string;
 }
 
 interface AddInventoryForm {
   entry_order_id?: string;
   entry_order_no?: string;
-  product_id?: string;
   product_name?: string;
-  total_qty?: number;
   warehouse_id?: string;
-  cell_id?: string;
   notes?: string;
 }
 
@@ -55,7 +30,6 @@ const InventoryLog: React.FC = () => {
   const [showAdd, setShowAdd] = useState(false);
   const [entryOrders, setEntryOrders] = useState<EntryOrder[]>([]);
   const [warehouses, setWarehouses] = useState<any[]>([]);
-  const [cells, setCells] = useState<any[]>([]);
   const [formData, setFormData] = useState<AddInventoryForm>({});
 
   const loadLogs = useCallback(() => {
@@ -90,16 +64,11 @@ const InventoryLog: React.FC = () => {
     }
     try {
       const details = await ProcessService.fetchEntryOrderByNo(entryOrderNo);
-      const qtyNumber =
-        parseInt((details.total_qty || "").replace(/\D/g, ""), 10) || 0;
       setFormData({
         entry_order_no: details.entry_order_no,
         entry_order_id: details.entry_order_id,
-        product_id: details.product.product_id,
         product_name: details.product.name,
-        total_qty: qtyNumber,
-        warehouse_id: details.warehouse_id,
-        cell_id: details.cell_id,
+        warehouse_id: details.warehouse_id || "",
         notes: "",
       });
     } catch (err) {
@@ -107,46 +76,22 @@ const InventoryLog: React.FC = () => {
     }
   };
 
-  const handleWarehouseSelect = async (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  const handleWarehouseSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const warehouseId = e.target.value;
-    setFormData((prev) => ({
-      ...prev,
-      warehouse_id: warehouseId,
-      cell_id: "",
-    }));
-    if (warehouseId) {
-      try {
-        const availableCells = await InventoryLogService.fetchCells(
-          warehouseId
-        );
-        setCells(availableCells);
-      } catch (err) {
-        console.error(err);
-      }
-    } else {
-      setCells([]);
-    }
+    setFormData((prev) => ({ ...prev, warehouse_id: warehouseId }));
   };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === "total_qty" ? Number(value) : value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async () => {
     const payload = {
-      product_id: formData.product_id,
-      quantity: formData.total_qty,
       entry_order_id: formData.entry_order_id,
       warehouse_id: formData.warehouse_id,
-      cell_id: formData.cell_id,
       notes: formData.notes,
     };
     try {
@@ -222,7 +167,7 @@ const InventoryLog: React.FC = () => {
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Inventory Logs</h1>
-        <Button onClick={() => setShowAdd(true)}>+ Add Inventory</Button>
+        <Button onClick={() => setShowAdd(true)}>+ Allocate Pallets</Button>
       </div>
       {isAdding ? (
         <Spinner />
@@ -234,7 +179,7 @@ const InventoryLog: React.FC = () => {
         />
       )}
       {showAdd && (
-        <BasicModalComponent title="Add Inventory" onClose={handleClose}>
+        <BasicModalComponent title="Allocate Pallets" onClose={handleClose}>
           <div className="space-y-4">
             <div>
               <label>Entry Order</label>
@@ -269,21 +214,6 @@ const InventoryLog: React.FC = () => {
                 readOnly
                 className="mt-1 block w-full border rounded p-2 bg-gray-100"
               />
-              <input
-                type="hidden"
-                name="product_id"
-                value={formData.product_id || ""}
-              />
-            </div>
-            <div>
-              <label>Quantity</label>
-              <input
-                type="number"
-                name="total_qty"
-                value={formData.total_qty ?? ""}
-                onChange={handleChange}
-                className="mt-1 block w-full border rounded p-2"
-              />
             </div>
             <div>
               <label>Warehouse</label>
@@ -302,26 +232,20 @@ const InventoryLog: React.FC = () => {
               </select>
             </div>
             <div>
-              <label>Cell</label>
-              <select
-                name="cell_id"
-                value={formData.cell_id || ""}
+              <label>Notes (optional)</label>
+              <input
+                type="text"
+                name="notes"
+                value={formData.notes || ""}
                 onChange={handleChange}
                 className="mt-1 block w-full border rounded p-2"
-              >
-                <option value="">-- Select --</option>
-                {cells.map((c) => (
-                  <option key={c.cell_id} value={c.cell_id}>
-                    {c.cell_number}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
             <div className="flex justify-end space-x-2">
               <Button variant="cancel" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmit}>Add</Button>
+              <Button onClick={handleSubmit}>Allocate</Button>
             </div>
           </div>
         </BasicModalComponent>

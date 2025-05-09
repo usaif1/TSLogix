@@ -2,7 +2,6 @@
 import { create } from "zustand";
 import createSelectors from "@/utils/selectors";
 
-// Loader keys for inventory logs
 export type InventoryLogLoaderTypes =
   | "inventoryLogs/fetch-logs"
   | "inventoryLogs/fetch-log"
@@ -13,12 +12,10 @@ export type InventoryLogLoaderTypes =
   | "inventoryLogs/fetch-warehouses"
   | "inventoryLogs/fetch-cells";
 
-// InventoryLog type (replace with actual interface)
 type InventoryLog = any;
 type Warehouse = any;
 type Cell = any;
 
-// Store state
 export interface InventoryLogStore {
   inventoryLogs: InventoryLog[];
   currentInventoryLog: InventoryLog | null;
@@ -27,11 +24,11 @@ export interface InventoryLogStore {
   cells: Cell[];
 }
 
-// Store actions
 export interface InventoryLogStoreActions {
   setInventoryLogs: (logs: InventoryLog[]) => void;
   setCurrentInventoryLog: (log: InventoryLog | null) => void;
   addInventoryLog: (log: InventoryLog) => void;
+  addInventoryLogs: (logs: InventoryLog[]) => void;
   updateInventoryLog: (id: string, data: InventoryLog) => void;
   deleteInventoryLog: (id: string) => void;
   startLoader: (loader: InventoryLogLoaderTypes) => void;
@@ -69,9 +66,12 @@ export const useInventoryLogStore = create<
   setInventoryLogs: (logs) => set({ inventoryLogs: logs }),
   setCurrentInventoryLog: (log) => set({ currentInventoryLog: log }),
 
-  // CRUD operations
+  // Single CRUD
   addInventoryLog: (log) =>
     set((state) => ({ inventoryLogs: [...state.inventoryLogs, log] })),
+  // Bulk insert
+  addInventoryLogs: (logs) =>
+    set((state) => ({ inventoryLogs: [...state.inventoryLogs, ...logs] })),
   updateInventoryLog: (id, data) =>
     set((state) => ({
       inventoryLogs: state.inventoryLogs.map((l) =>
@@ -85,20 +85,15 @@ export const useInventoryLogStore = create<
       ),
     })),
 
-  setWarehouses: (warehouses: any) => set({ warehouses }),
-  setCells: (cells: any) => set({ cells }),
+  setWarehouses: (warehouses) => set({ warehouses }),
+  setCells: (cells) => set({ cells }),
 
   // Loader controls
   startLoader: (loader) =>
-    set((state) => ({
-      loaders: { ...state.loaders, [loader]: true },
-    })),
+    set((state) => ({ loaders: { ...state.loaders, [loader]: true } })),
   stopLoader: (loader) =>
-    set((state) => ({
-      loaders: { ...state.loaders, [loader]: false },
-    })),
+    set((state) => ({ loaders: { ...state.loaders, [loader]: false } })),
 
-  // Reset
   resetInventoryLogStore: () => set(initialState),
 }));
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { WarehouseGrid } from "@/modules/warehouse/screens/Warehouse/components/index";
 import { WarehouseCellService } from "@/modules/warehouse/api/warehouse.service";
 import useWarehouseCellStore from "@/modules/warehouse/store";
