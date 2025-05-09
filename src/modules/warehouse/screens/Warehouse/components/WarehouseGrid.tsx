@@ -64,7 +64,7 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
     <div className="p-2">
       <div className="mb-4 flex flex-wrap gap-4 text-xs">
         <LegendItem color="bg-white border-gray-300" label="Available" />
-        <LegendItem color="bg-blue-500" label="Occupied" />
+        <LegendItem color="bg-gray-200" label="Occupied" />
         <LegendItem
           color="bg-rose-200 border-rose-400"
           label="Damaged Section"

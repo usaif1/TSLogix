@@ -58,7 +58,6 @@ export default function WarehouseView() {
     })();
   }, [warehouseId, startLoader, stopLoader, setCells]);
 
-  // Simplified function to download the warehouse data as Excel
   const downloadExcel = () => {
     // Filter cells based on selected warehouse
     const filtered = warehouseId
@@ -70,7 +69,6 @@ export default function WarehouseView() {
       ? warehouses.find((w) => w.warehouse_id === warehouseId)?.name || "Warehouse"
       : "All-Warehouses";
 
-    // Use the utility function
     exportWarehouseGridToExcel(filtered, warehouseName);
   };
 
