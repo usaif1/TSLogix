@@ -492,7 +492,9 @@ const NewEntryOrderForm: React.FC = () => {
               onChange={handleChange}
               className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
             />
-            <Text>M3</Text>
+            <Text>
+              M<sup>3</sup>
+            </Text>
           </div>
         </div>
 

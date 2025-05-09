@@ -4,6 +4,7 @@ import { useInventoryLogStore } from "@/modules/inventory/store";
 
 const baseURL = "/inventory-logs";
 const warehouseURL = "/inventory-logs/warehouses";
+
 const {
   setInventoryLogs,
   setCurrentInventoryLog,
@@ -16,8 +17,10 @@ const {
   stopLoader,
 } = useInventoryLogStore.getState();
 
+type Filters = Record<string, any>;
+
 export const InventoryLogService = {
-  fetchAllLogs: async (filters?: Record<string, any>) => {
+  fetchAllLogs: async (filters?: Filters) => {
     try {
       startLoader("inventoryLogs/fetch-logs");
       const response = await api.get(baseURL, { params: filters });
@@ -50,7 +53,10 @@ export const InventoryLogService = {
   createLog: async (formData: any) => {
     try {
       startLoader("inventoryLogs/create-log");
-      const payload = { ...formData, user_id: localStorage.getItem("id") };
+      const payload = {
+        ...formData,
+        user_id: localStorage.getItem("id"),
+      };
       const response = await api.post(baseURL, payload);
       const data = response.data.data || response.data;
       addInventoryLog(data);
@@ -66,7 +72,10 @@ export const InventoryLogService = {
   updateLog: async (id: string, formData: any) => {
     try {
       startLoader("inventoryLogs/update-log");
-      const payload = { ...formData, updated_by: localStorage.getItem("id") };
+      const payload = {
+        ...formData,
+        updated_by: localStorage.getItem("id"),
+      };
       const response = await api.put(`${baseURL}/${id}`, payload);
       const data = response.data.data || response.data;
       updateInventoryLog(id, data);
@@ -96,10 +105,19 @@ export const InventoryLogService = {
   addInventory: async (formData: any) => {
     try {
       startLoader("inventoryLogs/add-inventory");
-      const response = await api.post(`${baseURL}/add`, formData);
+      // Only send entry_order_id, and optional warehouse_id & notes
+      const payload = {
+        entry_order_id: formData.entry_order_id,
+        warehouse_id: formData.warehouse_id,
+        notes: formData.notes,
+      };
+      const response = await api.post(`${baseURL}/add`, payload);
+      // Backend now returns { inventories: [], log: {...} }
       const data = response.data.data || response.data;
-      addInventoryLog(data.log);
-      return data;
+      const { inventories, log } = data;
+      // Push the single log into state
+      addInventoryLog(log);
+      return { inventories, log };
     } catch (error) {
       console.error("Add inventory error:", error);
       throw error;
@@ -126,7 +144,9 @@ export const InventoryLogService = {
   fetchCells: async (warehouseId: string) => {
     try {
       startLoader("inventoryLogs/fetch-cells");
-      const res = await api.get(`${warehouseURL}/${warehouseId}/cells?status=AVAILABLE`);
+      const res = await api.get(`${warehouseURL}/${warehouseId}/cells`, {
+        params: { status: "AVAILABLE" },
+      });
       const data = res.data.data || res.data;
       setCells(data);
       return data;
