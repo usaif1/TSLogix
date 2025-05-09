@@ -16,6 +16,7 @@ export type WarehouseCell = {
   status: string;
   capacity: number;
   currentUsage: number;
+  cell_role: string;
 };
 
 export type WarehouseMeta = {

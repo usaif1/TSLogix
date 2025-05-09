@@ -2,11 +2,15 @@ import React, { useEffect, useState } from "react";
 import { WarehouseGrid } from "@/modules/warehouse/screens/Warehouse/components/index";
 import { WarehouseCellService } from "@/modules/warehouse/api/warehouse.service";
 import useWarehouseCellStore from "@/modules/warehouse/store";
+import Button from "@/components/Button";
+// Import the utility function
+import { exportWarehouseGridToExcel } from "@/modules/warehouse/utils/excelExport";
 
 export default function WarehouseView() {
   const [warehouseId, setWarehouseId] = useState<string | undefined>(undefined);
   const {
     warehouses,
+    cells,
     setWarehouses,
     setCells,
     loaders,
@@ -54,9 +58,35 @@ export default function WarehouseView() {
     })();
   }, [warehouseId, startLoader, stopLoader, setCells]);
 
+  // Simplified function to download the warehouse data as Excel
+  const downloadExcel = () => {
+    // Filter cells based on selected warehouse
+    const filtered = warehouseId
+      ? cells.filter((c) => c.warehouse_id === warehouseId)
+      : cells;
+
+    // Get the current warehouse name for the filename
+    const warehouseName = warehouseId
+      ? warehouses.find((w) => w.warehouse_id === warehouseId)?.name || "Warehouse"
+      : "All-Warehouses";
+
+    // Use the utility function
+    exportWarehouseGridToExcel(filtered, warehouseName);
+  };
+
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold mb-4">Warehouse Layout</h1>
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-xl font-bold">Warehouse Report</h1>
+        <Button 
+          variant="primary" 
+          onClick={downloadExcel}
+          additionalClass="px-4"
+          disabled={cells.length === 0}
+        >
+          Download Excel
+        </Button>
+      </div>
 
       <div className="mb-4">
         <label className="mr-2">Select Warehouse:</label>
@@ -78,8 +108,8 @@ export default function WarehouseView() {
         )}
       </div>
 
-      <div className="border max-h-[70vh] overflow-auto">
-        + <WarehouseGrid warehouse_id={warehouseId} />+{" "}
+      <div className="border max-h-[70vh] max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[80vw] overflow-y-auto overflow-x-auto">
+        <WarehouseGrid warehouse_id={warehouseId} />
       </div>
     </div>
   );
