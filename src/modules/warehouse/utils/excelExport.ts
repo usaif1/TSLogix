@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as XLSX from "xlsx";
 import { WarehouseCell } from "@/modules/warehouse/store";
+import i18next from "i18next";
 
 /**
  * Generates and downloads an Excel file with warehouse cell data
@@ -51,7 +52,7 @@ export const exportWarehouseGridToExcel = (
   warehouseName: string
 ) => {
   if (cells.length === 0) {
-    alert("No data to export");
+    alert(i18next.t("common:no_data_to_export"));
     return;
   }
 
@@ -179,13 +180,19 @@ export const exportWarehouseGridToExcel = (
 
   // Add a legend sheet
   const legendData = [
-    ["Legend"],
-    ["Color", "Meaning"],
-    ["Blue", "Occupied"],
-    ["White", "Available"],
-    ["Light Red", "Damaged Section"],
-    ["Light Amber", "Expired Section"],
-    ["Light Gray", "Empty/Unavailable"],
+    [i18next.t("warehouse:legend")],
+    [i18next.t("warehouse:color"), i18next.t("warehouse:meaning")],
+    [i18next.t("warehouse:blue"), i18next.t("warehouse:occupied")],
+    [i18next.t("warehouse:white"), i18next.t("warehouse:available")],
+    [i18next.t("warehouse:light_red"), i18next.t("warehouse:damaged_section")],
+    [
+      i18next.t("warehouse:light_amber"),
+      i18next.t("warehouse:expired_section"),
+    ],
+    [
+      i18next.t("warehouse:light_gray"),
+      i18next.t("warehouse:empty_unavailable"),
+    ],
   ];
 
   const legendSheet = XLSX.utils.aoa_to_sheet(legendData);

@@ -7,6 +7,7 @@ import { Navbar, Header } from "@/components";
 
 const AuthLayout: React.FC = () => {
   return (
+    
     <div className="layout bg-background-primary">
       <Header />
       <div className="h-full flex">

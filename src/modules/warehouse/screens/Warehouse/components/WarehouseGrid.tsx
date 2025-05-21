@@ -1,5 +1,6 @@
 import React from "react";
 import clsx from "clsx";
+import { useTranslation } from "react-i18next";
 import useWarehouseCellStore, {
   WarehouseCell,
 } from "@/modules/warehouse/store";
@@ -9,10 +10,11 @@ interface WarehouseGridProps {
 }
 
 function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
+  const { t } = useTranslation(['warehouse', 'common']);
   const { cells, loaders } = useWarehouseCellStore();
   const loading = loaders["cells/fetch-cells"];
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div>{t('common:loading')}</div>;
 
   const filtered = warehouse_id
     ? cells.filter((c) => c.warehouse_id === warehouse_id)
@@ -63,15 +65,15 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
   return (
     <div className="p-2">
       <div className="mb-4 flex flex-wrap gap-4 text-xs">
-        <LegendItem color="bg-white border-gray-300" label="Available" />
-        <LegendItem color="bg-gray-200" label="Occupied" />
+        <LegendItem color="bg-white border-gray-300" label={t('warehouse:available')} />
+        <LegendItem color="bg-gray-200" label={t('warehouse:occupied')} />
         <LegendItem
           color="bg-rose-200 border-rose-400"
-          label="Damaged Section"
+          label={t('warehouse:damaged_section')}
         />
         <LegendItem
           color="bg-amber-200 border-amber-400"
-          label="Expired Section"
+          label={t('warehouse:expired_section')}
         />
       </div>
 
@@ -139,7 +141,9 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
                       >
                         {showLabel ? (
                           <span className="absolute -top-8 left-0 text-[8px] sm:text-[10px] font-bold whitespace-nowrap">
-                            {labelText} SECTION
+                            {labelText === "DAMAGED" ? 
+                              t('warehouse:damaged_section') : 
+                              t('warehouse:expired_section')}
                           </span>
                         ) : null}
                         {cell ? formatId(row, bay, pos) : null}

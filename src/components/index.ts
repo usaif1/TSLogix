@@ -17,4 +17,5 @@ export {default as Fileupload} from "./FileUpload";
 export {Card} from "./Cards";
 export {CardContent} from "./Cards";
 export {default as Spinner} from "./Spinner";
+export {default as LanguageSwitcher} from "./LanguageSwitcher";
 

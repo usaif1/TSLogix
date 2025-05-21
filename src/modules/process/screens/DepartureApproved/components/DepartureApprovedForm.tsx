@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
+import { useTranslation } from "react-i18next";
 
 // Components
 import { Button, Divider, Text } from "@/components";
@@ -23,6 +24,7 @@ const reactSelectStyle = {
 };
 
 const DepartureApprovedForm: React.FC = () => {
+  const { t } = useTranslation(['process', 'common']);
   const navigate = useNavigate();
 
   const { departureFormFields } = ProcessesStore();
@@ -104,7 +106,7 @@ const DepartureApprovedForm: React.FC = () => {
 
       setSubmitStatus({
         success: true,
-        message: "Departure order created successfully!",
+        message: t('process:departure_success'),
       });
 
       // Reset form after success
@@ -138,7 +140,7 @@ const DepartureApprovedForm: React.FC = () => {
       console.error("Departure order creation failed:", error);
       setSubmitStatus({
         success: false,
-        message: "Failed to create departure order. Please try again.",
+        message: t('process:departure_failure'),
       });
     } finally {
       setIsSubmitting(false);
@@ -150,7 +152,7 @@ const DepartureApprovedForm: React.FC = () => {
       {/* First Row */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="customer">Customer</label>
+          <label htmlFor="customer">{t('process:customer')}</label>
           <Select
             options={departureFormFields.customers}
             styles={reactSelectStyle}
@@ -162,7 +164,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="departure_order_no">Departure Order No</label>
+          <label htmlFor="departure_order_no">{t('process:departure_order_no')}</label>
           <input
             type="text"
             id="departure_order_no"
@@ -175,7 +177,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="departure_date">Departure Date</label>
+          <label htmlFor="departure_date">{t('process:departure_date')}</label>
           <DatePicker
             showTimeSelect
             dateFormat="Pp"
@@ -192,7 +194,7 @@ const DepartureApprovedForm: React.FC = () => {
       {/* Document Information */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="document_type_id">Document Type</label>
+          <label htmlFor="document_type_id">{t('process:document_type')}</label>
           <Select
             options={departureFormFields.documentTypes}
             styles={reactSelectStyle}
@@ -206,7 +208,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="document_number">Document Number</label>
+          <label htmlFor="document_number">{t('process:document_number')}</label>
           <input
             type="text"
             id="document_number"
@@ -219,7 +221,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="document_date">Document Date</label>
+          <label htmlFor="document_date">{t('process:document_date')}</label>
           <DatePicker
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             selected={formData.document_date}
@@ -234,7 +236,7 @@ const DepartureApprovedForm: React.FC = () => {
       {/* Shipping Information */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="dispatch_order_number">Dispatch Order Number</label>
+          <label htmlFor="dispatch_order_number">{t('process:dispatch_order_number')}</label>
           <input
             type="text"
             id="dispatch_order_number"
@@ -246,7 +248,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="arrival_point">Arrival Point</label>
+          <label htmlFor="arrival_point">{t('process:arrival_point')}</label>
           <input
             type="text"
             id="arrival_point"
@@ -259,7 +261,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="packaging_type">Packaging Type</label>
+          <label htmlFor="packaging_type">{t('process:packaging_type')}</label>
           <Select
             options={departureFormFields.packagingTypes}
             styles={reactSelectStyle}
@@ -277,7 +279,7 @@ const DepartureApprovedForm: React.FC = () => {
 
       {/* Product Information */}
       <div className="w-full flex flex-col">
-        <label htmlFor="product_description">Product Description</label>
+        <label htmlFor="product_description">{t('process:product_description')}</label>
         <textarea
           id="product_description"
           name="product_description"
@@ -293,7 +295,7 @@ const DepartureApprovedForm: React.FC = () => {
       {/* Measurements */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="total_volume">Total Volume (m³)</label>
+          <label htmlFor="total_volume">{t('process:total_volume')}</label>
           <input
             type="number"
             id="total_volume"
@@ -306,7 +308,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="total_weight">Total Weight (kg)</label>
+          <label htmlFor="total_weight">{t('process:total_weight')}</label>
           <input
             type="number"
             id="total_weight"
@@ -319,7 +321,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="insured_value">Insured Value</label>
+          <label htmlFor="insured_value">{t('process:insured_value')}</label>
           <input
             type="number"
             id="insured_value"
@@ -337,7 +339,7 @@ const DepartureApprovedForm: React.FC = () => {
       {/* Personnel Information */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="personnel_incharge_id">Personnel In Charge</label>
+          <label htmlFor="personnel_incharge_id">{t('process:personnel_in_charge')}</label>
           <Select
             options={departureFormFields.users}
             styles={reactSelectStyle}
@@ -352,7 +354,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="id_responsible">ID Responsible</label>
+          <label htmlFor="id_responsible">{t('process:id_responsible')}</label>
           <input
             type="text"
             id="id_responsible"
@@ -366,7 +368,7 @@ const DepartureApprovedForm: React.FC = () => {
 
         <div className="w-full flex flex-col">
           <label htmlFor="reponsible_for_collection">
-            Collection Responsible
+            {t('process:collection_responsible')}
           </label>
           <input
             type="text"
@@ -385,9 +387,8 @@ const DepartureApprovedForm: React.FC = () => {
       {/* Status Section */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="departure_status">Departure Status</label>
+          <label htmlFor="departure_status">{t('process:departure_status')}</label>
           <Select
-            // If you have specific departure status options stored elsewhere, adjust here
             options={departureFormFields.documentTypes} // example placeholder
             styles={reactSelectStyle}
             inputId="departure_status"
@@ -400,7 +401,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="labeled">Labeled</label>
+          <label htmlFor="labeled">{t('process:labeled')}</label>
           <input
             type="text"
             id="labeled"
@@ -413,7 +414,7 @@ const DepartureApprovedForm: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="palettes">Palettes</label>
+          <label htmlFor="palettes">{t('process:palettes')}</label>
           <input
             type="text"
             id="palettes"
@@ -438,7 +439,7 @@ const DepartureApprovedForm: React.FC = () => {
             checked={formData.order_status === "order_in_process"}
             onChange={handleChange}
           />
-          <label htmlFor="order_in_process"> Order in Process</label>
+          <label htmlFor="order_in_process"> {t('process:order_in_process')}</label>
         </div>
         <div>
           <input
@@ -449,14 +450,14 @@ const DepartureApprovedForm: React.FC = () => {
             checked={formData.order_status === "send_order"}
             onChange={handleChange}
           />
-          <label htmlFor="send_order"> Send Order</label>
+          <label htmlFor="send_order"> {t('process:send_order')}</label>
         </div>
       </div>
       <Divider />
 
       {/* Additional Information */}
       <div className="w-full flex flex-col">
-        <label htmlFor="observation">Observations</label>
+        <label htmlFor="observation">{t('process:observations')}</label>
         <textarea
           id="observation"
           name="observation"
@@ -475,7 +476,7 @@ const DepartureApprovedForm: React.FC = () => {
           additionalClass="w-40"
           type="submit"
         >
-          {isSubmitting ? "Submitting..." : "Register"}
+          {isSubmitting ? t('common:submitting') : t('common:register')}
         </Button>
       </div>
       {/* Status Feedback */}

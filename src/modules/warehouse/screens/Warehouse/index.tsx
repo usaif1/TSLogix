@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { WarehouseGrid } from "@/modules/warehouse/screens/Warehouse/components/index";
 import { WarehouseCellService } from "@/modules/warehouse/api/warehouse.service";
 import useWarehouseCellStore from "@/modules/warehouse/store";
 import Button from "@/components/Button";
-// Import the utility function
 import { exportWarehouseGridToExcel } from "@/modules/warehouse/utils/excelExport";
 
 export default function WarehouseView() {
+  const { t } = useTranslation(['warehouse', 'common']);
   const [warehouseId, setWarehouseId] = useState<string | undefined>(undefined);
   const {
     warehouses,
@@ -20,7 +21,6 @@ export default function WarehouseView() {
 
   const loadingWarehouses = loaders["warehouses/fetch-warehouses"];
 
-  // fetch all warehouses for selector
   useEffect(() => {
     (async () => {
       startLoader("warehouses/fetch-warehouses");
@@ -59,12 +59,10 @@ export default function WarehouseView() {
   }, [warehouseId, startLoader, stopLoader, setCells]);
 
   const downloadExcel = () => {
-    // Filter cells based on selected warehouse
     const filtered = warehouseId
       ? cells.filter((c) => c.warehouse_id === warehouseId)
       : cells;
 
-    // Get the current warehouse name for the filename
     const warehouseName = warehouseId
       ? warehouses.find((w) => w.warehouse_id === warehouseId)?.name || "Warehouse"
       : "All-Warehouses";
@@ -75,28 +73,28 @@ export default function WarehouseView() {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">Warehouse Report</h1>
+        <h1 className="text-xl font-bold">{t('warehouse:warehouse_report')}</h1>
         <Button 
           variant="primary" 
           onClick={downloadExcel}
           additionalClass="px-4"
           disabled={cells.length === 0}
         >
-          Download Excel
+          {t('warehouse:download_excel')}
         </Button>
       </div>
 
       <div className="mb-4">
-        <label className="mr-2">Select Warehouse:</label>
+        <label className="mr-2">{t('warehouse:select_warehouse')}</label>
         {loadingWarehouses ? (
-          "Loading..."
+          t('common:loading')
         ) : (
           <select
             onChange={(e) => setWarehouseId(e.target.value || undefined)}
             className="border p-1"
             value={warehouseId || ""}
           >
-            <option value="">All Warehouses</option>
+            <option value="">{t('warehouse:all_warehouses')}</option>
             {warehouses.map((wh) => (
               <option key={wh.warehouse_id} value={wh.warehouse_id}>
                 {wh.name}

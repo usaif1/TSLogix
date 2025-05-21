@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 // components
 import { Button, Divider, Text } from "@/components";
@@ -21,6 +22,7 @@ const reactSelectStyle = {
 };
 
 const NewEntryOrderForm: React.FC = () => {
+  const { t } = useTranslation(['process', 'common']);
   const navigate = useNavigate();
   const {
     documentTypes,
@@ -240,7 +242,7 @@ const NewEntryOrderForm: React.FC = () => {
         certificate_protocol_analysis: certificateUrl,
         product: formData.product?.value || "",
         technical_specification: techSpecUrl,
-        order_status: formData.order_status?.value || "",
+        status: formData.order_status?.value || "",
         order_type: "ENTRY",
       };
 
@@ -313,7 +315,7 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* origin */}
         <div className="w-full flex flex-col">
-          <label htmlFor="origin">Origin</label>
+          <label htmlFor="origin">{t('process:origin')}</label>
           <Select
             options={origins}
             styles={reactSelectStyle}
@@ -328,7 +330,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* entry order no */}
         <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">Entry Order No</label>
+          <label htmlFor="entry_order_no">{t('process:entry_order_no')}</label>
           <input
             type="text"
             autoCapitalize="on"
@@ -343,7 +345,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* document */}
         <div className="w-full flex flex-col">
-          <label htmlFor="document">Document</label>
+          <label htmlFor="document">{t('process:document')}</label>
           <Select
             options={documentTypes}
             styles={reactSelectStyle}
@@ -361,7 +363,7 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* registration date */}
         <div className="w-full flex flex-col">
-          <label htmlFor="registration_date">Registration Date</label>
+          <label htmlFor="registration_date">{t('process:registration_date')}</label>
           <DatePicker
             showTimeSelect
             dateFormat="Pp"
@@ -378,7 +380,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* document date */}
         <div className="w-full flex flex-col">
-          <label htmlFor="document_date">Document Date</label>
+          <label htmlFor="document_date">{t('process:document_date')}</label>
           <DatePicker
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             id="document_date"
@@ -397,7 +399,7 @@ const NewEntryOrderForm: React.FC = () => {
         {/* admission date and time */}
         <div className="w-full flex flex-col">
           <label htmlFor="admission_date_and_time">
-            Admission Date and Time
+            {t('process:admission_date_and_time')}
           </label>
           <DatePicker
             showTimeSelect
@@ -421,7 +423,7 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* personnel in charge */}
         <div className="w-full flex flex-col">
-          <label htmlFor="personnel_in_charge">Personnel In Charge</label>
+          <label htmlFor="personnel_in_charge">{t('process:personnel_in_charge')}</label>
           <Select
             options={users}
             styles={reactSelectStyle}
@@ -436,7 +438,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* document status */}
         <div className="w-full flex flex-col">
-          <label htmlFor="document_status">Document Status</label>
+          <label htmlFor="document_status">{t('process:document_status')}</label>
           <Select
             options={documentStatusOptions}
             styles={reactSelectStyle}
@@ -450,7 +452,7 @@ const NewEntryOrderForm: React.FC = () => {
           />
         </div>
         <div className="w-full flex flex-col">
-          <label htmlFor="order_status">Order Status</label>
+          <label htmlFor="order_status">{t('process:order_status')}</label>
           <Select
             options={entryOrderStatus}
             styles={reactSelectStyle}
@@ -467,7 +469,7 @@ const NewEntryOrderForm: React.FC = () => {
       <Divider />
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="observation">Observation</label>
+          <label htmlFor="observation">{t('process:observation')}</label>
           <textarea
             id="observation"
             name="observation"
@@ -482,7 +484,7 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* total volume */}
         <div className="w-full flex flex-col">
-          <label htmlFor="total_volume">Total Volume</label>
+          <label htmlFor="total_volume">{t('process:total_volume')}</label>
           <div className="w-full flex items-end gap-x-2">
             <input
               type="number"
@@ -500,7 +502,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* total weight */}
         <div className="w-full flex flex-col">
-          <label htmlFor="total_weight">Total Weight</label>
+          <label htmlFor="total_weight">{t('process:total_weight')}</label>
           <div className="w-full flex items-end gap-x-2">
             <input
               type="number"
@@ -518,7 +520,7 @@ const NewEntryOrderForm: React.FC = () => {
         <div className="w-full flex flex-col">
           <label htmlFor="cif_value">
             <span>$</span>
-            CIF Value/ Purchase Value
+            {t('process:cif_value')}
           </label>
 
           <div className="w-full flex items-end gap-x-2">
@@ -542,7 +544,7 @@ const NewEntryOrderForm: React.FC = () => {
             htmlFor="supplier"
             className={isReconditionedOrigin ? "text-gray-400" : ""}
           >
-            Supplier
+            {t('process:supplier')}
           </label>
           <Select
             options={suppliers}
@@ -558,14 +560,14 @@ const NewEntryOrderForm: React.FC = () => {
           />
           {isReconditionedOrigin && (
             <p className="text-xs text-amber-600 mt-1">
-              Not applicable for reconditioned products
+              {t('process:not_applicable')}
             </p>
           )}
         </div>
 
         {/* product */}
         <div className="w-full flex flex-col">
-          <label htmlFor="product">Product</label>
+          <label htmlFor="product">{t('process:product')}</label>
           <Select
             options={products}
             styles={reactSelectStyle}
@@ -583,7 +585,7 @@ const NewEntryOrderForm: React.FC = () => {
           <div className="w-full flex flex-col">
             <FileUpload
               id="certificate_protocol_analysis"
-              label="Protocol/ Analysis Certificate"
+              label={t('process:protocol_analysis_certificate')}
               onFileSelected={(file: File) => setCertificateFile(file)}
             />
           </div>
@@ -595,7 +597,7 @@ const NewEntryOrderForm: React.FC = () => {
       <Divider />
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="product_description">Product Description</label>
+          <label htmlFor="product_description">{t('process:product_description')}</label>
           <textarea
             id="product_description"
             name="product_description"
@@ -610,7 +612,7 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* manufacturing date */}
         <div className="w-full flex flex-col">
-          <label htmlFor="manufacturing_date">Manufacturing Date</label>
+          <label htmlFor="manufacturing_date">{t('process:manufacturing_date')}</label>
           <DatePicker
             showYearDropdown
             scrollableYearDropdown
@@ -628,7 +630,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* expiration date */}
         <div className="w-full flex flex-col">
-          <label htmlFor="expiration_date">Expiration Date</label>
+          <label htmlFor="expiration_date">{t('process:expiration_date')}</label>
           <DatePicker
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             id="expiration_date"
@@ -642,7 +644,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* lot/ series */}
         <div className="w-full flex flex-col">
-          <label htmlFor="lot_series">Lot/ Series</label>
+          <label htmlFor="lot_series">{t('process:lot_series')}</label>
           <input
             type="text"
             id="lot_series"
@@ -658,7 +660,7 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* palettes */}
         <div className="w-full flex flex-col">
-          <label htmlFor="palettes">Palettes</label>
+          <label htmlFor="palettes">{t('process:palettes')}</label>
           <input
             type="text"
             id="palettes"
@@ -671,7 +673,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* insured value */}
         <div className="w-full flex flex-col">
-          <label htmlFor="insured_value">Insured Value</label>
+          <label htmlFor="insured_value">{t('process:insured_value')}</label>
           <input
             type="text"
             id="insured_value"
@@ -687,7 +689,7 @@ const NewEntryOrderForm: React.FC = () => {
           <div className="w-full flex flex-col">
             <FileUpload
               id="technical_specification"
-              label="Technical Specification"
+              label={t('process:technical_specification')}
               onFileSelected={(file: File) => {
                 console.log("Tech spec file selected:", file.name);
                 setTechSpecFile(file);
@@ -703,7 +705,7 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* entry date */}
         <div className="w-full flex flex-col">
-          <label htmlFor="entry_date">Entry Date</label>
+          <label htmlFor="entry_date">{t('process:entry_date')}</label>
           <DatePicker
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             id="entry_date"
@@ -717,7 +719,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* entry transfer note */}
         <div className="w-full flex flex-col">
-          <label htmlFor="entry_transfer_note">Entry Transfer Note</label>
+          <label htmlFor="entry_transfer_note">{t('process:entry_transfer_note')}</label>
           <input
             type="text"
             id="entry_transfer_note"
@@ -730,7 +732,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* type */}
         <div className="w-full flex flex-col">
-          <label htmlFor="type">Type</label>
+          <label htmlFor="type">{t('process:type')}</label>
           <input
             type="text"
             id="type"
@@ -746,7 +748,7 @@ const NewEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* quantity packaging */}
         <div className="w-full flex flex-col">
-          <label htmlFor="quantity_packaging">Quantity Packaging</label>
+          <label htmlFor="quantity_packaging">{t('process:quantity_packaging')}</label>
           <input
             type="number"
             id="quantity_packaging"
@@ -759,7 +761,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* presentation */}
         <div className="w-full flex flex-col">
-          <label htmlFor="presentation">Presentation</label>
+          <label htmlFor="presentation">{t('process:presentation')}</label>
           <input
             type="text"
             id="presentation"
@@ -772,7 +774,7 @@ const NewEntryOrderForm: React.FC = () => {
 
         {/* total qty */}
         <div className="w-full flex flex-col">
-          <label htmlFor="total_qty">Total Qty (Units)</label>
+          <label htmlFor="total_qty">{t('process:total_qty')}</label>
           <input
             type="number"
             id="total_qty"
@@ -792,7 +794,7 @@ const NewEntryOrderForm: React.FC = () => {
             htmlFor="max_temperature"
             className={shouldDisableFields ? "text-gray-400" : ""}
           >
-            Max. Temp
+            {t('process:max_temperature')}
           </label>
           <input
             type="number"
@@ -812,7 +814,7 @@ const NewEntryOrderForm: React.FC = () => {
             htmlFor="min_temperature"
             className={shouldDisableFields ? "text-gray-400" : ""}
           >
-            Min Temp
+            {t('process:min_temperature')}
           </label>
           <input
             type="number"
@@ -833,7 +835,7 @@ const NewEntryOrderForm: React.FC = () => {
             htmlFor="humidity"
             className={shouldDisableFields ? "text-gray-400" : ""}
           >
-            Humidity
+            {t('process:humidity')}
           </label>
           <input
             type="number"
@@ -852,8 +854,7 @@ const NewEntryOrderForm: React.FC = () => {
       {shouldDisableFields && (
         <div className="mt-4 p-3 rounded-md bg-blue-50 text-blue-800 border border-blue-200">
           <p className="text-sm">
-            <strong>Note:</strong> For returned products, file uploads,
-            temperature, and humidity fields are not required.
+            <strong>{t('process:note')}:</strong> {t('process:note_message')}
           </p>
         </div>
       )}
@@ -867,7 +868,9 @@ const NewEntryOrderForm: React.FC = () => {
               : "bg-red-100 text-red-800"
           }`}
         >
-          {submitStatus.message}
+          {submitStatus.success 
+            ? t('process:entry_success')
+            : t('process:entry_failure')}
         </div>
       )}
 
@@ -880,7 +883,7 @@ const NewEntryOrderForm: React.FC = () => {
           additionalClass="w-40"
           type="submit"
         >
-          {isSubmitting ? "Submitting..." : "Register"}
+          {isSubmitting ? t('process:submitting') : t('process:register')}
         </Button>
       </div>
     </form>
