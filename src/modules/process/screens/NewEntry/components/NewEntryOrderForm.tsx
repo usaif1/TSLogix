@@ -187,6 +187,11 @@ const NewEntryOrderForm: React.FC = () => {
   };
 
   const handleSelectChange = (name: string, selectedOption: any) => {
+    // Add console log to track document_type_id selection
+    if (name === "document_type_id") {
+      console.log("Document type selected:", selectedOption);
+    }
+    
     setFormData((prevState) => ({
       ...prevState,
       [name]: selectedOption,
@@ -245,6 +250,7 @@ const NewEntryOrderForm: React.FC = () => {
         status: formData.order_status?.value || "",
         order_type: "ENTRY",
       };
+
 
       await ProcessService.createNewEntryOrder(apiSubmissionData);
 

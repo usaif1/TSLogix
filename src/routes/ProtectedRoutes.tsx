@@ -32,6 +32,7 @@ import {
 import {
   // inventory
   InventoryLog,
+  AllocateOrder,
 } from "@/modules/inventory/screens";
 
 import { WareHouse } from "@/modules/warehouse/screens";
@@ -72,6 +73,7 @@ const ProtectedRoutes: React.FC = () => {
         </Route>
         <Route path="inventory">
           <Route index element={<InventoryLog />} />
+          <Route path="allocate" element={<AllocateOrder />} />
         </Route>
       </Route>
     </Routes>

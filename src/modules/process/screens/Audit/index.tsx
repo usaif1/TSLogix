@@ -84,7 +84,7 @@ const Audit: React.FC = () => {
         { label: "Supplier", value: entry.supplier?.name },
         { label: "Origin", value: entry.origin?.name },
         { label: "Status", value: entry.status },
-        { label: "Audit Result", value: entry.audit_status },
+        { label: "Review Result", value: entry.audit_status },
       ]
     : [];
 
@@ -114,7 +114,7 @@ const Audit: React.FC = () => {
                 className="px-4 py-2 bg-blue-600 text-white rounded cursor-pointer"
                 onClick={openModal}
               >
-                Audit
+                Review
               </button>
             ) : null}
 
