@@ -1,43 +1,45 @@
-import React, { useEffect, useCallback } from "react";
-import debounce from "lodash.debounce";
+import React, { useEffect, useState, useCallback } from "react";
+import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Plus } from "@phosphor-icons/react";
-import { Link } from "react-router";
 
-// services
-import { ProcessService } from "@/globalService";
+import { Text, Divider } from "@/components";
+import Searchbar from "@/components/Searchbar";
+import DepartureRecordsTable from "./components/DepartureRecordsTable";
+import { ProcessService } from "@/modules/process/api/process.service";
+import { useDebounce } from "@/hooks/useDebounce";
 
-// components
-import { Divider, Text, Searchbar } from "@/components";
-import { DepartureRecordsTable } from "./components";
+const Departure: React.FC = () => {
+  const { t } = useTranslation(['process']);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Debounce the search query with 500ms delay
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-const Entry: React.FC = () => {
   useEffect(() => {
     ProcessService.fetchAllDepartureOrders();
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const debouncedSearch = useCallback(
-    debounce((searchValue: string) => {
-      ProcessService.fetchAllDepartureOrders(searchValue);
-    }, 800),
-    []
-  );
+  // Effect for debounced search
+  useEffect(() => {
+    ProcessService.fetchAllDepartureOrders(debouncedSearchQuery);
+  }, [debouncedSearchQuery]);
 
-  const handleSearch = (searchValue: string) => {
-    debouncedSearch(searchValue);
-  };
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
 
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        Departure Order
+        {t('process:departure_orders')}
       </Text>
-      <Divider />
+
       <div className="w-1/2">
         <Searchbar
           iconHidden={true}
           searchButton={true}
-          placeholder="Enter Order Number"
+          placeholder={t('process:search_order_placeholder')}
           onSearch={handleSearch}
         />
       </div>
@@ -47,7 +49,7 @@ const Entry: React.FC = () => {
         className="!w-56 bg-action-nav hover:bg-[#0F2F47] text-white px-2 py-2 rounded-md font-bold flex justify-center cursor-pointer "
       >
         <div className="flex items-center gap-x-2">
-          <Text color="text-white">Generate Order</Text>
+          <Text color="text-white">{t('process:generate_order')}</Text>
           <Plus className="text-white" weight="bold" size={16} />
         </div>
       </Link>
@@ -59,4 +61,4 @@ const Entry: React.FC = () => {
   );
 };
 
-export default Entry;
+export default Departure;

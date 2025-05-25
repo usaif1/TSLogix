@@ -2,6 +2,7 @@
 import { create } from "zustand";
 import createSelectors from "@/utils/selectors";
 
+type AssignCellLoader = "inventoryLogs/assign-cell";
 export type InventoryLogLoaderTypes =
   | "inventoryLogs/fetch-logs"
   | "inventoryLogs/fetch-log"
@@ -10,7 +11,8 @@ export type InventoryLogLoaderTypes =
   | "inventoryLogs/delete-log"
   | "inventoryLogs/add-inventory"
   | "inventoryLogs/fetch-warehouses"
-  | "inventoryLogs/fetch-cells";
+  | "inventoryLogs/fetch-cells"
+  | AssignCellLoader;
 
 type InventoryLog = any;
 type Warehouse = any;
@@ -47,6 +49,7 @@ const initialLoaders: Record<InventoryLogLoaderTypes, boolean> = {
   "inventoryLogs/add-inventory": false,
   "inventoryLogs/fetch-warehouses": false,
   "inventoryLogs/fetch-cells": false,
+  "inventoryLogs/assign-cell": false,
 };
 
 const initialState: InventoryLogStore = {

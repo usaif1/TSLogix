@@ -37,17 +37,19 @@ export type EntryFormData = {
 
 export type DepartureFormData = {
   customer: ReactSelectValue;
+  warehouse: ReactSelectValue;
+  product: ReactSelectValue;
   departure_date: Date;
   departure_order_no: string;
   document_type_id: ReactSelectValue;
   document_number: string;
   document_date: Date;
-  departure_status: ReactSelectValue;
   departure_transfer_note: string;
   personnel_incharge_id: ReactSelectValue;
   observation: string;
   total_volume: string;
   total_weight: string;
+  total_qty: string;
   arrival_point: string;
   packaging_type: ReactSelectValue;
   labeled: string;
@@ -61,4 +63,5 @@ export type DepartureFormData = {
   insured_value: string;
   dispatch_date: Date;
   presentation: string;
-}
+  packaging_list: string;
+};

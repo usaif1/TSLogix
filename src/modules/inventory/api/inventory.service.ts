@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/utils/api/axios.config";
 import { useInventoryLogStore } from "@/modules/inventory/store";
+import { Cell } from "../screens/AllocateOrder/components/CellGrid";
 
 const baseURL = "/inventory-logs";
 const warehouseURL = "/inventory-logs/warehouses";
@@ -102,30 +103,6 @@ export const InventoryLogService = {
     }
   },
 
-  addInventory: async (formData: any) => {
-    try {
-      startLoader("inventoryLogs/add-inventory");
-      // Only send entry_order_id, and optional warehouse_id & notes
-      const payload = {
-        entry_order_id: formData.entry_order_id,
-        warehouse_id: formData.warehouse_id,
-        notes: formData.notes,
-      };
-      const response = await api.post(`${baseURL}/add`, payload);
-      // Backend now returns { inventories: [], log: {...} }
-      const data = response.data.data || response.data;
-      const { inventories, log } = data;
-      // Push the single log into state
-      addInventoryLog(log);
-      return { inventories, log };
-    } catch (error) {
-      console.error("Add inventory error:", error);
-      throw error;
-    } finally {
-      stopLoader("inventoryLogs/add-inventory");
-    }
-  },
-
   fetchWarehouses: async () => {
     try {
       startLoader("inventoryLogs/fetch-warehouses");
@@ -147,14 +124,61 @@ export const InventoryLogService = {
       const res = await api.get(`${warehouseURL}/${warehouseId}/cells`, {
         params: { status: "AVAILABLE" },
       });
-      const data = res.data.data || res.data;
-      setCells(data);
-      return data;
+      const raw: any[] = res.data.data || res.data;
+
+      // Map raw API data to Cell[]
+      const cells: Cell[] = raw.map((c) => ({
+        cell_id: c.id,
+        warehouse_id: c.warehouse_id,
+        row: c.row,
+        bay: c.bay,
+        position: c.position,
+        capacity: Number(c.capacity),
+        currentUsage: Number(c.currentUsage),
+        status: c.status,
+      }));
+
+      setCells(cells);
+      return cells;
     } catch (error) {
       console.error("Fetch cells error:", error);
       throw error;
     } finally {
       stopLoader("inventoryLogs/fetch-cells");
+    }
+  },
+
+  /**
+   * Assign a portion of an entry order to a specific warehouse cell
+   */
+  assignToCell: async (formData: {
+    entry_order_id: string;
+    cell_id: string;
+    packaging_quantity: number;
+    weight: number;
+    volume?: number;
+    warehouse_id: string;
+  }) => {
+    try {
+      startLoader("inventoryLogs/assign-cell");
+
+      const payload = {
+        entry_order_id:     formData.entry_order_id,
+        cell_id:            formData.cell_id,
+        packaging_quantity: formData.packaging_quantity,
+        weight:             formData.weight,
+        volume:             formData.volume,
+        warehouse_id:       formData.warehouse_id,
+      };
+
+      const res = await api.post(`${baseURL}/assign`, payload);
+      const data = res.data.data || res.data;
+      return data;
+    } catch (error) {
+      console.error("Assign to cell error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/assign-cell");
     }
   },
 };

@@ -4,12 +4,8 @@ import React from "react";
 // types
 import {
   TEXT_COLORS,
-
-  // text size
   TEXT_SIZE,
   TEXT_SIZE_ENUM,
-
-  // text weight
   FONT_WEIGHT,
 } from "@/styling/theme";
 
@@ -19,6 +15,7 @@ type Props = {
   additionalClass?: string;
   size?: TEXT_SIZE;
   weight?: FONT_WEIGHT;
+  title?: string; // Add title prop for tooltips
 };
 
 const Text: React.FC<Props> = ({
@@ -27,10 +24,12 @@ const Text: React.FC<Props> = ({
   additionalClass = "",
   size = "base",
   weight = "normal",
+  title, 
 }) => {
   return (
     <p
-      className={`${color} ${weight} ${TEXT_SIZE_ENUM[size]} ${additionalClass} `}
+      className={`${color} ${weight} ${TEXT_SIZE_ENUM[size]} ${additionalClass}`}
+      title={title}
     >
       {children}
     </p>

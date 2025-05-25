@@ -12,20 +12,20 @@ import {
 interface InventoryTableProps<T extends object = any> {
   columns: ColumnDef<T, any>[];
   data: T[];
-  renderActions?: (item: T) => React.ReactNode;
+  /**
+   * Optional search input and action bar above the table.
+   */
+  topBar?: React.ReactNode;
   /**
    * Max height for the table body scroll area.
    */
   maxBodyHeight?: string;
 }
 
-/**
- * Paginated table with improved UI, sticky headers, and custom styling.
- */
 export function InventoryTable<T extends object = any>({
   columns,
   data,
-  renderActions,
+  topBar,
   maxBodyHeight = "70vh",
 }: InventoryTableProps<T>) {
   const table = useReactTable({
@@ -37,17 +37,19 @@ export function InventoryTable<T extends object = any>({
   });
 
   return (
-    <div className="bg-white shadow-md rounded-lg flex flex-col">
-      {/* Scrollable table body */}
+    <div className="w-full bg-white rounded-lg shadow p-6">
+      {topBar && (
+        <div className="flex items-center justify-between mb-4">{topBar}</div>
+      )}
       <div className="overflow-auto" style={{ maxHeight: maxBodyHeight }}>
-        <table className="min-w-full">
-          <thead className="bg-gray-100 sticky top-0">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+        <table className="w-full table-fixed border-collapse">
+          <thead className="bg-white">
+            {table.getHeaderGroups().map((hg) => (
+              <tr key={hg.id}>
+                {hg.headers.map((header) => (
                   <th
                     key={header.id}
-                    className="px-4 text-left text-sm font-medium text-gray-700 border-b"
+                    className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border-b border-gray-200"
                   >
                     {header.isPlaceholder
                       ? null
@@ -57,77 +59,64 @@ export function InventoryTable<T extends object = any>({
                         )}
                   </th>
                 ))}
-                {renderActions && (
-                  <th className="px-4 py-4 text-center text-sm font-medium text-gray-700 border-b">
-                    Actions
-                  </th>
-                )}
               </tr>
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
+            {table.getRowModel().rows.map((row, idx) => (
               <tr
                 key={row.id}
-                className="border-b hover:bg-gray-50 last:border-none"
+                className={`${
+                  idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                } hover:bg-gray-100`}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td
                     key={cell.id}
-                    className="px-6 text-sm text-gray-600 whitespace-nowrap"
+                    className="px-4 py-3 text-sm text-gray-600 truncate"
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </td>
                 ))}
-                {renderActions && (
-                  <td className="px-6 py-3 text-sm text-gray-600 text-center">
-                    {renderActions(row.original)}
-                  </td>
-                )}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination Controls */}
-      <div className="flex items-center justify-between px-6 py-3 bg-white">
-        <div className="text-sm text-gray-600">
-          Page{" "}
-          <span className="font-semibold">
-            {table.getState().pagination.pageIndex + 1}
+      <div className="flex flex-col md:flex-row items-center justify-between mt-4">
+        <div className="text-sm text-gray-500">
+          Showing{" "}
+          <span className="font-medium">
+            {table.getState().pagination.pageIndex *
+              table.getState().pagination.pageSize +
+              1}
           </span>{" "}
-          of <span className="font-semibold">{table.getPageCount()}</span>
+          -{" "}
+          <span className="font-medium">
+            {Math.min(
+              (table.getState().pagination.pageIndex + 1) *
+                table.getState().pagination.pageSize,
+              data.length
+            )}
+          </span>{" "}
+          of <span className="font-medium">{data.length}</span> results
         </div>
-        <div className="flex items-center space-x-2 cursor-pointer">
+        <div className="flex items-center space-x-2 mt-2 md:mt-0">
           <button
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="px-4 py-2 text-sm text-black shadow rounded-md disabled:opacity-50"
+            className="px-3 py-1 text-sm text-gray-600 rounded disabled:opacity-50"
           >
             Previous
           </button>
           <button
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="px-4 py-2 text-sm text-black shadow rounded-md  disabled:opacity-50"
+            className="px-3 py-1 text-sm text-gray-600 rounded disabled:opacity-50"
           >
             Next
           </button>
-        </div>
-        <div className="text-sm text-gray-600">
-          Show{" "}
-          <select
-            value={table.getState().pagination.pageSize}
-            onChange={(e) => table.setPageSize(Number(e.target.value))}
-            className="ml-1 px-2 py-1 border border-gray-300 rounded-md"
-          >
-            {[10, 20, 50].map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
     </div>

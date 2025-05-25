@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 // store
 import { ProcessesStore } from "@/globalStore";
@@ -9,6 +10,7 @@ import { formatDate } from "@/utils/dateUtils";
 import { EntryOrdersTable } from ".";
 
 const EntryRecordsTable: React.FC = () => {
+  const { t } = useTranslation(['process', 'common']);
   const entryOrders = ProcessesStore.use.entryOrders();
   const navigate = useNavigate();
 
@@ -36,10 +38,10 @@ const EntryRecordsTable: React.FC = () => {
   const columns = useMemo(
     () =>
       createTableColumns([
-        { accessor: "entry_order_no", header: "Order" },
+        { accessor: "entry_order_no", header: t('process:entry_order_no') },
         {
           accessor: "actions",
-          header: "Audit Status",
+          header: t('process:audit_status'),
           cell: (info: any) => {
             const entry = info.row.original;
             const encoded = encodeURIComponent(entry.entry_order_no);
@@ -50,32 +52,32 @@ const EntryRecordsTable: React.FC = () => {
                 )} text-white`}
                 onClick={() => actions(encoded)}
               >
-                <p className="text-xs font-bold">{entry?.audit_status}</p>
+                <p className="text-xs font-bold">{t(`process:${entry?.audit_status.toLowerCase()}`)}</p>
               </button>
             );
           },
         },
-        { accessor: "palettes", header: "Palettes" },
-        { accessor: "total_qty", header: "Quantity" },
-        { accessor: "total_weight", header: "Weight" },
-        { accessor: "insured_value", header: "Insured Value" },
+        { accessor: "palettes", header: t('process:palettes') },
+        { accessor: "total_qty", header: t('process:total_qty') },
+        { accessor: "total_weight", header: t('process:total_weight') },
+        { accessor: "insured_value", header: t('process:insured_value') },
         {
           accessor: "entry_date",
-          header: "Date of Entry",
+          header: t('process:entry_date'),
           cell: (info: any) => {
             const dateString = info.getValue() as string;
             return formatDate(dateString);
           },
         },
-        { accessor: "entry_transfer_note", header: "Entry Transfer Note" },
-        { accessor: "presentation", header: "Presentation" },
-        { accessor: "status", header: "Status" },
-        { accessor: "type", header: "Type" },
-        { accessor: "comments", header: "Comments" },
-        { accessor: "documentType.name", header: "Document Type" },
+        { accessor: "entry_transfer_note", header: t('process:entry_transfer_note') },
+        { accessor: "presentation", header: t('process:presentation') },
+        { accessor: "status", header: t('process:status') },
+        { accessor: "type", header: t('process:type') },
+        { accessor: "comments", header: t('process:comments') },
+        { accessor: "documentType.name", header: t('process:document_type') },
       ]),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [navigate]
+    [t, navigate]
   );
 
   return (
@@ -84,7 +86,7 @@ const EntryRecordsTable: React.FC = () => {
         data={entryOrders}
         columns={columns}
         showPagination={true}
-        emptyMessage="No entry orders found"
+        emptyMessage={t('process:no_entry_orders')}
       />
     </div>
   );
