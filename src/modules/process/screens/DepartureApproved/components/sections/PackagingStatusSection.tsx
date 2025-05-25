@@ -30,7 +30,6 @@ const PackagingStatusSection: React.FC<Props> = ({
   handleChange,
   handleSelectChange,
   isSubmitting,
-  packagingListFile,
   setPackagingListFile
 }) => {
   const { t } = useTranslation(['process']);
