@@ -876,7 +876,7 @@ const NewEntryOrderForm: React.FC = () => {
         >
           {submitStatus.success 
             ? t('process:entry_success')
-            : t('process:entry_failure')}
+            : (submitStatus.message || t('process:entry_failure'))}
         </div>
       )}
 

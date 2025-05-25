@@ -28,6 +28,15 @@
   "maintenance": "Mantenimiento",
   "warehouse": "Almacén",
   "admin": "Administración",
-  "reports": "Informes",
+  "reports": "Reportes",
+  "submitting": "Enviando...",
+  "processing": "Procesando...",
+  "optional": "opcional",
+  "showing": "Mostrando",
+  "of": "de",
+  "results": "resultados",
+  "previous": "Anterior",
+  "next": "Siguiente",
+  "no_data": "No hay datos disponibles",
   "date_format": "DD/MM/YYYY"
 }

@@ -44,9 +44,14 @@ export enum FONT_WEIGHT_ENUM {
   "extrabold" = 700,
 }
 
-export type FONT_WEIGHT =
+export type FONT_WEIGHT = 
+  | "font-thin"
+  | "font-extralight" 
   | "font-light"
   | "font-normal"
   | "font-medium"
+  | "font-semibold"
   | "font-bold"
-  | "font-extrabold";
+  | "font-extrabold"
+  | "font-black"
+  | "normal";

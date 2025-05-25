@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/utils/api/axios.config";
 import { ProcessesStore } from "@/globalStore";
+import { InventoryLogService } from "@/modules/inventory/api/inventory.service"; // Add this import
 
 const entryBaseURL = "/entry";
 const departureBaseURL = "/departure";
@@ -184,6 +185,7 @@ export const ProcessService = {
   createNewDepartureOrder: async (formData: any) => {
     const payload = {
       ...formData,
+      productId: formData.product.value,
       organisation_id: localStorage.getItem("organisation_id"),
       order_type: "DEPARTURE",
       created_by: localStorage.getItem("id"),
@@ -319,6 +321,166 @@ export const ProcessService = {
     } catch (err) {
       console.error("fetch passed entry orders error", err);
       throw new Error("Failed to fetch passed entry orders");
+    }
+  },
+
+  // Get products with available inventory - Updated
+  async getProductsWithInventory(warehouseId?: string) {
+    const params = warehouseId ? `?warehouseId=${warehouseId}` : '';
+    const response = await api.get(`${departureBaseURL}/products-with-inventory${params}`);
+    return response.data;
+  },
+
+  // Get available cells for a specific product - NEW
+  async getAvailableCellsForProduct(productId: string, warehouseId?: string) {
+    const params = warehouseId ? `?warehouseId=${warehouseId}` : '';
+    const response = await api.get(`${departureBaseURL}/cells-for-product/${productId}${params}`);
+    return response.data;
+  },
+
+  async validateSelectedCell(data: {
+    inventory_id: string;
+    requested_qty: number;
+    requested_weight: number;
+  }) {
+    const response = await api.post(`${departureBaseURL}/validate-cell`, data);
+    return response.data;
+  },
+
+  // Departure inventory management methods
+  loadProductsWithInventory: async (warehouseId: string) => {
+    const { startLoader, stopLoader, setProductsWithInventory, setInventoryError } = ProcessesStore.getState();
+    
+    startLoader("processes/load-products-inventory");
+    try {
+      const response = await ProcessService.getProductsWithInventory(warehouseId);
+      setProductsWithInventory(response.data || []);
+      return response.data;
+    } catch (error) {
+      console.error("Error loading products with inventory:", error);
+      setInventoryError("Error loading products with inventory");
+      throw error;
+    } finally {
+      stopLoader("processes/load-products-inventory");
+    }
+  },
+
+  loadAvailableCells: async (productId: string, warehouseId?: string) => {
+    const { startLoader, stopLoader, setAvailableCells, setInventoryError } = ProcessesStore.getState();
+    
+    startLoader("processes/load-cells");
+    try {
+      const response = await ProcessService.getAvailableCellsForProduct(productId, warehouseId);
+      setAvailableCells(response.data || []);
+      return response.data;
+    } catch (error) {
+      console.error("Error loading available cells:", error);
+      setInventoryError("Error loading available cells");
+      throw error;
+    } finally {
+      stopLoader("processes/load-cells");
+    }
+  },
+
+  validateCellSelection: async (data: {
+    inventory_id: string;
+    requested_qty: number;
+    requested_weight: number;
+  }) => {
+    const { 
+      startLoader, 
+      stopLoader, 
+      setCellValidation, 
+      setInventoryError 
+    } = ProcessesStore.getState();
+
+    startLoader("processes/validate-cell");
+    setInventoryError("");
+
+    try {
+      const response = await ProcessService.validateSelectedCell(data);
+      setCellValidation(response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error("Error validating cell:", error);
+      setInventoryError(error.response?.data?.message || "Error validating cell selection");
+      setCellValidation(null);
+      throw error;
+    } finally {
+      stopLoader("processes/validate-cell");
+    }
+  },
+
+  createDepartureOrderWithState: async (formData: any) => {
+    const { 
+      startLoader, 
+      stopLoader, 
+      setSubmitStatus,
+      cellValidation 
+    } = ProcessesStore.getState();
+
+    if (!cellValidation) {
+      setSubmitStatus({
+        success: false,
+        message: "Please select and validate a cell before submitting"
+      });
+      return;
+    }
+
+    startLoader("processes/submit-departure");
+    setSubmitStatus({});
+
+    try {
+      const submissionData = {
+        ...formData,
+        inventory_id: cellValidation.inventory_id,
+        requested_qty: cellValidation.requested_qty,
+        requested_weight: cellValidation.requested_weight,
+        organisation_id: localStorage.getItem("organisation_id"),
+        created_by: localStorage.getItem("id"),
+        order_type: "DEPARTURE",
+        palettes: formData.palettes ? formData.palettes.toString() : null,
+        total_qty: parseInt(formData.total_qty || "0"),
+        total_weight: parseFloat(formData.total_weight || "0"),
+        total_volume: parseFloat(formData.total_volume || "0"),
+        insured_value: formData.insured_value ? parseFloat(formData.insured_value) : null,
+      };
+
+      const result = await ProcessService.createNewDepartureOrder(submissionData);
+
+      setSubmitStatus({
+        success: true,
+        message: "departure_order_created_successfully" // This will be handled by the component
+      });
+
+      return result;
+    } catch (error: any) {
+      console.error("Departure order creation failed:", error);
+      setSubmitStatus({
+        success: false,
+        message: error.response?.data?.message || "failed_to_create_departure_order",
+      });
+      throw error;
+    } finally {
+      stopLoader("processes/submit-departure");
+    }
+  },
+
+  // Fetch warehouses for departure form
+  async fetchWarehouses() {
+    const { startLoader, stopLoader, setWarehouses } = ProcessesStore.getState();
+    
+    startLoader("processes/fetch-warehouses");
+    try {
+      // Use the existing inventory service method
+      const warehouses = await InventoryLogService.fetchWarehouses();
+      setWarehouses(warehouses);
+      return warehouses;
+    } catch (error) {
+      console.error("Error fetching warehouses:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-warehouses");
     }
   },
 };

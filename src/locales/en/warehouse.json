@@ -26,5 +26,17 @@
   "current_usage": "Current Usage",
   "status": "Status",
   "cell_role": "Cell Role",
-  "location": "Location"
+  "location": "Location",
+  "warehouse_grid": "Warehouse Grid",
+  "occupancy_rate": "Occupancy Rate",
+  "total": "Total",
+  "issues": "Issues",
+  "special_section": "Special Section",
+  "row": "Row",
+  "bay": "Bay",
+  "scroll_to_navigate": "Scroll to navigate",
+  "select_warehouse_prompt": "Please Select a Warehouse",
+  "select_warehouse_to_view_grid": "Choose a warehouse from the dropdown to view its cell grid",
+  "no_cells_found": "No Cells Found",
+  "no_cells_for_warehouse": "No cells available for this warehouse"
 }

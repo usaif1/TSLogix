@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import Select from "react-select";
 
 import { Button, Divider, Text } from "@/components";
 import Spinner from "@/components/Spinner";
@@ -19,6 +21,11 @@ interface EntryOrder {
   remaining_volume?: string;
 }
 
+interface SelectOption {
+  value: string;
+  label: string;
+}
+
 const AllocateOrder: React.FC = () => {
   const { t } = useTranslation(["inventory", "common"]);
   const navigate = useNavigate();
@@ -32,19 +39,47 @@ const AllocateOrder: React.FC = () => {
 
   const [entryOrders, setEntryOrders] = useState<EntryOrder[]>([]);
   const [selectedCell, setSelectedCell] = useState<Cell | null>(null);
-  // include packaging, weight, volume
+
   const [formData, setFormData] = useState({
     entry_order_id: "",
-    entry_order_no: "",
+    entry_order_no: { value: "", label: "" },
     product_name: "",
-    warehouse_id: "",
+    warehouse_id: { value: "", label: "" },
     packaging_quantity: "0",
     weight: "0",
     volume: "0",
     notes: "",
   });
+
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  // React Select styling (consistent with your codebase)
+  const reactSelectStyle = {
+    container: (provided: any) => ({
+      ...provided,
+      height: "2.5rem",
+    }),
+    control: (provided: any, state: any) => ({
+      ...provided,
+      minHeight: "2.5rem",
+      borderColor: state.isFocused ? "#3b82f6" : "#cbd5e1",
+      "&:hover": {
+        borderColor: state.isFocused ? "#3b82f6" : "#94a3b8",
+      },
+    }),
+  };
+
+  // Convert arrays to react-select options
+  const entryOrderOptions: SelectOption[] = entryOrders.map((order) => ({
+    value: order.entry_order_no,
+    label: order.entry_order_no,
+  }));
+
+  const warehouseOptions: SelectOption[] = warehouses.map((warehouse) => ({
+    value: warehouse.warehouse_id,
+    label: warehouse.name,
+  }));
 
   // 1️⃣ Load entry orders & warehouses
   useEffect(() => {
@@ -65,9 +100,9 @@ const AllocateOrder: React.FC = () => {
 
   // 2️⃣ Fetch cells when warehouse changes
   useEffect(() => {
-    if (!formData.warehouse_id) return;
+    if (!formData.warehouse_id.value) return;
     startLoader("inventoryLogs/fetch-cells");
-    InventoryLogService.fetchCells(formData.warehouse_id)
+    InventoryLogService.fetchCells(formData.warehouse_id.value)
       .catch((err) => {
         console.error(err);
         setError(t("inventory:error_fetching_cells"));
@@ -75,35 +110,33 @@ const AllocateOrder: React.FC = () => {
       .finally(() => {
         stopLoader("inventoryLogs/fetch-cells");
       });
-  }, [formData.warehouse_id, startLoader, stopLoader, t]);
+  }, [formData.warehouse_id.value, startLoader, stopLoader, t]);
 
-  const handleEntrySelect = async (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const entryNo = e.target.value;
-    if (!entryNo) {
+  const handleEntrySelect = async (selectedOption: SelectOption | null) => {
+    if (!selectedOption) {
       setFormData({
         ...formData,
         entry_order_id: "",
-        entry_order_no: "",
+        entry_order_no: { value: "", label: "" },
         product_name: "",
-        warehouse_id: "",
+        warehouse_id: { value: "", label: "" },
         packaging_quantity: "0",
         weight: "0",
         volume: "0",
       });
+      setSelectedCell(null);
       return;
     }
 
     setIsFetchingEntry(true);
     try {
-      const det = await ProcessService.fetchEntryOrderByNo(entryNo);
+      const det = await ProcessService.fetchEntryOrderByNo(selectedOption.value);
       setFormData({
         ...formData,
         entry_order_id: det.entry_order_id,
-        entry_order_no: det.entry_order_no,
+        entry_order_no: selectedOption,
         product_name: det.product.name,
-        warehouse_id: det.warehouse_id || "",
+        warehouse_id: { value: "", label: "" }, // Reset warehouse selection
         packaging_quantity: det.remaining_packaging_qty.toString(),
         weight: det.remaining_weight,
         volume: det.remaining_volume || "0",
@@ -118,10 +151,16 @@ const AllocateOrder: React.FC = () => {
     }
   };
 
+  const handleWarehouseSelect = (selectedOption: SelectOption | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      warehouse_id: selectedOption || { value: "", label: "" },
+    }));
+    setSelectedCell(null); // Reset cell selection when warehouse changes
+  };
+
   const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setFormData((f) => ({ ...f, [name]: value }));
@@ -134,7 +173,7 @@ const AllocateOrder: React.FC = () => {
 
     if (
       !formData.entry_order_id ||
-      !formData.warehouse_id ||
+      !formData.warehouse_id.value ||
       !selectedCell
     ) {
       setError(t("inventory:required_fields_missing"));
@@ -145,7 +184,7 @@ const AllocateOrder: React.FC = () => {
     try {
       await InventoryLogService.assignToCell({
         entry_order_id: formData.entry_order_id,
-        warehouse_id: formData.warehouse_id,  // This was previously misspelled as "warehous_id"
+        warehouse_id: formData.warehouse_id.value,
         cell_id: selectedCell.cell_id,
         packaging_quantity: Number(formData.packaging_quantity),
         weight: Number(formData.weight),
@@ -166,179 +205,237 @@ const AllocateOrder: React.FC = () => {
     return (
       <div className="flex items-center justify-center h-full">
         <Spinner />
+        <Text additionalClass="ml-2">{t("common:loading")}</Text>
       </div>
     );
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
         {t("inventory:allocate_order")}
       </Text>
-      <Divider />
+      <Divider height="lg" />
 
+      {/* Status Messages */}
       {(error || success) && (
         <div
-          className={`px-4 py-3 rounded ${
+          className={`mb-4 p-3 rounded-md ${
             error
-              ? "bg-red-50 border-red-200 text-red-700 border"
-              : "bg-green-50 border-green-200 text-green-700 border"
+              ? "bg-red-100 text-red-800"
+              : "bg-green-100 text-green-800"
           }`}
         >
-          {error || success}
+          <Text>{error || success}</Text>
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Entry Order */}
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">
-            {t("inventory:entry_order")} *
-          </label>
-          <div className="relative">
-            <select
-              name="entry_order_no"
-              value={formData.entry_order_no}
-              onChange={handleEntrySelect}
-              disabled={isSubmitting}
-              className="input"
-              required
-            >
-              <option value="">{t("inventory:select_entry_order")}</option>
-              {entryOrders.map((o) => (
-                <option key={o.entry_order_id} value={o.entry_order_no}>
-                  {o.entry_order_no}
-                </option>
-              ))}
-            </select>
-            {isFetchingEntry && (
-              <div className="absolute inset-y-0 right-3 flex items-center">
-                <Spinner />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Warehouse */}
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">
-            {t("inventory:warehouse")} *
-          </label>
-          <select
-            name="warehouse_id"
-            value={formData.warehouse_id}
-            onChange={handleChange}
-            disabled={isSubmitting || !formData.entry_order_id}
-            className="input"
-            required
-          >
-            <option value="">{t("inventory:select_warehouse")}</option>
-            {warehouses.map((w) => (
-              <option key={w.warehouse_id} value={w.warehouse_id}>
-                {w.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Product (read-only spans both columns) */}
-        <div className="md:col-span-2 flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">{t("inventory:product")}</label>
-          <input
-            readOnly
-            value={formData.product_name}
-            className="input bg-gray-50 cursor-not-allowed"
-          />
-        </div>
-
-        {/* CellGrid (spans both) */}
-        {formData.warehouse_id && (
-          <div className="md:col-span-2">
-            <label className="mb-1 font-medium text-gray-700 block">
-              {t("inventory:select_cell")} *
+      <form className="order_entry_form" onSubmit={handleSubmit}>
+        {/* Entry Order Selection */}
+        <div className="w-full flex items-center gap-x-6">
+          <div className="w-full flex flex-col">
+            <label htmlFor="entry_order_no">
+              {t("inventory:entry_order")} *
             </label>
-            <CellGrid
-              cells={cells}
-              selectedId={selectedCell?.cell_id}
-              onSelect={(c) => c.status === "AVAILABLE" && setSelectedCell(c)}
+            <div className="relative">
+              <Select
+                options={entryOrderOptions}
+                styles={reactSelectStyle}
+                inputId="entry_order_no"
+                name="entry_order_no"
+                value={formData.entry_order_no.value ? formData.entry_order_no : null}
+                onChange={handleEntrySelect}
+                placeholder={t("inventory:select_entry_order")}
+                isDisabled={isSubmitting}
+                isClearable
+              />
+              {isFetchingEntry && (
+                <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                  <Spinner />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col">
+            <label htmlFor="warehouse">
+              {t("inventory:warehouse")} *
+            </label>
+            <Select
+              options={warehouseOptions}
+              styles={reactSelectStyle}
+              inputId="warehouse"
+              name="warehouse"
+              value={formData.warehouse_id.value ? formData.warehouse_id : null}
+              onChange={handleWarehouseSelect}
+              placeholder={t("inventory:select_warehouse")}
+              isDisabled={isSubmitting || !formData.entry_order_id}
+              isClearable
             />
           </div>
+        </div>
+
+        <Divider />
+
+        {/* Product Information (Read-only) */}
+        <div className="w-full flex items-center gap-x-6">
+          <div className="w-full flex flex-col">
+            <label htmlFor="product_name">{t("inventory:product")}</label>
+            <input
+              type="text"
+              id="product_name"
+              name="product_name"
+              value={formData.product_name}
+              readOnly
+              className="h-10 border border-slate-400 rounded-md px-4 bg-gray-50 cursor-not-allowed focus-visible:outline-1 focus-visible:outline-primary-500"
+            />
+          </div>
+          <div className="w-full" /> {/* Spacer for consistent layout */}
+        </div>
+
+        <Divider />
+
+        {/* Cell Selection Grid */}
+        {formData.warehouse_id.value && (
+          <>
+            <div className="w-full">
+              <Text weight="font-semibold" additionalClass="text-gray-800 mb-3">
+                {t("inventory:select_cell")} *
+              </Text>
+
+              {selectedCell && (
+                <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                  <Text additionalClass="text-blue-800 text-sm">
+                    {t("inventory:selected_cell")}: <strong>{selectedCell.cellReference}</strong>
+                  </Text>
+                </div>
+              )}
+
+              <CellGrid
+                cells={cells}
+                selectedId={selectedCell?.cell_id}
+                onSelect={(c) => c.status === "AVAILABLE" && setSelectedCell(c)}
+              />
+            </div>
+            <Divider />
+          </>
         )}
 
-        {/* Packaging, Weight, Volume */}
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">{t("inventory:packaging_quantity")} *</label>
-          <input
-            type="number"
-            name="packaging_quantity"
-            value={formData.packaging_quantity}
-            onChange={handleChange}
-            className="input"
-            min={0}
-            required
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">{t("inventory:weight")} *</label>
-          <input
-            type="number"
-            name="weight"
-            value={formData.weight}
-            onChange={handleChange}
-            className="input"
-            min={0}
-            required
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">{t("inventory:volume")} *</label>
-          <input
-            type="number"
-            name="volume"
-            value={formData.volume}
-            onChange={handleChange}
-            className="input"
-            min={0}
-            required
-          />
+        {/* Quantity Information */}
+        <div className="w-full flex items-center gap-x-6">
+          <div className="w-full flex flex-col">
+            <label htmlFor="packaging_quantity">
+              {t("inventory:packaging_quantity")} *
+            </label>
+            <input
+              type="number"
+              id="packaging_quantity"
+              name="packaging_quantity"
+              value={formData.packaging_quantity}
+              onChange={handleChange}
+              min="0"
+              step="1"
+              required
+              disabled={isSubmitting}
+              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            />
+          </div>
+
+          <div className="w-full flex flex-col">
+            <label htmlFor="weight">
+              {t("inventory:weight")} *
+            </label>
+            <div className="w-full flex items-end gap-x-2">
+              <input
+                type="number"
+                id="weight"
+                name="weight"
+                value={formData.weight}
+                onChange={handleChange}
+                min="0"
+                step="0.01"
+                required
+                disabled={isSubmitting}
+                className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+              />
+              <Text>Kg</Text>
+            </div>
+          </div>
+
+          <div className="w-full flex flex-col">
+            <label htmlFor="volume">
+              {t("inventory:volume")} *
+            </label>
+            <div className="w-full flex items-end gap-x-2">
+              <input
+                type="number"
+                id="volume"
+                name="volume"
+                value={formData.volume}
+                onChange={handleChange}
+                min="0"
+                step="0.01"
+                required
+                disabled={isSubmitting}
+                className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+              />
+              <Text>
+                M<sup>3</sup>
+              </Text>
+            </div>
+          </div>
         </div>
 
-        {/* Notes (optional spans both) */}
-        <div className="md:col-span-2 flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">
-            {t("inventory:notes")} ({t("common:optional")})
-          </label>
-          <textarea
-            name="notes"
-            rows={3}
-            value={formData.notes}
-            onChange={handleChange}
-            disabled={isSubmitting}
-            className="textarea"
-          />
+        <Divider />
+
+        {/* Notes Section */}
+        <div className="w-full flex items-center gap-x-6">
+          <div className="w-full flex flex-col">
+            <label htmlFor="notes">
+              {t("inventory:notes")} ({t("common:optional")})
+            </label>
+            <textarea
+              id="notes"
+              name="notes"
+              rows={3}
+              value={formData.notes}
+              onChange={handleChange}
+              disabled={isSubmitting}
+              className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500"
+              placeholder={t("inventory:notes_placeholder")}
+            />
+          </div>
         </div>
 
-        {/* Buttons (spans both) */}
-        <div className="md:col-span-2 flex justify-end gap-4">
+        <Divider height="2xl" />
+
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-x-4">
           <Button
             variant="cancel"
-            onClick={() => navigate("/inventory/logs")}
+            additionalClass="w-32"
+            type="button"
+            onClick={() => navigate("/inventory")}
             disabled={isSubmitting}
           >
             {t("common:cancel")}
           </Button>
+
           <Button
-            type="submit"
             disabled={
-              isSubmitting ||
               !formData.entry_order_id ||
-              !formData.warehouse_id ||
-              !selectedCell
+              !formData.warehouse_id.value ||
+              !selectedCell ||
+              isSubmitting
             }
+            variant="action"
+            additionalClass="w-40"
+            type="submit"
           >
             {isSubmitting ? (
-              <div className="flex items-center gap-2">
-                <Spinner /> {t("common:processing")}  
+              <div className="flex items-center">
+                <Spinner />
+                <span className="ml-2">{t("common:processing")}</span>
               </div>
             ) : (
               t("inventory:allocate")

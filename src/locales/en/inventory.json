@@ -41,7 +41,15 @@
   "occupied": "Occupied",
   "damaged_section": "Damaged Section",
   "expired_section": "Expired Section",
-  "select_warehouse_first": "Please select a warehouse to view cells",
   "cell_location": "Cell Location",
-  "cell_status": "Cell Status"
+  "cell_status": "Cell Status",
+  "no_cells_available": "No cells available",
+  "select_warehouse_first": "Please select a warehouse first",
+  "cell_selection": "Cell Selection",
+  "available_cells": "available cells",
+  "selected": "Selected",
+  "position": "Position",
+  "bay": "Bay",
+  "capacity": "Capacity"
+  
 }

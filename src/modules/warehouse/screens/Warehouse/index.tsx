@@ -27,16 +27,21 @@ export default function WarehouseView() {
       try {
         const list = await WarehouseCellService.fetchWarehouses();
         setWarehouses(list);
+        if (list.length > 0 && !warehouseId) {
+          setWarehouseId(list[0].warehouse_id);
+        }
       } catch (err) {
         console.error(err);
       } finally {
         stopLoader("warehouses/fetch-warehouses");
       }
     })();
-  }, [startLoader, stopLoader, setWarehouses]);
+  }, [startLoader, stopLoader, setWarehouses, warehouseId]);
 
   useEffect(() => {
     (async () => {
+      if (!warehouseId) return; // Don't fetch if no warehouse selected
+      
       startLoader("cells/fetch-cells");
       try {
         const response = await WarehouseCellService.fetchAllCells(warehouseId);
@@ -59,13 +64,10 @@ export default function WarehouseView() {
   }, [warehouseId, startLoader, stopLoader, setCells]);
 
   const downloadExcel = () => {
-    const filtered = warehouseId
-      ? cells.filter((c) => c.warehouse_id === warehouseId)
-      : cells;
-
-    const warehouseName = warehouseId
-      ? warehouses.find((w) => w.warehouse_id === warehouseId)?.name || "Warehouse"
-      : "All-Warehouses";
+    if (!warehouseId) return;
+    
+    const filtered = cells.filter((c) => c.warehouse_id === warehouseId);
+    const warehouseName = warehouses.find((w) => w.warehouse_id === warehouseId)?.name || "Warehouse";
 
     exportWarehouseGridToExcel(filtered, warehouseName);
   };
@@ -78,7 +80,7 @@ export default function WarehouseView() {
           variant="primary" 
           onClick={downloadExcel}
           additionalClass="px-4"
-          disabled={cells.length === 0}
+          disabled={!warehouseId || cells.length === 0}
         >
           {t('warehouse:download_excel')}
         </Button>
@@ -94,7 +96,7 @@ export default function WarehouseView() {
             className="border p-1"
             value={warehouseId || ""}
           >
-            <option value="">{t('warehouse:all_warehouses')}</option>
+            <option value="">{t('warehouse:select_warehouse_placeholder')}</option>
             {warehouses.map((wh) => (
               <option key={wh.warehouse_id} value={wh.warehouse_id}>
                 {wh.name}

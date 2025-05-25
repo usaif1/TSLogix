@@ -36,12 +36,17 @@ const InventoryLog: React.FC = () => {
         id: "entryOrderNo",
       },
       {
+        header: "Departure Order",
+        accessorFn: (row: any) => row.departure_order?.departure_order_no || "-",
+        id: "departureOrderNo",
+      },
+      {
         header: "Product",
         accessorFn: (row: any) => row.product.name,
         id: "productName",
       },
       {
-        header: "Change",
+        header: "Quantity Change",
         accessorKey: "quantity_change",
         cell: (info: CellContext<any, any>) => {
           const change = info.getValue<number>();
@@ -55,7 +60,30 @@ const InventoryLog: React.FC = () => {
           return <span className={color}>{change}</span>;
         },
       },
-      { header: "Type", accessorKey: "movement_type" },
+      {
+        header: "Weight Change",
+        accessorKey: "weight_change",
+        cell: (info: CellContext<any, any>) => {
+          const change = info.getValue<number>();
+          const type = info.row.original.movement_type;
+          const color =
+            type === "ENTRY"
+              ? "text-green-600 font-bold"
+              : type === "DEPARTURE"
+              ? "text-red-600 font-bold"
+              : "text-gray-800";
+          return <span className={color}>{change}</span>;
+        },
+      },
+      { 
+        header: "Type", 
+        accessorKey: "movement_type",
+        cell: (info: CellContext<any, any>) => {
+          const type = info.getValue<string>();
+          const color = type === "ENTRY" ? "text-green-600" : type === "DEPARTURE" ? "text-red-600" : "text-gray-600";
+          return <span className={color}>{type}</span>;
+        }
+      },
       {
         header: "Date",
         accessorKey: "timestamp",
@@ -64,7 +92,6 @@ const InventoryLog: React.FC = () => {
     ],
     []
   );
-
 
   const handleAddClick = () => {
     navigate("/inventory/allocate");
