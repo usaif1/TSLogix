@@ -3,114 +3,6 @@ import { create } from "zustand";
 // utils
 import createSelectors from "@/utils/selectors";
 
-type LoaderTypes =
-  | "processes/fetch-entry-orders"
-  | "processes/fetch-departure-orders"
-  | "processes/fetch-entry-order"
-  | "processes/load-products-inventory"
-  | "processes/load-cells"
-  | "processes/validate-cell"
-  | "processes/submit-departure"
-  | "processes/fetch-warehouses";
-
-type DepartureFormFields = {
-  customers: any[];
-  documentTypes: any[];
-  users: any[];
-  packagingTypes: any[];
-  labels: any[];
-};
-
-interface ProductWithInventory {
-  product_id: number;
-  product_name: string;
-  available_packaging: number;
-  available_weight: number;
-  available_volume: number;
-  location_count: number;
-}
-
-interface AvailableCell {
-  inventory_id: string;
-  cell_id: string;
-  cell_reference: string;
-  product_name: string;
-  available_packaging: number;
-  available_weight: number;
-  available_volume: number | null;
-  expiration_date: string | null;
-  entry_order_no: string;
-  lot_series: string | null;
-  admission_date: string;
-}
-
-interface CellValidation {
-  inventory_id: string;
-  cell_id: string;
-  cell_reference: string;
-  entry_order_no: string;
-  requested_qty: number;
-  requested_weight: number;
-  remaining_qty: number;
-  remaining_weight: number;
-  will_be_empty: boolean;
-}
-
-interface Warehouse {
-  warehouse_id: string;
-  name: string;
-}
-
-type EntryOrder = any;
-type AllAudit = any;
-
-export type ProcessesStore = {
-  // entry orders list
-  entryOrders: EntryOrder[];
-  // currently loaded entry order details
-  currentEntryOrder: EntryOrder | null;
-  // all audits
-  allAudit: AllAudit[] | null;
-  // departure orders list
-  departureOrders: any[];
-
-  // entry order form fields
-  origins: any[];
-  users: any[];
-  customers: any[];
-  suppliers: any[];
-  documentTypes: any[];
-  products: any[];
-  entryOrderStatus: any[];
-
-  // departure form fields
-  departureFormFields: DepartureFormFields;
-
-  // warehouses for departure form
-  warehouses: Warehouse[];
-
-  // departure form inventory state
-  productsWithInventory: ProductWithInventory[];
-  inventoryError: string;
-
-  // New fields for single cell selection
-  availableCells: AvailableCell[];
-  selectedCell: AvailableCell | null;
-  cellValidation: CellValidation | null;
-
-  // departure form submit status
-  submitStatus: {
-    success?: boolean;
-    message?: string;
-  };
-
-  // last fetched entry order number
-  currentEntryOrderNo: string | null;
-
-  // loading states
-  loaders: Record<LoaderTypes, boolean>;
-};
-
 type ProcessesStoreActions = {
   setEntryOrders: (data: EntryOrder[]) => void;
   setCurrentEntryOrder: (data: EntryOrder | null) => void;
@@ -128,6 +20,11 @@ type ProcessesStoreActions = {
   // warehouse actions
   setWarehouses: (warehouses: Warehouse[]) => void;
 
+  // New actions for multi-product support
+  setTemperatureRanges: (ranges: TemperatureRange[]) => void;
+  setPackagingTypes: (types: PackagingOption[]) => void;
+  setPackagingStatuses: (statuses: PackagingOption[]) => void;
+
   // loader actions
   startLoader: (loaderType: LoaderTypes) => void;
   stopLoader: (loaderType: LoaderTypes) => void;
@@ -135,7 +32,7 @@ type ProcessesStoreActions = {
   // departure form fields
   setDepartureFormFields: (data: DepartureFormFields) => void;
 
-  // New actions for cell selection
+  // cell selection actions
   setAvailableCells: (cells: AvailableCell[]) => void;
   setSelectedCell: (cell: AvailableCell | null) => void;
   setCellValidation: (validation: CellValidation | null) => void;
@@ -155,6 +52,12 @@ const authInitialState: ProcessesStore = {
   documentTypes: [],
   products: [],
   entryOrderStatus: [],
+  
+  // New initial state
+  warehouses: [],
+  temperatureRanges: [],
+  packagingTypes: [],
+  packagingStatuses: [],
 
   departureFormFields: {
     customers: [],
@@ -164,14 +67,12 @@ const authInitialState: ProcessesStore = {
     labels: [],
   },
 
-  warehouses: [],
-
   // departure form inventory state
   productsWithInventory: [],
   inventoryError: "",
   submitStatus: {},
 
-  // New initial state for cell selection
+  // cell selection state
   availableCells: [],
   selectedCell: null,
   cellValidation: null,
@@ -221,6 +122,11 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>(
     // warehouses
     setWarehouses: (warehouses) => set({ warehouses }),
 
+    // New actions for multi-product support
+    setTemperatureRanges: (ranges) => set({ temperatureRanges: ranges }),
+    setPackagingTypes: (types) => set({ packagingTypes: types }),
+    setPackagingStatuses: (statuses) => set({ packagingStatuses: statuses }),
+
     // departure form inventory actions
     setProductsWithInventory: (data) => set({ productsWithInventory: data }),
     setInventoryError: (error) => set({ inventoryError: error }),
@@ -231,7 +137,7 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>(
       submitStatus: {},
     }),
 
-    // New cell selection actions
+    // cell selection actions
     setAvailableCells: (cells) => set({ availableCells: cells }),
     setSelectedCell: (cell) => set({ selectedCell: cell }),
     setCellValidation: (validation) => set({ cellValidation: validation }),

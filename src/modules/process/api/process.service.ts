@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/utils/api/axios.config";
 import { ProcessesStore } from "@/globalStore";
-import { InventoryLogService } from "@/modules/inventory/api/inventory.service"; // Add this import
+import { InventoryLogService } from "@/modules/inventory/api/inventory.service";
 
 const entryBaseURL = "/entry";
 const departureBaseURL = "/departure";
@@ -28,7 +28,7 @@ export const ProcessService = {
   },
 
   /**
-   * Fetch dropdown fields for creating an entry order
+   * Fetch dropdown fields for creating an entry order - Updated for new backend structure
    */
   fetchEntryOrderFormFields: async () => {
     try {
@@ -41,39 +41,92 @@ export const ProcessService = {
         customers,
         products,
         orderStatus,
+        warehouses,
+        temperatureRanges,
+        packagingTypes,
+        packagingStatuses,
       } = response.data;
 
       const formattedOrigins = origins.map((origin: any) => ({
         value: origin.origin_id,
         label: origin.name,
       }));
+
       const formattedUsers = users.map((user: any) => ({
-        value: user.user_id,
+        value: user.id,
         label: [user.first_name, user.last_name].filter(Boolean).join(" "),
       }));
+
       const formattedSuppliers = suppliers.map((s: any) => ({
         value: s.supplier_id,
         label: s.name,
       }));
+
       const formattedDocumentTypes = documentTypes.map((dt: any) => ({
         value: dt.document_type_id,
         label: dt.name,
       }));
+
       const formattedCustomers = (customers || []).map((c: any) => ({
         value: c.customer_id,
         label: c.name,
       }));
+
+      // Updated products formatting to include additional fields
       const formattedProducts = (products || []).map((p: any) => ({
         value: p.product_id,
         label: p.name,
+        product_code: p.product_code,
+        unit_weight: p.unit_weight,
+        unit_volume: p.unit_volume,
+        temperature_range: p.temperature_range
+          ? {
+              range_id: p.temperature_range.range_id || p.temperature_range.id,
+              range: p.temperature_range.range,
+              min_celsius: p.temperature_range.min_celsius,
+              max_celsius: p.temperature_range.max_celsius,
+            }
+          : null,
       }));
+
       const formattedStatus = (orderStatus || []).map((s: any) => ({
         value: s.status_id,
         label: s.name,
       }));
 
-      ProcessesStore.setState((prev) => ({
-        ...prev,
+      // Format warehouses
+      const formattedWarehouses = (warehouses || []).map((w: any) => ({
+        value: w.warehouse_id,
+        label: w.name,
+      }));
+
+      // Format temperature ranges
+      const formattedTemperatureRanges = (temperatureRanges || []).map(
+        (tr: any) => ({
+          value: tr.range_id || tr.id,
+          label: tr.range,
+          min_celsius: tr.min_celsius,
+          max_celsius: tr.max_celsius,
+        })
+      );
+
+      // Format packaging types and statuses
+      const formattedPackagingTypes = (packagingTypes || []).map((pt: any) => ({
+        value: pt.value,
+        label: pt.label,
+      }));
+
+      const formattedPackagingStatuses = (packagingStatuses || []).map(
+        (ps: any) => ({
+          value: ps.value,
+          label: ps.label,
+        })
+      );
+
+      // Fix: Use the action methods instead of setState
+      const state = ProcessesStore.getState();
+      ProcessesStore.setState({
+        ...state,
         origins: formattedOrigins,
         users: formattedUsers,
         suppliers: formattedSuppliers,
@@ -81,7 +134,12 @@ export const ProcessService = {
         customers: formattedCustomers,
         products: formattedProducts,
         entryOrderStatus: formattedStatus,
-      }));
+        warehouses: formattedWarehouses,
+        temperatureRanges: formattedTemperatureRanges,
+        packagingTypes: formattedPackagingTypes,
+        packagingStatuses: formattedPackagingStatuses,
+      });
+
       console.log("Updated ProcessesStore state:", ProcessesStore.getState());
     } catch (err) {
       console.error("fetch entry form fields error", err);
@@ -90,7 +148,7 @@ export const ProcessService = {
   },
 
   /**
-   * Create a new entry order
+   * Create a new entry order with multiple products - Updated
    */
   createNewEntryOrder: async (formData: any) => {
     const payload = {
@@ -99,6 +157,31 @@ export const ProcessService = {
       order_type: "ENTRY",
       created_by: localStorage.getItem("id"),
     };
+
+    // Validate products array
+    if (
+      !payload.products ||
+      !Array.isArray(payload.products) ||
+      payload.products.length === 0
+    ) {
+      throw new Error("At least one product is required");
+    }
+
+    // Validate each product has required fields
+    payload.products.forEach((product: any, index: number) => {
+      if (
+        !product.product_id ||
+        !product.quantity_packaging ||
+        !product.total_weight
+      ) {
+        throw new Error(
+          `Product ${
+            index + 1
+          }: Missing required fields (product_id, quantity_packaging, total_weight)`
+        );
+      }
+    });
+
     return await api.post(`${entryBaseURL}/create-entry-order`, payload);
   },
 
@@ -163,16 +246,15 @@ export const ProcessService = {
         label: l.name,
       }));
 
-      ProcessesStore.setState((prev) => ({
-        ...prev,
-        departureFormFields: {
-          customers: formattedCustomers,
-          documentTypes: formattedDocumentTypes,
-          users: formattedUsers,
-          packagingTypes: formattedPackaging,
-          labels: formattedLabels,
-        },
-      }));
+      // Fix: Use action method instead of setState with prev parameter
+      const { setDepartureFormFields } = ProcessesStore.getState();
+      setDepartureFormFields({
+        customers: formattedCustomers,
+        documentTypes: formattedDocumentTypes,
+        users: formattedUsers,
+        packagingTypes: formattedPackaging,
+        labels: formattedLabels,
+      });
     } catch (error) {
       console.error("fetch departure form fields error", error);
       throw new Error("Failed to fetch departure form fields");
@@ -197,7 +279,7 @@ export const ProcessService = {
   },
 
   /**
-   * Fetch a single entry order by order number
+   * Fetch a single entry order by order number - Updated to handle multi-product structure
    */
   fetchEntryOrderByNo: async (orderNo: string) => {
     const { startLoader, stopLoader, setCurrentEntryOrder } =
@@ -209,8 +291,21 @@ export const ProcessService = {
       )}`;
       const response = await api.get(endpoint);
       const entry = response.data.data;
-      setCurrentEntryOrder(entry);
-      return entry;
+
+      // Transform the entry order to include calculated totals for UI display
+      const transformedEntry = {
+        ...entry,
+        // These totals are now calculated from individual products
+        total_products: entry.products?.length || 0,
+        total_quantity_packaging: entry.total_quantity_packaging || 0,
+        total_weight: entry.total_weight || 0,
+        total_volume: entry.total_volume || 0,
+        remaining_packaging_qty: entry.remaining_packaging_qty || 0,
+        remaining_weight: entry.remaining_weight || 0,
+      };
+
+      setCurrentEntryOrder(transformedEntry);
+      return transformedEntry;
     } catch (err) {
       console.error("fetch entry order by no error", err);
       setCurrentEntryOrder(null);
@@ -221,22 +316,116 @@ export const ProcessService = {
   },
 
   /**
-   * Create an audit record for an entry order
+   * Create an audit record for an entry order product - Updated for product-specific audits
    */
   createAudit: async (data: {
-    entry_order_id: string | number;
+    entry_order_id?: string | number;
+    entry_order_product_id?: string | number;
     audit_result: string;
     comments?: string;
+    discrepancy_notes?: string;
+    packaging_condition?: string;
   }) => {
     try {
       const response = await api.post(`${auditBaseURL}`, data);
-      await ProcessService.fetchEntryOrderAudits(
-        data.entry_order_id.toString()
-      );
+
+      // Refresh the entry order data after audit creation
+      if (data.entry_order_id) {
+        await ProcessService.fetchEntryOrderAudits(
+          data.entry_order_id.toString()
+        );
+      }
+
       return response.data;
     } catch (err) {
       console.error("create audit error", err);
       throw new Error("Failed to create audit");
+    }
+  },
+
+  /**
+   * Create a new product-specific audit record with packaging updates
+   */
+  createAudit: async (data: {
+    entry_order_product_id: string | number;
+    audit_result: string;
+    comments?: string;
+    discrepancy_notes?: string;
+    packaging_condition?: string;
+    packaging_type?: string;
+    packaging_status?: string;
+    product_comments?: string;
+    overall_audit_comments?: string;
+    audited_by?: string;
+  }) => {
+    try {
+      const payload = {
+        ...data,
+        audited_by: data.audited_by || localStorage.getItem("id"),
+      };
+      
+      const response = await api.post(`${auditBaseURL}`, payload);
+      return response.data;
+    } catch (err) {
+      console.error("create audit error", err);
+      throw new Error("Failed to create audit");
+    }
+  },
+
+  /**
+   * Create multiple product audits at once (bulk audit)
+   */
+  createBulkAudit: async (data: {
+    audits: Array<{
+      entry_order_product_id: string | number;
+      audit_result: string;
+      comments?: string;
+      discrepancy_notes?: string;
+      packaging_condition?: string;
+      packaging_type?: string;
+      packaging_status?: string;
+      product_comments?: string;
+    }>;
+    overall_audit_comments?: string;
+  }) => {
+    try {
+      const payload = {
+        auditsData: data.audits,
+        auditorId: localStorage.getItem("id"),
+        overall_audit_comments: data.overall_audit_comments,
+      };
+      
+      const response = await api.post(`${auditBaseURL}/bulk`, payload);
+      return response.data;
+    } catch (err) {
+      console.error("bulk audit error", err);
+      throw new Error("Failed to create bulk audit");
+    }
+  },
+
+  /**
+   * Get products pending audit for a specific entry order
+   */
+  fetchPendingProductAudits: async (entryOrderId: string) => {
+    try {
+      const response = await api.get(`${auditBaseURL}/pending/${entryOrderId}`);
+      return response.data;
+    } catch (err) {
+      console.error("fetch pending product audits error", err);
+      throw new Error("Failed to fetch pending product audits");
+    }
+  },
+
+  /**
+   * Get entry orders with pending audits
+   */
+  fetchEntryOrdersWithPendingAudits: async () => {
+    try {
+      const response = await api.get(`${auditBaseURL}/pending-orders`);
+      return response.data;
+    } catch (err) {
+      console.error("fetch entry orders with pending audits error", err);
+      throw new Error("Failed to fetch entry orders with pending audits");
     }
   },
 
@@ -307,6 +496,9 @@ export const ProcessService = {
     }
   },
 
+  /**
+   * Fetch passed entry orders that have remaining inventory - Updated for multi-product
+   */
   fetchPassedEntryOrders: async (searchQuery = "") => {
     try {
       const params: Record<string, any> = { audit_status: "PASSED" };
@@ -324,17 +516,20 @@ export const ProcessService = {
     }
   },
 
-  // Get products with available inventory - Updated
+  // Departure inventory management methods
   async getProductsWithInventory(warehouseId?: string) {
-    const params = warehouseId ? `?warehouseId=${warehouseId}` : '';
-    const response = await api.get(`${departureBaseURL}/products-with-inventory${params}`);
+    const params = warehouseId ? `?warehouseId=${warehouseId}` : "";
+    const response = await api.get(
+      `${departureBaseURL}/products-with-inventory${params}`
+    );
     return response.data;
   },
 
-  // Get available cells for a specific product - NEW
   async getAvailableCellsForProduct(productId: string, warehouseId?: string) {
-    const params = warehouseId ? `?warehouseId=${warehouseId}` : '';
-    const response = await api.get(`${departureBaseURL}/cells-for-product/${productId}${params}`);
+    const params = warehouseId ? `?warehouseId=${warehouseId}` : "";
+    const response = await api.get(
+      `${departureBaseURL}/cells-for-product/${productId}${params}`
+    );
     return response.data;
   },
 
@@ -347,13 +542,19 @@ export const ProcessService = {
     return response.data;
   },
 
-  // Departure inventory management methods
   loadProductsWithInventory: async (warehouseId: string) => {
-    const { startLoader, stopLoader, setProductsWithInventory, setInventoryError } = ProcessesStore.getState();
-    
+    const {
+      startLoader,
+      stopLoader,
+      setProductsWithInventory,
+      setInventoryError,
+    } = ProcessesStore.getState();
+
     startLoader("processes/load-products-inventory");
     try {
-      const response = await ProcessService.getProductsWithInventory(warehouseId);
+      const response = await ProcessService.getProductsWithInventory(
+        warehouseId
+      );
       setProductsWithInventory(response.data || []);
       return response.data;
     } catch (error) {
@@ -366,11 +567,15 @@ export const ProcessService = {
   },
 
   loadAvailableCells: async (productId: string, warehouseId?: string) => {
-    const { startLoader, stopLoader, setAvailableCells, setInventoryError } = ProcessesStore.getState();
-    
+    const { startLoader, stopLoader, setAvailableCells, setInventoryError } =
+      ProcessesStore.getState();
+
     startLoader("processes/load-cells");
     try {
-      const response = await ProcessService.getAvailableCellsForProduct(productId, warehouseId);
+      const response = await ProcessService.getAvailableCellsForProduct(
+        productId,
+        warehouseId
+      );
       setAvailableCells(response.data || []);
       return response.data;
     } catch (error) {
@@ -387,12 +592,8 @@ export const ProcessService = {
     requested_qty: number;
     requested_weight: number;
   }) => {
-    const { 
-      startLoader, 
-      stopLoader, 
-      setCellValidation, 
-      setInventoryError 
-    } = ProcessesStore.getState();
+    const { startLoader, stopLoader, setCellValidation, setInventoryError } =
+      ProcessesStore.getState();
 
     startLoader("processes/validate-cell");
     setInventoryError("");
@@ -403,7 +604,9 @@ export const ProcessService = {
       return response.data;
     } catch (error: any) {
       console.error("Error validating cell:", error);
-      setInventoryError(error.response?.data?.message || "Error validating cell selection");
+      setInventoryError(
+        error.response?.data?.message || "Error validating cell selection"
+      );
       setCellValidation(null);
       throw error;
     } finally {
@@ -412,17 +615,13 @@ export const ProcessService = {
   },
 
   createDepartureOrderWithState: async (formData: any) => {
-    const { 
-      startLoader, 
-      stopLoader, 
-      setSubmitStatus,
-      cellValidation 
-    } = ProcessesStore.getState();
+    const { startLoader, stopLoader, setSubmitStatus, cellValidation } =
+      ProcessesStore.getState();
 
     if (!cellValidation) {
       setSubmitStatus({
         success: false,
-        message: "Please select and validate a cell before submitting"
+        message: "Please select and validate a cell before submitting",
       });
       return;
     }
@@ -443,14 +642,18 @@ export const ProcessService = {
         total_qty: parseInt(formData.total_qty || "0"),
         total_weight: parseFloat(formData.total_weight || "0"),
         total_volume: parseFloat(formData.total_volume || "0"),
-        insured_value: formData.insured_value ? parseFloat(formData.insured_value) : null,
+        insured_value: formData.insured_value
+          ? parseFloat(formData.insured_value)
+          : null,
       };
 
-      const result = await ProcessService.createNewDepartureOrder(submissionData);
+      const result = await ProcessService.createNewDepartureOrder(
+        submissionData
+      );
 
       setSubmitStatus({
         success: true,
-        message: "departure_order_created_successfully" // This will be handled by the component
+        message: "departure_order_created_successfully",
       });
 
       return result;
@@ -458,7 +661,8 @@ export const ProcessService = {
       console.error("Departure order creation failed:", error);
       setSubmitStatus({
         success: false,
-        message: error.response?.data?.message || "failed_to_create_departure_order",
+        message:
+          error.response?.data?.message || "failed_to_create_departure_order",
       });
       throw error;
     } finally {
@@ -466,13 +670,12 @@ export const ProcessService = {
     }
   },
 
-  // Fetch warehouses for departure form
   async fetchWarehouses() {
-    const { startLoader, stopLoader, setWarehouses } = ProcessesStore.getState();
-    
+    const { startLoader, stopLoader, setWarehouses } =
+      ProcessesStore.getState();
+
     startLoader("processes/fetch-warehouses");
     try {
-      // Use the existing inventory service method
       const warehouses = await InventoryLogService.fetchWarehouses();
       setWarehouses(warehouses);
       return warehouses;
