@@ -80,7 +80,7 @@ const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
     <div className="border border-gray-300 rounded-lg p-4 mb-4 bg-gray-50">
       {/* Product Header */}
       <div className="flex justify-between items-center mb-4">
-        <Text size="md" weight="font-semibold" additionalClass="text-gray-800">
+        <Text weight="font-semibold" additionalClass="text-gray-800">
           {t('process:product')} #{index + 1}
           {selectedProduct && (
             <span className="ml-2 text-sm font-normal text-blue-600">

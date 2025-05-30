@@ -11,9 +11,7 @@ import FileUpload from "@/components/FileUpload";
 import { ProcessesStore } from "@/globalStore";
 import { ProcessService } from "@/modules/process/api/process.service";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import useFormComplete from "@/hooks/useFormComplete";
 import ProductEntryCard from "./ProductEntryCard";
-import { EntryFormData, ProductData, getPackagingCode } from "@/modules/process/types";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -60,14 +58,15 @@ interface EntryFormData {
   certificate_protocol_analysis: string;
   lot_series: string;
   type: string;
-  
+
   // Products Array
   products: ProductData[];
 }
 
 const NewEntryOrderForm: React.FC = () => {
-  const { t } = useTranslation(['process', 'common']);
-3
+  const { t } = useTranslation(["process", "common"]);
+  const navigate = useNavigate();
+
   const {
     documentTypes,
     origins,
@@ -77,8 +76,6 @@ const NewEntryOrderForm: React.FC = () => {
     currentEntryOrderNo,
     entryOrderStatus,
     temperatureRanges,
-    packagingTypes,
-    packagingStatuses,
   } = ProcessesStore();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -159,27 +156,30 @@ const NewEntryOrderForm: React.FC = () => {
       packaging_code: "",
     };
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      products: [...prev.products, newProduct]
+      products: [...prev.products, newProduct],
     }));
   };
 
   // Remove product
   const removeProduct = (productId: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      products: prev.products.filter(p => p.id !== productId)
+      products: prev.products.filter((p) => p.id !== productId),
     }));
   };
 
   // Update product
-  const updateProduct = (productId: string, updatedProduct: Partial<ProductData>) => {
-    setFormData(prev => ({
+  const updateProduct = (
+    productId: string,
+    updatedProduct: Partial<ProductData>
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      products: prev.products.map(p => 
+      products: prev.products.map((p) =>
         p.id === productId ? { ...p, ...updatedProduct } : p
-      )
+      ),
     }));
   };
 
@@ -231,7 +231,10 @@ const NewEntryOrderForm: React.FC = () => {
     try {
       let certificateUrl = "";
       if (certificateFile && !isReturnOrigin) {
-        const fileName = `${Date.now()}_${certificateFile.name.replace(/[\s.]/g, "")}`;
+        const fileName = `${Date.now()}_${certificateFile.name.replace(
+          /[\s.]/g,
+          ""
+        )}`;
         const { error } = await supabase.storage
           .from("order")
           .upload(fileName, certificateFile);
@@ -262,9 +265,9 @@ const NewEntryOrderForm: React.FC = () => {
         certificate_protocol_analysis: certificateUrl,
         lot_series: formData.lot_series,
         type: formData.type,
-        
+
         // Products array
-        products: formData.products.map(product => ({
+        products: formData.products.map((product) => ({
           product_id: product.product_id,
           quantity_packaging: parseInt(product.quantity_packaging) || 0,
           total_qty: parseInt(product.total_qty) || 0,
@@ -280,42 +283,20 @@ const NewEntryOrderForm: React.FC = () => {
           packaging_type: product.packaging_type,
           packaging_status: product.packaging_status,
           packaging_code: product.packaging_code,
-        }))
+        })),
       };
 
       await ProcessService.createNewEntryOrder(submissionData);
-
-      // Reset form
-      setFormData({
-        origin: { option: "", value: "", label: "" },
-        entry_order_no: currentEntryOrderNo || "",
-        document_type_id: { option: "", value: "", label: "" },
-        registration_date: new Date(),
-        document_date: new Date(),
-        admission_date_time: new Date(),
-        entry_date: new Date(),
-        entry_transfer_note: "",
-        personnel_incharge_id: { option: "", value: "", label: "" },
-        document_status: {
-          option: "Registered",
-          value: "REGISTERED",
-          label: "REGISTERED",
-        },
-        order_status: { option: "", value: "", label: "" },
-        observation: "",
-        cif_value: "",
-        supplier: { option: "", value: "", label: "" },
-        certificate_protocol_analysis: "",
-        lot_series: "",
-        type: "",
-        products: [],
-      });
-      setCertificateFile(null);
 
       setSubmitStatus({
         success: true,
         message: "Entry order created successfully",
       });
+
+      // Show success message briefly, then redirect
+      setTimeout(() => {
+        navigate(-1); // Go back to the previous page
+      }, 1500); // Wait 1.5 seconds to show the success message
     } catch (error) {
       console.error("Error creating entry order:", error);
       setSubmitStatus({
@@ -327,22 +308,22 @@ const NewEntryOrderForm: React.FC = () => {
     }
   };
 
-  const documentStatusOptions = useMemo(() => {
-    return [{ value: "REGISTERED", label: "Registered" }];
-  }, []);
-
   return (
     <form className="order_entry_form" onSubmit={onSubmit}>
       {/* Entry Order Header Information */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-        <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-          {t('process:entry_order_information')}
+        <Text
+          size="lg"
+          weight="font-semibold"
+          additionalClass="mb-4 text-gray-800"
+        >
+          {t("process:entry_order_information")}
         </Text>
 
         <div className="w-full flex items-center gap-x-6">
           {/* origin */}
           <div className="w-full flex flex-col">
-            <label htmlFor="origin">{t('process:origin')} *</label>
+            <label htmlFor="origin">{t("process:origin")} *</label>
             <Select
               options={origins}
               styles={reactSelectStyle}
@@ -357,7 +338,9 @@ const NewEntryOrderForm: React.FC = () => {
 
           {/* entry order no */}
           <div className="w-full flex flex-col">
-            <label htmlFor="entry_order_no">{t('process:entry_order_no')} *</label>
+            <label htmlFor="entry_order_no">
+              {t("process:entry_order_no")} *
+            </label>
             <input
               type="text"
               autoCapitalize="on"
@@ -372,7 +355,7 @@ const NewEntryOrderForm: React.FC = () => {
 
           {/* document */}
           <div className="w-full flex flex-col">
-            <label htmlFor="document">{t('process:document')} *</label>
+            <label htmlFor="document">{t("process:document")} *</label>
             <Select
               options={documentTypes}
               styles={reactSelectStyle}
@@ -391,7 +374,9 @@ const NewEntryOrderForm: React.FC = () => {
         <div className="w-full flex items-center gap-x-6">
           {/* registration date */}
           <div className="w-full flex flex-col">
-            <label htmlFor="registration_date">{t('process:registration_date')} *</label>
+            <label htmlFor="registration_date">
+              {t("process:registration_date")} *
+            </label>
             <DatePicker
               showTimeSelect
               dateFormat="Pp"
@@ -408,7 +393,9 @@ const NewEntryOrderForm: React.FC = () => {
 
           {/* document date */}
           <div className="w-full flex flex-col">
-            <label htmlFor="document_date">{t('process:document_date')} *</label>
+            <label htmlFor="document_date">
+              {t("process:document_date")} *
+            </label>
             <DatePicker
               className="w-full border border-slate-400 h-10 rounded-md pl-4"
               id="document_date"
@@ -427,7 +414,7 @@ const NewEntryOrderForm: React.FC = () => {
           {/* admission date and time */}
           <div className="w-full flex flex-col">
             <label htmlFor="admission_date_and_time">
-              {t('process:admission_date_and_time')} *
+              {t("process:admission_date_and_time")} *
             </label>
             <DatePicker
               showTimeSelect
@@ -451,7 +438,9 @@ const NewEntryOrderForm: React.FC = () => {
         <div className="w-full flex items-center gap-x-6">
           {/* personnel in charge */}
           <div className="w-full flex flex-col">
-            <label htmlFor="personnel_in_charge">{t('process:personnel_in_charge')} *</label>
+            <label htmlFor="personnel_in_charge">
+              {t("process:personnel_in_charge")} *
+            </label>
             <Select
               options={users}
               styles={reactSelectStyle}
@@ -470,7 +459,7 @@ const NewEntryOrderForm: React.FC = () => {
               htmlFor="supplier"
               className={isReconditionedOrigin ? "text-gray-400" : ""}
             >
-              {t('process:supplier')} {!isReconditionedOrigin && "*"}
+              {t("process:supplier")} {!isReconditionedOrigin && "*"}
             </label>
             <Select
               options={suppliers}
@@ -482,18 +471,20 @@ const NewEntryOrderForm: React.FC = () => {
                 handleSelectChange("supplier", selectedOption)
               }
               isDisabled={isReconditionedOrigin}
-              className={isReconditionedOrigin ? "react-select--is-disabled" : ""}
+              className={
+                isReconditionedOrigin ? "react-select--is-disabled" : ""
+              }
             />
             {isReconditionedOrigin && (
               <p className="text-xs text-amber-600 mt-1">
-                {t('process:not_applicable')}
+                {t("process:not_applicable")}
               </p>
             )}
           </div>
 
           {/* order status */}
           <div className="w-full flex flex-col">
-            <label htmlFor="order_status">{t('process:order_status')} *</label>
+            <label htmlFor="order_status">{t("process:order_status")} *</label>
             <Select
               options={entryOrderStatus}
               styles={reactSelectStyle}
@@ -512,7 +503,7 @@ const NewEntryOrderForm: React.FC = () => {
         {/* General information */}
         <div className="w-full flex items-center gap-x-6">
           <div className="w-full flex flex-col">
-            <label htmlFor="observation">{t('process:observation')}</label>
+            <label htmlFor="observation">{t("process:observation")}</label>
             <textarea
               id="observation"
               name="observation"
@@ -521,11 +512,11 @@ const NewEntryOrderForm: React.FC = () => {
               className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500"
             />
           </div>
-          
+
           <div className="w-full flex flex-col">
             <label htmlFor="cif_value">
               <span>$</span>
-              {t('process:cif_value')} *
+              {t("process:cif_value")} *
             </label>
             <input
               type="number"
@@ -538,7 +529,7 @@ const NewEntryOrderForm: React.FC = () => {
           </div>
 
           <div className="w-full flex flex-col">
-            <label htmlFor="lot_series">{t('process:lot_series')} *</label>
+            <label htmlFor="lot_series">{t("process:lot_series")} *</label>
             <input
               type="text"
               id="lot_series"
@@ -555,7 +546,7 @@ const NewEntryOrderForm: React.FC = () => {
           <div className="mt-4">
             <FileUpload
               id="certificate_protocol_analysis"
-              label={t('process:protocol_analysis_certificate')}
+              label={t("process:protocol_analysis_certificate")}
               onFileSelected={(file: File) => setCertificateFile(file)}
             />
           </div>
@@ -565,8 +556,12 @@ const NewEntryOrderForm: React.FC = () => {
       {/* Products Section */}
       <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
         <div className="flex justify-between items-center mb-4">
-          <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
-            {t('process:products')} ({formData.products.length})
+          <Text
+            size="lg"
+            weight="font-semibold"
+            additionalClass="text-gray-800"
+          >
+            {t("process:products")} ({formData.products.length})
           </Text>
           <Button
             type="button"
@@ -574,14 +569,16 @@ const NewEntryOrderForm: React.FC = () => {
             onClick={addProduct}
             additionalClass="px-4 py-2"
           >
-            + {t('process:add_product')}
+            + {t("process:add_product")}
           </Button>
         </div>
 
         {formData.products.length === 0 && (
           <div className="text-center py-8 text-gray-500">
-            <Text>{t('process:no_products_added')}</Text>
-            <Text additionalClass="text-sm mt-1">{t('process:click_add_product_to_start')}</Text>
+            <Text>{t("process:no_products_added")}</Text>
+            <Text additionalClass="text-sm mt-1">
+              {t("process:click_add_product_to_start")}
+            </Text>
           </div>
         )}
 
@@ -591,11 +588,11 @@ const NewEntryOrderForm: React.FC = () => {
             product={product}
             index={index}
             products={products}
-            packagingTypes={packagingTypes}
-            packagingStatuses={packagingStatuses}
             temperatureRanges={temperatureRanges}
             shouldDisableFields={shouldDisableFields}
-            onUpdate={(updatedProduct) => updateProduct(product.id, updatedProduct)}
+            onUpdate={(updatedProduct) =>
+              updateProduct(product.id, updatedProduct)
+            }
             onRemove={() => removeProduct(product.id)}
           />
         ))}
@@ -610,20 +607,30 @@ const NewEntryOrderForm: React.FC = () => {
               : "bg-red-100 text-red-800"
           }`}
         >
-          {submitStatus.success 
-            ? t('process:entry_success')
-            : (submitStatus.message || t('process:entry_failure'))}
+          {submitStatus.success
+            ? t("process:entry_success")
+            : submitStatus.message || t("process:entry_failure")}
         </div>
       )}
 
-      <div className="flex justify-end">
+      <div className="flex justify-end space-x-4">
+        <Button
+          type="button"
+          variant="cancel"
+          onClick={() => navigate(-1)}
+          additionalClass="px-6 py-2"
+          disabled={isSubmitting}
+        >
+          {t("common:cancel")}
+        </Button>
+
         <Button
           disabled={formData.products.length === 0 || isSubmitting}
           variant="action"
           additionalClass="w-40"
           type="submit"
         >
-          {isSubmitting ? t('process:submitting') : t('process:register')}
+          {isSubmitting ? t("process:submitting") : t("process:register")}
         </Button>
       </div>
     </form>

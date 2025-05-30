@@ -2,6 +2,62 @@
 import { create } from "zustand";
 // utils
 import createSelectors from "@/utils/selectors";
+// Import types from the types file
+import type {
+  EntryOrder,
+  ProductAudit as AllAudit,
+  ProductWithInventory,
+  Warehouse,
+  TemperatureRange,
+  PackagingOption,
+  DepartureFormFields,
+  AvailableCell,
+  CellValidation,
+  ProcessLoaderTypes as LoaderTypes,
+  SubmitStatus
+} from "@/modules/process/types";
+
+interface ProcessesStore {
+  // Entry orders
+  entryOrders: EntryOrder[];
+  currentEntryOrder: EntryOrder | null;
+  allAudit: AllAudit[] | null;
+  departureOrders: any[];
+
+  // Form field options
+  origins: any[];
+  users: any[];
+  customers: any[];
+  suppliers: any[];
+  documentTypes: any[];
+  products: any[];
+  entryOrderStatus: any[];
+  
+  // Warehouse and packaging options
+  warehouses: Warehouse[];
+  temperatureRanges: TemperatureRange[];
+  packagingTypes: PackagingOption[];
+  packagingStatuses: PackagingOption[];
+
+  // Departure form fields
+  departureFormFields: DepartureFormFields;
+
+  // Departure form inventory state
+  productsWithInventory: ProductWithInventory[];
+  inventoryError: string;
+  submitStatus: SubmitStatus;
+
+  // Cell selection state
+  availableCells: AvailableCell[];
+  selectedCell: AvailableCell | null;
+  cellValidation: CellValidation | null;
+
+  // Current entry order number
+  currentEntryOrderNo: string | null;
+
+  // Loaders
+  loaders: Record<LoaderTypes, boolean>;
+}
 
 type ProcessesStoreActions = {
   setEntryOrders: (data: EntryOrder[]) => void;
@@ -14,7 +70,7 @@ type ProcessesStoreActions = {
   // departure form inventory actions
   setProductsWithInventory: (data: ProductWithInventory[]) => void;
   setInventoryError: (error: string) => void;
-  setSubmitStatus: (status: { success?: boolean; message?: string; }) => void;
+  setSubmitStatus: (status: SubmitStatus) => void;
   clearInventoryState: () => void;
 
   // warehouse actions
@@ -151,3 +207,9 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>(
 );
 
 export default createSelectors(processesStore);
+
+// Re-export types that might be needed by components
+export type { 
+  ProcessesStore, 
+  ProcessesStoreActions
+};

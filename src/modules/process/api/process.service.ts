@@ -316,38 +316,11 @@ export const ProcessService = {
   },
 
   /**
-   * Create an audit record for an entry order product - Updated for product-specific audits
+   * Create a product-specific audit record with packaging updates
    */
   createAudit: async (data: {
     entry_order_id?: string | number;
     entry_order_product_id?: string | number;
-    audit_result: string;
-    comments?: string;
-    discrepancy_notes?: string;
-    packaging_condition?: string;
-  }) => {
-    try {
-      const response = await api.post(`${auditBaseURL}`, data);
-
-      // Refresh the entry order data after audit creation
-      if (data.entry_order_id) {
-        await ProcessService.fetchEntryOrderAudits(
-          data.entry_order_id.toString()
-        );
-      }
-
-      return response.data;
-    } catch (err) {
-      console.error("create audit error", err);
-      throw new Error("Failed to create audit");
-    }
-  },
-
-  /**
-   * Create a new product-specific audit record with packaging updates
-   */
-  createAudit: async (data: {
-    entry_order_product_id: string | number;
     audit_result: string;
     comments?: string;
     discrepancy_notes?: string;
@@ -365,6 +338,14 @@ export const ProcessService = {
       };
       
       const response = await api.post(`${auditBaseURL}`, payload);
+
+      // Refresh the entry order data after audit creation
+      if (data.entry_order_id) {
+        await ProcessService.fetchEntryOrderAudits(
+          data.entry_order_id.toString()
+        );
+      }
+
       return response.data;
     } catch (err) {
       console.error("create audit error", err);

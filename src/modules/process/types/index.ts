@@ -177,6 +177,7 @@ export interface EntryOrder {
   remaining_packaging_qty: number;
   remaining_weight: number;
   cellAssignments?: CellAssignment[];
+  observation?: string;
 }
 
 export interface EntryOrderProduct {
