@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { create } from "zustand";
-// utils
 import createSelectors from "@/utils/selectors";
-// Import types from the types file
-import type {
+import {
   EntryOrder,
+  EntryOrderProduct,
+  EntryFormFields,
+  EntryOrderReview,
+  InventorySelection,
   ProductAudit as AllAudit,
   ProductWithInventory,
   Warehouse,
@@ -14,107 +16,142 @@ import type {
   AvailableCell,
   CellValidation,
   ProcessLoaderTypes as LoaderTypes,
-  SubmitStatus
+  SubmitStatus,
 } from "@/modules/process/types";
 
 interface ProcessesStore {
-  // Entry orders
+  // Entry Orders
   entryOrders: EntryOrder[];
   currentEntryOrder: EntryOrder | null;
-  allAudit: AllAudit[] | null;
+  pendingEntryOrders: EntryOrder[]; // For admin review
+  approvedEntryOrders: EntryOrder[]; // For warehouse allocation
+
+  // Form Fields
+  entryFormFields: EntryFormFields;
+
+  // Entry Order Creation
+  currentEntryOrderNo: string | null;
+
+  // Review System
+  reviewStatus: {
+    success?: boolean;
+    message?: string;
+  };
+
+  // Departure Orders
   departureOrders: any[];
-
-  // Form field options
-  origins: any[];
-  users: any[];
-  customers: any[];
-  suppliers: any[];
-  documentTypes: any[];
-  products: any[];
-  entryOrderStatus: any[];
-  
-  // Warehouse and packaging options
-  warehouses: Warehouse[];
-  temperatureRanges: TemperatureRange[];
-  packagingTypes: PackagingOption[];
-  packagingStatuses: PackagingOption[];
-
-  // Departure form fields
   departureFormFields: DepartureFormFields;
 
-  // Departure form inventory state
+  // Inventory Management
   productsWithInventory: ProductWithInventory[];
+  inventorySelections: InventorySelection[];
   inventoryError: string;
   submitStatus: SubmitStatus;
 
-  // Cell selection state
+  // Cell Management
   availableCells: AvailableCell[];
   selectedCell: AvailableCell | null;
   cellValidation: CellValidation | null;
 
-  // Current entry order number
-  currentEntryOrderNo: string | null;
+  // Warehouses
+  warehouses: Warehouse[];
 
-  // Loaders
-  loaders: Record<LoaderTypes, boolean>;
+  // Loading states
+  loaders: {
+    "processes/fetch-entry-orders": boolean;
+    "processes/fetch-pending-orders": boolean;
+    "processes/fetch-approved-orders": boolean;
+    "processes/fetch-entry-order": boolean;
+    "processes/create-entry-order": boolean;
+    "processes/review-entry-order": boolean;
+    "processes/load-form-fields": boolean;
+    "processes/fetch-warehouses": boolean;
+    "processes/load-products-inventory": boolean;
+    "processes/load-cells": boolean;
+    "processes/validate-cell": boolean;
+    "processes/submit-departure": boolean;
+    "processes/fetch-departure-orders": boolean;
+  };
 }
 
-type ProcessesStoreActions = {
-  setEntryOrders: (data: EntryOrder[]) => void;
-  setCurrentEntryOrder: (data: EntryOrder | null) => void;
-  setAllAudit: (data: AllAudit[] | null) => void;
-  setDepartureOrders: (data: any[]) => void;
-  setCurrentEntryOrderNo: (data: string | null) => void;
-  resetProcessesStore: () => void;
+interface ProcessesStoreActions {
+  // Loader controls
+  startLoader: (loaderType: keyof ProcessesStore["loaders"]) => void;
+  stopLoader: (loaderType: keyof ProcessesStore["loaders"]) => void;
 
-  // departure form inventory actions
-  setProductsWithInventory: (data: ProductWithInventory[]) => void;
+  // Entry Orders
+  setEntryOrders: (orders: EntryOrder[]) => void;
+  setCurrentEntryOrder: (order: EntryOrder | null) => void;
+  setPendingEntryOrders: (orders: EntryOrder[]) => void;
+  setApprovedEntryOrders: (orders: EntryOrder[]) => void;
+
+  // Form Fields
+  setEntryFormFields: (fields: EntryFormFields) => void;
+  setCurrentEntryOrderNo: (orderNo: string | null) => void;
+
+  // Review System
+  setReviewStatus: (status: { success?: boolean; message?: string }) => void;
+  clearReviewStatus: () => void;
+
+  // Warehouses
+  setWarehouses: (warehouses: Warehouse[]) => void;
+
+  // Departure Orders
+  setDepartureOrders: (orders: any[]) => void;
+  setDepartureFormFields: (fields: DepartureFormFields) => void;
+
+  // Inventory Management
+  setProductsWithInventory: (products: ProductWithInventory[]) => void;
+  setInventorySelections: (selections: InventorySelection[]) => void;
+  addInventorySelection: (selection: InventorySelection) => void;
+  removeInventorySelection: (inventoryId: string) => void;
+  updateInventorySelection: (inventoryId: string, updates: Partial<InventorySelection>) => void;
+  clearInventorySelections: () => void;
   setInventoryError: (error: string) => void;
   setSubmitStatus: (status: SubmitStatus) => void;
   clearInventoryState: () => void;
 
-  // warehouse actions
-  setWarehouses: (warehouses: Warehouse[]) => void;
-
-  // New actions for multi-product support
-  setTemperatureRanges: (ranges: TemperatureRange[]) => void;
-  setPackagingTypes: (types: PackagingOption[]) => void;
-  setPackagingStatuses: (statuses: PackagingOption[]) => void;
-
-  // loader actions
-  startLoader: (loaderType: LoaderTypes) => void;
-  stopLoader: (loaderType: LoaderTypes) => void;
-
-  // departure form fields
-  setDepartureFormFields: (data: DepartureFormFields) => void;
-
-  // cell selection actions
+  // Cell Management
   setAvailableCells: (cells: AvailableCell[]) => void;
   setSelectedCell: (cell: AvailableCell | null) => void;
   setCellValidation: (validation: CellValidation | null) => void;
   clearCellState: () => void;
-};
 
-const authInitialState: ProcessesStore = {
+  // Reset
+  resetProcessesStore: () => void;
+}
+
+const processesInitialState: ProcessesStore = {
+  // Entry Orders
   entryOrders: [],
   currentEntryOrder: null,
-  allAudit: null,
+  pendingEntryOrders: [],
+  approvedEntryOrders: [],
+
+  // Form Fields
+  entryFormFields: {
+    origins: [],
+    documentTypes: [],
+    users: [],
+    suppliers: [],
+    products: [],
+    warehouses: [],
+    temperatureRanges: [],
+    originTypes: [],
+    documentTypeOptions: [],
+    orderStatusOptions: [],
+    presentationOptions: [],
+    temperatureRangeOptions: [],
+  },
+
+  // Entry Order Creation
+  currentEntryOrderNo: null,
+
+  // Review System
+  reviewStatus: {},
+
+  // Departure Orders
   departureOrders: [],
-
-  origins: [],
-  users: [],
-  customers: [],
-  suppliers: [],
-  documentTypes: [],
-  products: [],
-  entryOrderStatus: [],
-  
-  // New initial state
-  warehouses: [],
-  temperatureRanges: [],
-  packagingTypes: [],
-  packagingStatuses: [],
-
   departureFormFields: {
     customers: [],
     documentTypes: [],
@@ -123,93 +160,122 @@ const authInitialState: ProcessesStore = {
     labels: [],
   },
 
-  // departure form inventory state
+  // Inventory Management
   productsWithInventory: [],
+  inventorySelections: [],
   inventoryError: "",
   submitStatus: {},
 
-  // cell selection state
+  // Cell Management
   availableCells: [],
   selectedCell: null,
   cellValidation: null,
 
-  currentEntryOrderNo: null,
+  // Warehouses
+  warehouses: [],
+
+  // Loading states
   loaders: {
     "processes/fetch-entry-orders": false,
-    "processes/fetch-departure-orders": false,
+    "processes/fetch-pending-orders": false,
+    "processes/fetch-approved-orders": false,
     "processes/fetch-entry-order": false,
+    "processes/create-entry-order": false,
+    "processes/review-entry-order": false,
+    "processes/load-form-fields": false,
+    "processes/fetch-warehouses": false,
     "processes/load-products-inventory": false,
     "processes/load-cells": false,
     "processes/validate-cell": false,
     "processes/submit-departure": false,
-    "processes/fetch-warehouses": false,
+    "processes/fetch-departure-orders": false,
   },
 };
 
-const processesStore = create<ProcessesStore & ProcessesStoreActions>(
-  (set) => ({
-    ...authInitialState,
+const processesStore = create<ProcessesStore & ProcessesStoreActions>((set, get) => ({
+  ...processesInitialState,
 
-    // loader controls
-    startLoader: (loaderType) =>
-      set((state) => ({ loaders: { ...state.loaders, [loaderType]: true } })),
-    stopLoader: (loaderType) =>
-      set((state) => ({ loaders: { ...state.loaders, [loaderType]: false } })),
+  // Loader controls
+  startLoader: (loaderType) =>
+    set((state) => ({ loaders: { ...state.loaders, [loaderType]: true } })),
+  stopLoader: (loaderType) =>
+    set((state) => ({ loaders: { ...state.loaders, [loaderType]: false } })),
 
-    // reset entire store
-    resetProcessesStore: () => set(authInitialState),
+  // Entry Orders
+  setEntryOrders: (orders) => set({ entryOrders: orders }),
+  setCurrentEntryOrder: (order) => set({ currentEntryOrder: order }),
+  setPendingEntryOrders: (orders) => set({ pendingEntryOrders: orders }),
+  setApprovedEntryOrders: (orders) => set({ approvedEntryOrders: orders }),
 
-    // entry orders
-    setEntryOrders: (data) => set({ entryOrders: data }),
-    setCurrentEntryOrder: (data) => set({ currentEntryOrder: data }),
+  // Form Fields
+  setEntryFormFields: (fields) => set({ entryFormFields: fields }),
+  setCurrentEntryOrderNo: (orderNo) => set({ currentEntryOrderNo: orderNo }),
 
-    // audits
-    setAllAudit: (data) => set({ allAudit: data }),
+  // Review System
+  setReviewStatus: (status) => set({ reviewStatus: status }),
+  clearReviewStatus: () => set({ reviewStatus: {} }),
 
-    // departure orders
-    setDepartureOrders: (data) => set({ departureOrders: data }),
+  // Warehouses
+  setWarehouses: (warehouses) => set({ warehouses }),
 
-    // entry order number
-    setCurrentEntryOrderNo: (data) => set({ currentEntryOrderNo: data }),
+  // Departure Orders
+  setDepartureOrders: (orders) => set({ departureOrders: orders }),
+  setDepartureFormFields: (fields) => set({ departureFormFields: fields }),
 
-    // departure form
-    setDepartureFormFields: (data) => set({ departureFormFields: data }),
+  // Inventory Management
+  setProductsWithInventory: (products) => set({ productsWithInventory: products }),
+  setInventorySelections: (selections) => set({ inventorySelections: selections }),
 
-    // warehouses
-    setWarehouses: (warehouses) => set({ warehouses }),
+  addInventorySelection: (selection) => {
+    const { inventorySelections } = get();
+    const exists = inventorySelections.find((s) => s.inventory_id === selection.inventory_id);
+    if (!exists) {
+      set({ inventorySelections: [...inventorySelections, selection] });
+    }
+  },
 
-    // New actions for multi-product support
-    setTemperatureRanges: (ranges) => set({ temperatureRanges: ranges }),
-    setPackagingTypes: (types) => set({ packagingTypes: types }),
-    setPackagingStatuses: (statuses) => set({ packagingStatuses: statuses }),
+  removeInventorySelection: (inventoryId) => {
+    const { inventorySelections } = get();
+    set({ inventorySelections: inventorySelections.filter((s) => s.inventory_id !== inventoryId) });
+  },
 
-    // departure form inventory actions
-    setProductsWithInventory: (data) => set({ productsWithInventory: data }),
-    setInventoryError: (error) => set({ inventoryError: error }),
-    setSubmitStatus: (status) => set({ submitStatus: status }),
-    clearInventoryState: () => set({
+  updateInventorySelection: (inventoryId, updates) => {
+    const { inventorySelections } = get();
+    set({
+      inventorySelections: inventorySelections.map((s) =>
+        s.inventory_id === inventoryId ? { ...s, ...updates } : s
+      ),
+    });
+  },
+
+  clearInventorySelections: () => set({ inventorySelections: [] }),
+  setInventoryError: (error) => set({ inventoryError: error }),
+  setSubmitStatus: (status) => set({ submitStatus: status }),
+  clearInventoryState: () =>
+    set({
       productsWithInventory: [],
+      inventorySelections: [],
       inventoryError: "",
       submitStatus: {},
     }),
 
-    // cell selection actions
-    setAvailableCells: (cells) => set({ availableCells: cells }),
-    setSelectedCell: (cell) => set({ selectedCell: cell }),
-    setCellValidation: (validation) => set({ cellValidation: validation }),
-    clearCellState: () => set({
+  // Cell Management
+  setAvailableCells: (cells) => set({ availableCells: cells }),
+  setSelectedCell: (cell) => set({ selectedCell: cell }),
+  setCellValidation: (validation) => set({ cellValidation: validation }),
+  clearCellState: () =>
+    set({
       availableCells: [],
       selectedCell: null,
       cellValidation: null,
       inventoryError: "",
     }),
-  })
-);
+
+  // Reset
+  resetProcessesStore: () => set(processesInitialState),
+}));
 
 export default createSelectors(processesStore);
 
 // Re-export types that might be needed by components
-export type { 
-  ProcessesStore, 
-  ProcessesStoreActions
-};
+export type { ProcessesStore, ProcessesStoreActions };
