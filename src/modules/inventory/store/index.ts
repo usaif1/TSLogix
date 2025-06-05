@@ -21,82 +21,95 @@ type InventoryLog = any;
 type Warehouse = any;
 type Cell = any;
 
-// UPDATED: Product ready for assignment interface (no warehouse constraint)
+// ✅ Updated interfaces to match backend structure
+
 export interface ProductReadyForAssignment {
   entry_order_product_id: string;
+  serial_number: string;
+  product_code: string;
+  lot_series: string;
+  inventory_quantity: number;
+  package_quantity: number;
+  quantity_pallets?: number;
+  presentation: string;
+  weight_kg: number;
+  volume_m3?: number;
+  insured_value?: number;
+  temperature_range?: string;
+  
+  // ✅ New fields from backend
+  allocated_quantity: number;
+  remaining_quantity: number;
   remaining_packaging_qty: number;
   remaining_weight: number;
-  packaging_type: string;
-  packaging_status: string;
-  packaging_code: string;
-  expiration_date: string | null;
+  
   product: {
     product_id: string;
     product_code: string;
     name: string;
   };
+  
+  supplier: {
+    supplier_id: string;
+    name: string;
+  };
+  
   entry_order: {
     entry_order_id: string;
     entry_order_no: string;
-    supplier: {
-      name: string;
-    };
+    registration_date: string;
   };
+  
   cellAssignments: Array<{
     assignment_id: string;
     packaging_quantity: number;
     weight: number;
     cell: {
-      id: string;
+      warehouse: { name: string };
       row: string;
       bay: number;
       position: number;
-      warehouse: {
-        warehouse_id: string;
-        name: string;
-      };
     };
   }>;
+  
+  packaging_type: string;
 }
 
-// Inventory summary interface
 export interface InventorySummary {
   inventory_id: string;
-  product_id: string;
-  warehouse_id: string;
-  cell_id: string;
-  quantity: number;
-  packaging_quantity: number;
-  weight: number;
-  volume: number | null;
+  current_quantity: number;
+  current_package_quantity: number;
+  current_weight: number;
+  current_volume?: number;
   status: string;
-  expiration_date: string | null;
-  packaging_type: string;
-  packaging_status: string;
-  packaging_code: string;
+  product_status?: string;
+  status_code?: number;
+  
   product: {
     product_id: string;
     product_code: string;
     name: string;
   };
-  entryOrderProduct: {
-    entry_order_product_id: string;
-    packaging_type: string;
-    packaging_status: string;
-    audit_status: string;
-    entry_order: {
-      entry_order_no: string;
-    };
-  };
-  warehouse: {
-    warehouse_id: string;
-    name: string;
-  };
-  warehouseCell: {
+  
+  cell: {
     id: string;
     row: string;
     bay: number;
     position: number;
+    cellReference: string;
+  };
+  
+  warehouse: {
+    warehouse_id: string;
+    name: string;
+  };
+  
+  allocation?: {
+    allocation_id: string;
+    guide_number?: string;
+    observations?: string;
+    allocated_at: string;
+    entry_order_no?: string;
   };
 }
 

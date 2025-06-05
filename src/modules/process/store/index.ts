@@ -3,19 +3,14 @@ import { create } from "zustand";
 import createSelectors from "@/utils/selectors";
 import {
   EntryOrder,
-  EntryOrderProduct,
   EntryFormFields,
-  EntryOrderReview,
   InventorySelection,
-  ProductAudit as AllAudit,
   ProductWithInventory,
   Warehouse,
-  TemperatureRange,
-  PackagingOption,
   DepartureFormFields,
   AvailableCell,
   CellValidation,
-  ProcessLoaderTypes as LoaderTypes,
+  ProcessLoaderTypes,
   SubmitStatus,
 } from "@/modules/process/types";
 
@@ -58,26 +53,14 @@ interface ProcessesStore {
 
   // Loading states
   loaders: {
-    "processes/fetch-entry-orders": boolean;
-    "processes/fetch-pending-orders": boolean;
-    "processes/fetch-approved-orders": boolean;
-    "processes/fetch-entry-order": boolean;
-    "processes/create-entry-order": boolean;
-    "processes/review-entry-order": boolean;
-    "processes/load-form-fields": boolean;
-    "processes/fetch-warehouses": boolean;
-    "processes/load-products-inventory": boolean;
-    "processes/load-cells": boolean;
-    "processes/validate-cell": boolean;
-    "processes/submit-departure": boolean;
-    "processes/fetch-departure-orders": boolean;
+    [K in ProcessLoaderTypes]: boolean;
   };
 }
 
 interface ProcessesStoreActions {
   // Loader controls
-  startLoader: (loaderType: keyof ProcessesStore["loaders"]) => void;
-  stopLoader: (loaderType: keyof ProcessesStore["loaders"]) => void;
+  startLoader: (loaderType: ProcessLoaderTypes) => void;
+  stopLoader: (loaderType: ProcessLoaderTypes) => void;
 
   // Entry Orders
   setEntryOrders: (orders: EntryOrder[]) => void;
@@ -181,14 +164,18 @@ const processesInitialState: ProcessesStore = {
     "processes/fetch-approved-orders": false,
     "processes/fetch-entry-order": false,
     "processes/create-entry-order": false,
+    "processes/update-entry-order": false, 
     "processes/review-entry-order": false,
     "processes/load-form-fields": false,
     "processes/fetch-warehouses": false,
+    "processes/fetch-warehouse-cells": false,
+    "processes/allocate-inventory": false,
     "processes/load-products-inventory": false,
     "processes/load-cells": false,
     "processes/validate-cell": false,
     "processes/submit-departure": false,
     "processes/fetch-departure-orders": false,
+    "processes/load-departure-form-fields": false,
   },
 };
 

@@ -30,13 +30,13 @@ const Entry: React.FC = () => {
   // Debounced search function
   const handleSearch = useCallback(
     debounce((searchValue: string) => {
-      ProcessService.fetchAllEntryOrders(searchValue);
+      ProcessService.fetchEntryOrders({ orderNo: searchValue });
     }, 800),
     []
   );
 
   useEffect(() => {
-    ProcessService.fetchAllEntryOrders();
+    ProcessService.fetchEntryOrders();
   }, []);
 
   return (

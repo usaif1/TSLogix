@@ -1,371 +1,378 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useMemo } from "react";
-import Select, { CSSObjectWithLabel } from "react-select";
+import React from "react";
+import Select from "react-select";
 import DatePicker from "react-datepicker";
+import { Button, Text } from "@/components";
 import { useTranslation } from "react-i18next";
 
-import { Button, Divider, Text } from "@/components";
-
-// types
-import { ProductData } from "@/modules/process/types";
-
-const reactSelectStyle = {
-  container: (style: CSSObjectWithLabel) => ({
-    ...style,
-    height: "2.5rem",
-  }),
-  control: (provided: any, state: any) => ({
-    ...provided,
-    minHeight: "2.5rem",
-    borderColor: state.isFocused ? "#3b82f6" : "#cbd5e1",
-    "&:hover": {
-      borderColor: state.isFocused ? "#3b82f6" : "#94a3b8",
-    },
-  }),
-};
+// ✅ Updated ProductData interface to match the new schema
+interface ProductData {
+  id: string;
+  product_id: string;
+  supplier_id: string;
+  serial_number: string;
+  lot_series: string;
+  guide_number: string;
+  inventory_quantity: string;
+  package_quantity: string;
+  weight_kg: string;
+  volume_m3: string;
+  quantity_pallets: string;
+  presentation: string;
+  product_description: string;
+  insured_value: string;
+  technical_specification: string;
+  manufacturing_date: Date;
+  expiration_date: Date;
+  temperature_range: string;
+  humidity: string;
+  health_registration: string;
+  product_code?: string; // Added optional product_code field
+}
 
 interface ProductEntryCardProps {
   product: ProductData;
   index: number;
-  products: any[];
-  temperatureRanges: any[];
+  products: Array<{ option: string; value: string; label: string; product_code?: string }>;
+  suppliers: Array<{ option: string; value: string; label: string }>;
+  temperatureRanges: Array<{ option: string; value: string; label: string }>;
   shouldDisableFields: boolean;
   onUpdate: (updatedProduct: Partial<ProductData>) => void;
   onRemove: () => void;
 }
 
+const presentationOptions = [
+  { option: "CAJA", value: "CAJA", label: "Caja" },
+  { option: "PALETA", value: "PALETA", label: "Paleta" },
+  { option: "SACO", value: "SACO", label: "Saco" },
+  { option: "UNIDAD", value: "UNIDAD", label: "Unidad" },
+  { option: "PAQUETE", value: "PAQUETE", label: "Paquete" },
+  { option: "TAMBOS", value: "TAMBOS", label: "Tambos" },
+  { option: "BULTO", value: "BULTO", label: "Bulto" },
+  { option: "OTRO", value: "OTRO", label: "Otro" },
+];
+
+const temperatureOptions = [
+  { option: "RANGE_15_30", value: "RANGE_15_30", label: "15°C - 30°C" },
+  { option: "RANGE_15_25", value: "RANGE_15_25", label: "15°C - 25°C" },
+  { option: "RANGE_2_8", value: "RANGE_2_8", label: "2°C - 8°C" },
+  { option: "AMBIENTE", value: "AMBIENTE", label: "Ambiente" },
+];
+
 const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
   product,
   index,
   products,
-  temperatureRanges,
+  suppliers,
   shouldDisableFields,
   onUpdate,
   onRemove,
 }) => {
-  const { t } = useTranslation(['process', 'common']);
+  const { t } = useTranslation(["process", "common"]);
 
-  // Get selected product details
-  const selectedProduct = useMemo(() => {
-    return products.find(p => p.value === product.product_id);
-  }, [products, product.product_id]);
-
-  // Get selected product's temperature range
-  const productTemperatureRange = useMemo(() => {
-    if (selectedProduct?.temperature_range) {
-      return temperatureRanges.find(tr => 
-        tr.value === selectedProduct.temperature_range.range_id ||
-        tr.label === selectedProduct.temperature_range.range
-      );
-    }
-    return null;
-  }, [selectedProduct, temperatureRanges]);
-
-  const handleSelectChange = (field: string, selectedOption: any) => {
-    onUpdate({ [field]: selectedOption?.value || "" });
+  const handleChange = (field: keyof ProductData, value: any) => {
+    onUpdate({ [field]: value });
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    onUpdate({ [name]: value });
-  };
-
-  const handleDateChange = (field: string, date: Date | null) => {
-    if (date) {
-      onUpdate({ [field]: date });
+  const handleSelectChange = (field: keyof ProductData, selectedOption: any) => {
+    if (field === 'product_id') {
+      // ✅ When product changes, also update product_description and product_code
+      const selectedProduct = products.find(p => p.value === selectedOption?.value);
+      console.log("Selected product for code lookup:", selectedProduct); // Debug log
+      
+      onUpdate({ 
+        [field]: selectedOption?.value || "",
+        product_description: selectedProduct?.label || "",
+        product_code: selectedProduct?.product_code || "" // ✅ Auto-populate product code
+      });
+    } else {
+      onUpdate({ [field]: selectedOption?.value || "" });
     }
   };
+
+  // Find current selections for selects
+  const currentProduct = products.find(p => p.value === product.product_id) || null;
+  const currentSupplier = suppliers.find(s => s.value === product.supplier_id) || null;
+  const currentPresentation = presentationOptions.find(p => p.value === product.presentation) || null;
+  const currentTemperature = temperatureOptions.find(t => t.value === product.temperature_range) || null;
 
   return (
-    <div className="border border-gray-300 rounded-lg p-4 mb-4 bg-gray-50">
-      {/* Product Header */}
+    <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
+      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <Text weight="font-semibold" additionalClass="text-gray-800">
-          {t('process:product')} #{index + 1}
-          {selectedProduct && (
-            <span className="ml-2 text-sm font-normal text-blue-600">
-              ({selectedProduct.label})
-            </span>
-          )}
+          {t("process:product")} {index + 1}
         </Text>
         <Button
           type="button"
           onClick={onRemove}
-          additionalClass="px-3 py-1 text-xs"
+          additionalClass="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm"
         >
-          {t('process:remove')}
+          {t("common:remove")}
         </Button>
       </div>
 
-      {/* Product Selection Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
-        {/* Product Selection */}
+      {/* ✅ Product Selection and Code Row - 3 columns */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div className="flex flex-col">
-          <label htmlFor={`product_${product.id}`}>
-            {t('process:product')} *
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:product")} *
           </label>
           <Select
             options={products}
-            styles={reactSelectStyle}
-            inputId={`product_${product.id}`}
-            value={products.find(p => p.value === product.product_id) || null}
-            onChange={(selectedOption) => {
-              handleSelectChange("product_id", selectedOption);
-              // Auto-fill product description if available
-              if (selectedOption?.product_code) {
-                onUpdate({ 
-                  product_description: `${selectedOption.label} (${selectedOption.product_code})` 
-                });
-              }
-            }}
-            placeholder={t('process:select_product')}
+            value={currentProduct}
+            onChange={(selectedOption) => handleSelectChange('product_id', selectedOption)}
+            placeholder={t("process:select_product")}
             isDisabled={shouldDisableFields}
           />
         </div>
 
-        {/* Product Code (Display only) */}
         <div className="flex flex-col">
-          <label htmlFor={`product_code_${product.id}`}>
-            {t('process:product_code')}
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Product Code
           </label>
           <input
             type="text"
-            id={`product_code_${product.id}`}
-            value={selectedProduct?.product_code || ""}
+            id={`product_code_${index}`}
+            name="product_code"
+            value={product.product_code || ""}
             readOnly
-            className="h-10 border border-slate-400 rounded-md px-4 bg-gray-100 text-gray-600"
-            placeholder={t('process:auto_filled')}
+            className="h-10 border border-gray-300 rounded px-3 bg-gray-100 text-gray-600 cursor-not-allowed focus:outline-none"
+            placeholder="Auto-filled when product is selected"
           />
         </div>
 
-        {/* Temperature Range (Display only) */}
         <div className="flex flex-col">
-          <label htmlFor={`temp_range_${product.id}`}>
-            {t('process:temperature_range')}
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:supplier")} *
           </label>
-          <input
-            type="text"
-            id={`temp_range_${product.id}`}
-            value={productTemperatureRange ? 
-              `${productTemperatureRange.label} (${selectedProduct?.temperature_range?.min_celsius}°C - ${selectedProduct?.temperature_range?.max_celsius}°C)` : 
-              ""
-            }
-            readOnly
-            className="h-10 border border-slate-400 rounded-md px-4 bg-gray-100 text-gray-600"
-            placeholder={t('process:auto_filled')}
+          <Select
+            options={suppliers}
+            value={currentSupplier}
+            onChange={(selectedOption) => handleSelectChange('supplier_id', selectedOption)}
+            placeholder={t("process:select_supplier")}
+            isDisabled={shouldDisableFields}
           />
         </div>
       </div>
 
-      <Divider />
-
-      {/* Quantity and Weight Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      {/* Serial and Lot Information */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div className="flex flex-col">
-          <label htmlFor={`quantity_packaging_${product.id}`}>
-            {t('process:quantity_packaging')} *
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:serial_number")} *
           </label>
           <input
-            type="number"
-            id={`quantity_packaging_${product.id}`}
-            name="quantity_packaging"
-            value={product.quantity_packaging}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-            min="0"
-            step="1"
+            type="text"
+            value={product.serial_number}
+            onChange={(e) => handleChange('serial_number', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder={t("process:enter_serial_number")}
           />
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor={`total_qty_${product.id}`}>
-            {t('process:total_quantity')} *
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:lot_series")} *
           </label>
           <input
-            type="number"
-            id={`total_qty_${product.id}`}
-            name="total_qty"
-            value={product.total_qty}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-            min="0"
-            step="1"
+            type="text"
+            value={product.lot_series}
+            onChange={(e) => handleChange('lot_series', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder={t("process:enter_lot_series")}
           />
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor={`total_weight_${product.id}`}>
-            {t('process:total_weight')} (kg) *
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:guide_number")} *
+          </label>
+          <input
+            type="text"
+            value={product.guide_number}
+            onChange={(e) => handleChange('guide_number', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder={t("process:enter_guide_number")}
+          />
+        </div>
+      </div>
+
+      {/* Quantities */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:inventory_quantity")} *
           </label>
           <input
             type="number"
-            id={`total_weight_${product.id}`}
-            name="total_weight"
-            value={product.total_weight}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-            min="0"
+            value={product.inventory_quantity}
+            onChange={(e) => handleChange('inventory_quantity', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder="0"
+            min="1"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:package_quantity")} *
+          </label>
+          <input
+            type="number"
+            value={product.package_quantity}
+            onChange={(e) => handleChange('package_quantity', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder="0"
+            min="1"
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:weight_kg")} *
+          </label>
+          <input
+            type="number"
             step="0.01"
+            value={product.weight_kg}
+            onChange={(e) => handleChange('weight_kg', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder="0.00"
+            min="0"
           />
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor={`total_volume_${product.id}`}>
-            {t('process:total_volume')} (m³)
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:volume_m3")}
           </label>
           <input
             type="number"
-            id={`total_volume_${product.id}`}
-            name="total_volume"
-            value={product.total_volume}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-            min="0"
             step="0.001"
+            value={product.volume_m3}
+            onChange={(e) => handleChange('volume_m3', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder="0.000"
+            min="0"
           />
         </div>
       </div>
 
-      <Divider />
-
-      {/* Palettes Row */}
-      <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-4">
+      {/* Presentation and Temperature */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div className="flex flex-col">
-          <label htmlFor={`palettes_${product.id}`}>
-            {t('process:palettes')}
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:presentation")} *
+          </label>
+          <Select
+            options={presentationOptions}
+            value={currentPresentation}
+            onChange={(selectedOption) => handleSelectChange('presentation', selectedOption)}
+            placeholder={t("process:select_presentation")}
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:temperature_range")} *
+          </label>
+          <Select
+            options={temperatureOptions}
+            value={currentTemperature}
+            onChange={(selectedOption) => handleSelectChange('temperature_range', selectedOption)}
+            placeholder={t("process:select_temperature")}
+          />
+        </div>
+
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:quantity_pallets")}
           </label>
           <input
             type="number"
-            id={`palettes_${product.id}`}
-            name="palettes"
-            value={product.palettes}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            value={product.quantity_pallets}
+            onChange={(e) => handleChange('quantity_pallets', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder="0"
             min="0"
-            step="1"
           />
         </div>
       </div>
 
-      <Divider />
-
-      {/* Dates Row */}
+      {/* Dates */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div className="flex flex-col">
-          <label htmlFor={`mfd_date_${product.id}`}>
-            {t('process:manufacturing_date')} *
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:manufacturing_date")} *
           </label>
           <DatePicker
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id={`mfd_date_${product.id}`}
-            selected={product.mfd_date_time}
-            onChange={(date) => handleDateChange("mfd_date_time", date)}
-            showYearDropdown
-            scrollableYearDropdown
-            yearDropdownItemNumber={10}
+            selected={product.manufacturing_date}
+            onChange={(date) => handleChange('manufacturing_date', date)}
+            className="h-10 border border-gray-300 rounded px-3 w-full"
             dateFormat="MM/dd/yyyy"
             maxDate={new Date()}
           />
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor={`expiration_date_${product.id}`}>
-            {t('process:expiration_date')} *
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:expiration_date")} *
           </label>
           <DatePicker
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id={`expiration_date_${product.id}`}
             selected={product.expiration_date}
-            onChange={(date) => handleDateChange("expiration_date", date)}
-            showYearDropdown
-            scrollableYearDropdown
-            yearDropdownItemNumber={20}
+            onChange={(date) => handleChange('expiration_date', date)}
+            className="h-10 border border-gray-300 rounded px-3 w-full"
             dateFormat="MM/dd/yyyy"
             minDate={new Date()}
           />
         </div>
       </div>
 
-      <Divider />
-
-      {/* Additional Information Row */}
+      {/* Additional Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div className="flex flex-col">
-          <label htmlFor={`presentation_${product.id}`}>
-            {t('process:presentation')}
-          </label>
-          <input
-            type="text"
-            id={`presentation_${product.id}`}
-            name="presentation"
-            value={product.presentation}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-            placeholder={t('process:enter_presentation')}
-          />
-        </div>
-
-        <div className="flex flex-col">
-          <label htmlFor={`insured_value_${product.id}`}>
-            <span>$</span> {t('process:insured_value')}
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:insured_value")}
           </label>
           <input
             type="number"
-            id={`insured_value_${product.id}`}
-            name="insured_value"
-            value={product.insured_value}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-            min="0"
             step="0.01"
-          />
-        </div>
-      </div>
-
-      {/* Description and Technical Specification Row */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <label htmlFor={`product_description_${product.id}`}>
-            {t('process:product_description')}
-          </label>
-          <textarea
-            id={`product_description_${product.id}`}
-            name="product_description"
-            value={product.product_description}
-            onChange={handleInputChange}
-            rows={3}
-            className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500 resize-none"
-            placeholder={t('process:enter_product_description')}
+            value={product.insured_value}
+            onChange={(e) => handleChange('insured_value', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder="0.00"
+            min="0"
           />
         </div>
 
         <div className="flex flex-col">
-          <label htmlFor={`technical_specification_${product.id}`}>
-            {t('process:technical_specification')}
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:humidity")}
           </label>
-          <textarea
-            id={`technical_specification_${product.id}`}
-            name="technical_specification"
-            value={product.technical_specification}
-            onChange={handleInputChange}
-            rows={3}
-            className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500 resize-none"
-            placeholder={t('process:enter_technical_specification')}
+          <input
+            type="text"
+            value={product.humidity}
+            onChange={(e) => handleChange('humidity', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder={t("process:enter_humidity")}
           />
         </div>
       </div>
 
-      {/* Product Summary */}
-      {product.product_id && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
-          <Text size="sm" additionalClass="text-blue-800">
-            <strong>{t('process:summary')}:</strong>{" "}
-            {selectedProduct?.label} - {product.quantity_packaging} packages - 
-            {product.total_weight}kg
-            {product.palettes && ` - ${product.palettes} palettes`}
-          </Text>
-        </div>
-      )}
+      {/* Health Registration */}
+      <div className="flex flex-col">
+        <label className="text-sm font-medium text-gray-700 mb-1">
+          {t("process:health_registration")}
+        </label>
+        <input
+          type="text"
+          value={product.health_registration}
+          onChange={(e) => handleChange('health_registration', e.target.value)}
+          className="h-10 border border-gray-300 rounded px-3"
+          placeholder={t("process:enter_health_registration")}
+        />
+      </div>
     </div>
   );
 };

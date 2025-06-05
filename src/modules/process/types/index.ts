@@ -46,6 +46,57 @@ export interface EntryFormData {
   products: ProductData[];
 }
 
+// ✅ NEW: Entry Form Fields interface
+export interface EntryFormFields {
+  origins: any[];
+  documentTypes: any[];
+  users: any[];
+  suppliers: any[];
+  products: any[];
+  warehouses: any[];
+  temperatureRanges: any[];
+  originTypes: { value: string; label: string }[];
+  documentTypeOptions: { value: string; label: string }[];
+  orderStatusOptions: { value: string; label: string }[];
+  presentationOptions: { value: string; label: string }[];
+  temperatureRangeOptions: { value: string; label: string }[];
+}
+
+// ✅ UPDATED: Entry Order Review interface with warehouse_id
+export interface EntryOrderReview {
+  review_status: "APPROVED" | "REJECTED" | "NEEDS_REVISION";
+  review_comments: string;
+  reviewed_by?: string;
+  reviewed_at?: Date;
+  warehouse_id?: string; // Add this property for warehouse assignment
+}
+
+// ✅ NEW: Submit Status interface
+export interface SubmitStatus {
+  success?: boolean;
+  message?: string;
+}
+
+// ✅ UPDATED: Process Loader Types - Add missing loader types
+export type ProcessLoaderTypes = 
+  | "processes/fetch-entry-orders"
+  | "processes/fetch-pending-orders"
+  | "processes/fetch-approved-orders"
+  | "processes/update-entry-order"
+  | "processes/fetch-entry-order"
+  | "processes/create-entry-order"
+  | "processes/review-entry-order"
+  | "processes/load-form-fields"
+  | "processes/fetch-warehouses"
+  | "processes/fetch-warehouse-cells"
+  | "processes/allocate-inventory"
+  | "processes/load-products-inventory"
+  | "processes/load-cells"
+  | "processes/validate-cell"
+  | "processes/submit-departure"
+  | "processes/fetch-departure-orders"
+  | "processes/load-departure-form-fields";
+
 // Legacy single-product fields (kept for backward compatibility if needed)
 export interface LegacyEntryFormData {
   origin: ReactSelectValue;
@@ -119,6 +170,15 @@ export interface DepartureFormData {
   packaging_list: string;
 }
 
+// ✅ NEW: Departure Form Fields interface
+export interface DepartureFormFields {
+  customers: any[];
+  documentTypes: any[];
+  users: any[];
+  packagingTypes: any[];
+  labels: any[];
+}
+
 // Store interfaces for multi-product support
 export interface Product {
   value: string;
@@ -156,6 +216,53 @@ export interface DocumentType {
   name: string;
 }
 
+// ✅ NEW: Inventory Selection interface
+export interface InventorySelection {
+  inventory_id: string;
+  selected_quantity: number;
+  cell_id?: string;
+  observations?: string;
+}
+
+// ✅ NEW: Product with Inventory interface
+export interface ProductWithInventory {
+  product_id: string;
+  product_code: string;
+  name: string;
+  inventory: any[];
+}
+
+// ✅ NEW: Available Cell interface
+export interface AvailableCell {
+  id: string;
+  row: string;
+  bay: number;
+  position: number;
+  status: string;
+  capacity?: number;
+  currentUsage?: number;
+}
+
+// ✅ NEW: Cell Validation interface
+export interface CellValidation {
+  isValid: boolean;
+  message: string;
+  capacity?: number;
+  currentUsage?: number;
+  availableSpace?: number;
+}
+
+// ✅ UPDATED: Product Audit interface (keeping for compatibility but renaming)
+export interface ProductAudit {
+  entry_order_product_id: string;
+  audit_result: "PENDING" | "PASSED" | "FAILED";
+  packaging_type: string;
+  packaging_status: string;
+  comments: string;
+  discrepancy_notes: string;
+  product_comments: string;
+}
+
 // Updated Entry Order interfaces for new flow
 export interface EntryOrder {
   entry_order_id: string;
@@ -164,9 +271,10 @@ export interface EntryOrder {
   document_date: Date;
   entry_date_time: Date;
   order_status: "REVISION" | "PRESENTACION" | "FINALIZACION";
-  review_status: "PENDING" | "APPROVED" | "REJECTED";
+  review_status: "PENDING" | "APPROVED" | "REJECTED" | "NEEDS_REVISION";
   review_comments?: string;
   reviewed_at?: Date;
+  reviewed_by?: string;
   total_volume?: number;
   total_weight?: number;
   cif_value?: number;
@@ -289,4 +397,22 @@ export interface InventoryAllocation {
     capacity?: number;
     currentUsage?: number;
   };
-};
+}
+
+// ✅ NEW: Audit Result type (keeping for compatibility)
+export type AuditResult = "PENDING" | "PASSED" | "FAILED";
+
+// ✅ NEW: Packaging Code utility function (keeping for compatibility)
+export function getPackagingCode(packagingType: string): string {
+  const codes: { [key: string]: string } = {
+    "CAJA": "CJ",
+    "PALETA": "PL",
+    "SACO": "SC",
+    "UNIDAD": "UN",
+    "PAQUETE": "PQ",
+    "TAMBOS": "TB",
+    "BULTO": "BL",
+    "OTRO": "OT",
+  };
+  return codes[packagingType] || "OT";
+}

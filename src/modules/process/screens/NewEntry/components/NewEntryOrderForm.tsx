@@ -20,23 +20,31 @@ const reactSelectStyle = {
   }),
 };
 
-interface ProductData {
+// ✅ Updated ProductData interface to include product_code
+export interface ProductData {
   id: string;
   product_id: string;
-  quantity_packaging: string;
-  total_qty: string;
-  total_weight: string;
-  total_volume: string;
-  palettes: string;
+  product_code: string; // ✅ Added product_code field
+  supplier_id: string;
+  serial_number: string;
+  lot_series: string;
+  guide_number: string;
+
+  // Updated field names to match new backend schema
+  inventory_quantity: string;
+  package_quantity: string;
+  weight_kg: string;
+  volume_m3: string;
+  quantity_pallets: string;
   presentation: string;
   product_description: string;
   insured_value: string;
   technical_specification: string;
+  manufacturing_date: Date;
   expiration_date: Date;
-  mfd_date_time: Date;
-  packaging_type: string;
-  packaging_status: string;
-  packaging_code: string;
+  temperature_range: string;
+  humidity: string;
+  health_registration: string;
 }
 
 interface EntryFormData {
@@ -63,22 +71,44 @@ interface EntryFormData {
   products: ProductData[];
 }
 
-const NewEntryOrderForm: React.FC = () => {
+interface NewEntryOrderFormProps {
+  submitButtonText?: string;
+}
+
+const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
+  submitButtonText = "Create Entry Order",
+}) => {
   const { t } = useTranslation(["process", "common"]);
   const navigate = useNavigate();
 
   const {
-    documentTypes,
-    origins,
-    users,
-    products,
-    suppliers,
+    entryFormFields: {
+      documentTypes,
+      origins,
+      users,
+      products,
+      suppliers,
+      temperatureRanges,
+      orderStatusOptions: entryOrderStatus,
+      presentationOptions,
+    },
     currentEntryOrderNo,
-    entryOrderStatus,
-    temperatureRanges,
   } = ProcessesStore();
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const dropdownOptions = useMemo(() => {
+    return {
+      origins: origins || [],
+      documentTypes: documentTypes || [],
+      users: users || [],
+      products: products || [],
+      suppliers: suppliers || [],
+      temperatureRanges: temperatureRanges || [],
+      orderStatus: entryOrderStatus || [],
+      presentationOptions: presentationOptions || [],
+    };
+  }, [origins, documentTypes, users, products, suppliers, temperatureRanges, entryOrderStatus, presentationOptions]);
+
+  const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     success?: boolean;
     message?: string;
@@ -86,7 +116,7 @@ const NewEntryOrderForm: React.FC = () => {
 
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "", label: "" },
-    entry_order_no: currentEntryOrderNo || "",
+    entry_order_no: "",
     document_type_id: { option: "", value: "", label: "" },
     registration_date: new Date(),
     document_date: new Date(),
@@ -96,7 +126,7 @@ const NewEntryOrderForm: React.FC = () => {
     personnel_incharge_id: { option: "", value: "", label: "" },
     document_status: {
       option: "Registered",
-      value: "REGISTERED",
+      value: "REGISTERED", 
       label: "REGISTERED",
     },
     order_status: { option: "", value: "", label: "" },
@@ -111,23 +141,34 @@ const NewEntryOrderForm: React.FC = () => {
 
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
 
+  // ✅ Load initial data and entry order number
   useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      entry_order_no: currentEntryOrderNo || "",
-    }));
-  }, [currentEntryOrderNo]);
+    ProcessService.getCurrentEntryOrderNo();
+  }, []);
+
+  // ✅ Update entry order number when it's loaded from store
+  useEffect(() => {
+    if (currentEntryOrderNo && currentEntryOrderNo !== formData.entry_order_no) {
+      setFormData(prev => ({
+        ...prev,
+        entry_order_no: currentEntryOrderNo
+      }));
+    }
+  }, [currentEntryOrderNo, formData.entry_order_no]);
 
   const isReturnOrigin = useMemo(() => {
     return (
-      formData.origin?.label === "Return" || formData.origin?.label === "RETURN"
+      formData.origin?.label === "Devolución" ||
+      formData.origin?.label === "Return" ||
+      formData.origin?.label === "RETURN"
     );
   }, [formData.origin]);
 
   const isReconditionedOrigin = useMemo(() => {
     return (
+      formData.origin?.label === "Acondicionado" ||
       formData.origin?.label === "Reconditioned" ||
-      formData.origin?.label === "Reconditioned"
+      formData.origin?.label === "RECONDITIONED"
     );
   }, [formData.origin]);
 
@@ -135,25 +176,30 @@ const NewEntryOrderForm: React.FC = () => {
     return isReturnOrigin || isReconditionedOrigin;
   }, [isReturnOrigin, isReconditionedOrigin]);
 
-  // Add new product
+  // ✅ Add product with product_code field
   const addProduct = () => {
     const newProduct: ProductData = {
       id: Date.now().toString(),
       product_id: "",
-      quantity_packaging: "",
-      total_qty: "",
-      total_weight: "",
-      total_volume: "",
-      palettes: "",
-      presentation: "",
+      product_code: "", 
+      supplier_id: "",
+      serial_number: "",
+      lot_series: "",
+      guide_number: "",
+      inventory_quantity: "",
+      package_quantity: "",
+      weight_kg: "",
+      volume_m3: "",
+      quantity_pallets: "",
+      presentation: "CAJA",
       product_description: "",
       insured_value: "",
       technical_specification: "",
+      manufacturing_date: new Date(),
       expiration_date: new Date(),
-      mfd_date_time: new Date(),
-      packaging_type: "",
-      packaging_status: "",
-      packaging_code: "",
+      temperature_range: "AMBIENTE",
+      humidity: "",
+      health_registration: "",
     };
 
     setFormData((prev) => ({
@@ -170,16 +216,54 @@ const NewEntryOrderForm: React.FC = () => {
     }));
   };
 
-  // Update product
+  // ✅ Fixed updateProduct to properly handle product_code auto-population
   const updateProduct = (
     productId: string,
     updatedProduct: Partial<ProductData>
   ) => {
     setFormData((prev) => ({
       ...prev,
-      products: prev.products.map((p) =>
-        p.id === productId ? { ...p, ...updatedProduct } : p
-      ),
+      products: prev.products.map((p) => {
+        if (p.id === productId) {
+          const updated = { ...p, ...updatedProduct };
+          
+          // ✅ Auto-populate product_code when product_id changes
+          if (updatedProduct.product_id && updatedProduct.product_id !== p.product_id) {
+            console.log("Looking for product with ID:", updatedProduct.product_id);
+            console.log("Available products:", dropdownOptions.products);
+            
+            // ✅ Check multiple possible property names for product selection
+            const selectedProduct = dropdownOptions.products.find(
+              (product: any) => {
+                return (
+                  product.value === updatedProduct.product_id || 
+                  product.product_id === updatedProduct.product_id ||
+                  product.id === updatedProduct.product_id
+                );
+              }
+            );
+            
+            console.log("Found selected product:", selectedProduct);
+            
+            if (selectedProduct) {
+              // ✅ Check multiple possible property names for product_code
+              const productCode = selectedProduct.product_code || 
+                                 selectedProduct.code || 
+                                 selectedProduct.productCode || 
+                                 "";
+              
+              console.log("Setting product_code to:", productCode);
+              updated.product_code = productCode;
+            } else {
+              console.log("No product found, clearing product_code");
+              updated.product_code = "";
+            }
+          }
+          
+          return updated;
+        }
+        return p;
+      }),
     }));
   };
 
@@ -214,7 +298,8 @@ const NewEntryOrderForm: React.FC = () => {
     }));
   };
 
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Form submission logic
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (formData.products.length === 0) {
@@ -225,7 +310,68 @@ const NewEntryOrderForm: React.FC = () => {
       return;
     }
 
-    setIsSubmitting(true);
+    // Validate required fields for new backend schema
+    for (let i = 0; i < formData.products.length; i++) {
+      const product = formData.products[i];
+      if (!product.product_id) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Please select a product`,
+        });
+        return;
+      }
+      if (!product.supplier_id) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Please select a supplier`,
+        });
+        return;
+      }
+      if (!product.serial_number) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Serial number is required`,
+        });
+        return;
+      }
+      if (!product.lot_series) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Lot series is required`,
+        });
+        return;
+      }
+      if (!product.guide_number) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Guide number is required`,
+        });
+        return;
+      }
+      if (!product.inventory_quantity || parseInt(product.inventory_quantity) <= 0) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Inventory quantity must be greater than 0`,
+        });
+        return;
+      }
+      if (!product.package_quantity || parseInt(product.package_quantity) <= 0) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Package quantity must be greater than 0`,
+        });
+        return;
+      }
+      if (!product.weight_kg || parseFloat(product.weight_kg) <= 0) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Weight must be greater than 0`,
+        });
+        return;
+      }
+    }
+
+    setLoading(true);
     setSubmitStatus({});
 
     try {
@@ -245,71 +391,73 @@ const NewEntryOrderForm: React.FC = () => {
         certificateUrl = urlData.publicUrl;
       }
 
+      // Updated payload to match new backend schema
       const submissionData = {
         // Entry order level data
-        order_type: "ENTRY",
-        document_status: formData.document_status?.value || "REGISTERED",
+        entry_order_no: formData.entry_order_no,
         origin_id: formData.origin?.value || "",
         document_type_id: formData.document_type_id?.value || "",
-        personnel_incharge_id: formData.personnel_incharge_id?.value || "",
-        supplier_id: formData.supplier?.value || "",
-        status_id: formData.order_status?.value || "",
-        entry_order_no: formData.entry_order_no,
         registration_date: formData.registration_date,
         document_date: formData.document_date,
-        admission_date_time: formData.admission_date_time,
-        entry_date: formData.entry_date,
-        entry_transfer_note: formData.entry_transfer_note,
+        entry_date_time: formData.admission_date_time,
+        created_by: localStorage.getItem("id"),
+        organisation_id: localStorage.getItem("organisation_id"),
+        order_status: formData.order_status?.value || "REVISION",
+        total_volume: formData.products.reduce((sum, p) => sum + parseFloat(p.volume_m3 || "0"), 0),
+        total_weight: formData.products.reduce((sum, p) => sum + parseFloat(p.weight_kg || "0"), 0),
+        cif_value: parseFloat(formData.cif_value) || null,
+        total_pallets: formData.products.reduce((sum, p) => sum + parseInt(p.quantity_pallets || "0"), 0),
         observation: formData.observation,
-        cif_value: formData.cif_value,
-        certificate_protocol_analysis: certificateUrl,
-        lot_series: formData.lot_series,
-        type: formData.type,
+        uploaded_documents: certificateUrl || null,
 
-        // Products array
+        // ✅ Products array with product_code included
         products: formData.products.map((product) => ({
+          serial_number: product.serial_number,
+          supplier_id: product.supplier_id,
+          product_code: product.product_code, // ✅ Include product_code in submission
           product_id: product.product_id,
-          quantity_packaging: parseInt(product.quantity_packaging) || 0,
-          total_qty: parseInt(product.total_qty) || 0,
-          total_weight: parseFloat(product.total_weight) || 0,
-          total_volume: parseFloat(product.total_volume) || 0,
-          palettes: parseInt(product.palettes) || 0,
-          presentation: product.presentation,
-          product_description: product.product_description,
-          insured_value: parseFloat(product.insured_value) || 0,
-          technical_specification: product.technical_specification,
+          lot_series: product.lot_series,
+          manufacturing_date: product.manufacturing_date,
           expiration_date: product.expiration_date,
-          mfd_date_time: product.mfd_date_time,
-          packaging_type: product.packaging_type,
-          packaging_status: product.packaging_status,
-          packaging_code: product.packaging_code,
+          inventory_quantity: parseInt(product.inventory_quantity),
+          package_quantity: parseInt(product.package_quantity),
+          quantity_pallets: parseInt(product.quantity_pallets) || null,
+          presentation: product.presentation || "CAJA",
+          guide_number: product.guide_number,
+          weight_kg: parseFloat(product.weight_kg),
+          volume_m3: parseFloat(product.volume_m3) || null,
+          insured_value: parseFloat(product.insured_value) || null,
+          temperature_range: product.temperature_range || "AMBIENTE",
+          humidity: product.humidity,
+          health_registration: product.health_registration,
         })),
       };
 
+      // ✅ Always create new entry order
       await ProcessService.createNewEntryOrder(submissionData);
 
       setSubmitStatus({
         success: true,
-        message: "Entry order created successfully",
+        message: "Entry order created successfully and sent for admin review",
       });
 
       // Show success message briefly, then redirect
       setTimeout(() => {
-        navigate(-1); // Go back to the previous page
-      }, 1500); // Wait 1.5 seconds to show the success message
+        navigate("/processes/entry");
+      }, 1500);
     } catch (error) {
       console.error("Error creating entry order:", error);
       setSubmitStatus({
         success: false,
-        message: "Failed to create entry order. Please try again.",
+        message: error instanceof Error ? error.message : "Failed to create entry order. Please try again.",
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <form className="order_entry_form" onSubmit={onSubmit}>
+    <form className="order_entry_form" onSubmit={handleFormSubmit}>
       {/* Entry Order Header Information */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
         <Text
@@ -325,14 +473,16 @@ const NewEntryOrderForm: React.FC = () => {
           <div className="w-full flex flex-col">
             <label htmlFor="origin">{t("process:origin")} *</label>
             <Select
-              options={origins}
+              options={dropdownOptions.origins}
               styles={reactSelectStyle}
               inputId="origin"
               name="origin"
-              value={formData.origin}
+              value={formData.origin.value ? formData.origin : null}
               onChange={(selectedOption) =>
                 handleSelectChange("origin", selectedOption)
               }
+              placeholder="Select origin..."
+              isClearable
             />
           </div>
 
@@ -348,8 +498,8 @@ const NewEntryOrderForm: React.FC = () => {
               name="entry_order_no"
               value={formData.entry_order_no}
               onChange={handleEntryOrderNoChange}
-              readOnly
-              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-gray-100"
+              placeholder="Loading order number..."
             />
           </div>
 
@@ -357,14 +507,16 @@ const NewEntryOrderForm: React.FC = () => {
           <div className="w-full flex flex-col">
             <label htmlFor="document">{t("process:document")} *</label>
             <Select
-              options={documentTypes}
+              options={dropdownOptions.documentTypes}
               styles={reactSelectStyle}
               inputId="document_type_id"
               name="document_type_id"
-              value={formData.document_type_id}
+              value={formData.document_type_id.value ? formData.document_type_id : null}
               onChange={(selectedOption) =>
                 handleSelectChange("document_type_id", selectedOption)
               }
+              placeholder="Select document type..."
+              isClearable
             />
           </div>
         </div>
@@ -442,14 +594,16 @@ const NewEntryOrderForm: React.FC = () => {
               {t("process:personnel_in_charge")} *
             </label>
             <Select
-              options={users}
+              options={dropdownOptions.users}
               styles={reactSelectStyle}
               inputId="personnel_incharge_id"
               name="personnel_incharge_id"
-              value={formData.personnel_incharge_id}
+              value={formData.personnel_incharge_id.value ? formData.personnel_incharge_id : null}
               onChange={(selectedOption) =>
                 handleSelectChange("personnel_incharge_id", selectedOption)
               }
+              placeholder="Select personnel..."
+              isClearable
             />
           </div>
 
@@ -462,11 +616,11 @@ const NewEntryOrderForm: React.FC = () => {
               {t("process:supplier")} {!isReconditionedOrigin && "*"}
             </label>
             <Select
-              options={suppliers}
+              options={dropdownOptions.suppliers}
               styles={reactSelectStyle}
               inputId="supplier"
               name="supplier"
-              value={formData.supplier}
+              value={formData.supplier.value ? formData.supplier : null}
               onChange={(selectedOption) =>
                 handleSelectChange("supplier", selectedOption)
               }
@@ -474,6 +628,8 @@ const NewEntryOrderForm: React.FC = () => {
               className={
                 isReconditionedOrigin ? "react-select--is-disabled" : ""
               }
+              placeholder="Select supplier..."
+              isClearable
             />
             {isReconditionedOrigin && (
               <p className="text-xs text-amber-600 mt-1">
@@ -486,14 +642,20 @@ const NewEntryOrderForm: React.FC = () => {
           <div className="w-full flex flex-col">
             <label htmlFor="order_status">{t("process:order_status")} *</label>
             <Select
-              options={entryOrderStatus}
+              options={dropdownOptions.orderStatus.map((item: any) => ({
+                option: item.label,
+                value: item.value,
+                label: item.label,
+              }))}
               styles={reactSelectStyle}
               inputId="order_status"
               name="order_status"
-              value={formData.order_status}
+              value={formData.order_status.value ? formData.order_status : null}
               onChange={(selectedOption) =>
                 handleSelectChange("order_status", selectedOption)
               }
+              placeholder="Select status..."
+              isClearable
             />
           </div>
         </div>
@@ -587,8 +749,9 @@ const NewEntryOrderForm: React.FC = () => {
             key={product.id}
             product={product}
             index={index}
-            products={products}
-            temperatureRanges={temperatureRanges}
+            products={dropdownOptions.products}
+            suppliers={dropdownOptions.suppliers}
+            temperatureRanges={dropdownOptions.temperatureRanges}
             shouldDisableFields={shouldDisableFields}
             onUpdate={(updatedProduct) =>
               updateProduct(product.id, updatedProduct)
@@ -618,19 +781,19 @@ const NewEntryOrderForm: React.FC = () => {
           type="button"
           variant="cancel"
           onClick={() => navigate(-1)}
-          additionalClass="px-6 py-2"
-          disabled={isSubmitting}
-        >
-          {t("common:cancel")}
-        </Button>
-
-        <Button
-          disabled={formData.products.length === 0 || isSubmitting}
-          variant="action"
           additionalClass="w-40"
-          type="submit"
+          disabled={loading}
         >
-          {isSubmitting ? t("process:submitting") : t("process:register")}
+          Cancel
+        </Button>
+        
+        <Button
+          type="submit"
+          disabled={loading}
+          variant="action"
+          additionalClass="w-48"
+        >
+          {loading ? "Creating..." : submitButtonText}
         </Button>
       </div>
     </form>

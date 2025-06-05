@@ -19,6 +19,7 @@ export const AuthService = {
     localStorage.setItem("liu", JSON.stringify(response.data.data));
     localStorage.setItem("organisation_id", response.data.data.organisation_id);
     localStorage.setItem("id", response.data.data.id);
+    localStorage.setItem("role", response.data.data.role);
     return response.data;
   },
   logout: async () => {
@@ -26,5 +27,6 @@ export const AuthService = {
     localStorage.removeItem("liu");
     localStorage.removeItem("organisation_id");
     localStorage.removeItem("id");
+    localStorage.removeItem("role");
   },
 };
