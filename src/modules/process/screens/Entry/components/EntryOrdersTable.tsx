@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 
 interface DataTableProps<T extends object> {
   data: T[];
@@ -24,12 +25,16 @@ function DataTable<T extends object>({
   columns,
   showPagination = false,
   pageSize = 10,
-  emptyMessage = "No data found",
+  emptyMessage,
   className = "",
 }: DataTableProps<T>) {
+  const { t } = useTranslation(['process', 'common']);
   const tableRef = useRef<HTMLTableElement>(null);
   const [stickyOffsets, setStickyOffsets] = useState<number[]>([]);
   const navigate = useNavigate();
+
+  // Use translated empty message if none provided
+  const translatedEmptyMessage = emptyMessage || t('process:no_entry_orders');
 
   const table = useReactTable({
     data,
@@ -139,7 +144,7 @@ function DataTable<T extends object>({
                   colSpan={columns.length}
                   className="py-8 text-center text-gray-500"
                 >
-                  {emptyMessage}
+                  {translatedEmptyMessage}
                 </td>
               </tr>
             )}
@@ -150,7 +155,7 @@ function DataTable<T extends object>({
       {showPagination && data.length > 0 && (
         <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 w-full">
           <div className="text-sm text-gray-700">
-            Showing{" "}
+            {t('process:showing')}{" "}
             <span className="font-medium">
               {table.getState().pagination.pageIndex *
                 table.getState().pagination.pageSize +
@@ -164,7 +169,7 @@ function DataTable<T extends object>({
                 data.length
               )}
             </span>{" "}
-            of <span className="font-medium">{data.length}</span> results
+            {t('common:of')} <span className="font-medium">{data.length}</span> {t('process:results')}
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -172,14 +177,14 @@ function DataTable<T extends object>({
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
-              Previous
+              {t('common:previous')}
             </button>
             <button
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
-              Next
+              {t('common:next')}
             </button>
           </div>
         </div>

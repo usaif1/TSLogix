@@ -37,7 +37,8 @@ const EntryRecordsTable: React.FC = () => {
 
   const getReviewStatusText = useCallback((reviewStatus: string) => {
     const statusLower = reviewStatus?.toLowerCase();
-    return t(`process:${statusLower}`, statusLower);
+    // ✅ Add fallback for missing translations
+    return t(`process:${statusLower}`, statusLower || 'Unknown');
   }, [t]);
 
   // ✅ Helper function to get main supplier from products
@@ -49,11 +50,11 @@ const EntryRecordsTable: React.FC = () => {
     if (suppliers.length === 1) {
       return suppliers[0];
     } else if (suppliers.length > 1) {
-      return `Multiple (${suppliers.length})`;
+      return t('process:multiple_suppliers', `Multiple (${suppliers.length})`);
     } else {
       return "-";
     }
-  }, []);
+  }, [t]);
 
   // ✅ Helper function to get main presentation from products
   const getMainPresentation = useCallback((products: any[]) => {
@@ -64,18 +65,18 @@ const EntryRecordsTable: React.FC = () => {
     if (presentations.length === 1) {
       return presentations[0];
     } else if (presentations.length > 1) {
-      return `Mixed (${presentations.length})`;
+      return t('process:mixed_presentations', `Mixed (${presentations.length})`);
     } else {
       return "-";
     }
-  }, []);
+  }, [t]);
 
   const columns = useMemo<ColumnDef<EntryOrder, any>[]>(
     () => [
       {
         accessorKey: "entry_order_no",
         header: t('process:entry_order_no'),
-        cell: ({ getValue, row }) => (
+        cell: ({ getValue }) => (
           <button
             className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
             onClick={(e) => {
@@ -243,7 +244,7 @@ const EntryRecordsTable: React.FC = () => {
         header: t('process:reviewed_by'),
         cell: ({ getValue }) => {
           const value = getValue() as string;
-          return value || 'Not reviewed';
+          return value || t('process:not_reviewed', 'Not reviewed');
         },
       },
       {

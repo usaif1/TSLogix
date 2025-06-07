@@ -1,41 +1,45 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
 
-// Import translations - adjust the imports if needed based on your bundler
-import enCommon from './locales/en/common.json';
-import enWarehouse from './locales/en/warehouse.json';
-import enInventory from './locales/en/inventory.json';
-import enProcess from './locales/en/process.json';
-import esCommon from './locales/es/common.json';
-import esWarehouse from './locales/es/warehouse.json';
-import esInventory from './locales/es/inventory.json';
-import esProcess from './locales/es/process.json';
+// Import translation files
+import commonEn from './locales/en/common.json';
+import commonEs from './locales/es/common.json';
+import homeEn from './locales/en/home.json';
+import homeEs from './locales/es/home.json';
+import warehouseEn from './locales/en/warehouse.json';
+import warehouseEs from './locales/es/warehouse.json';
+import inventoryEn from './locales/en/inventory.json';
+import inventoryEs from './locales/es/inventory.json';
+import processEn from './locales/en/process.json';
+import processEs from './locales/es/process.json';
 
+const resources = {
+  en: {
+    common: commonEn,
+    home: homeEn,
+    warehouse: warehouseEn,
+    inventory: inventoryEn,
+    process: processEn,
+  },
+  es: {
+    common: commonEs,
+    home: homeEs,
+    warehouse: warehouseEs,
+    inventory: inventoryEs,
+    process: processEs,
+  },
+};
 
 i18n
-  .use(LanguageDetector)
   .use(initReactI18next)
   .init({
-    resources: {
-      en: {
-        common: enCommon,
-        warehouse: enWarehouse,
-        inventory: enInventory,
-        process: enProcess,
-      },
-      es: {
-        common: esCommon,
-        warehouse: esWarehouse,
-        inventory: esInventory,
-        process: esProcess,
-      }
-    },
-    fallbackLng: 'en',
+    resources,
+    lng: 'es', // ✅ Spanish as default
+    fallbackLng: 'es', // ✅ Spanish as fallback
     debug: process.env.NODE_ENV === 'development',
     
     // Have a common namespace used around the app
-    ns: ['common', 'warehouse', 'inventory'],
+    ns: ['common', 'home', 'warehouse', 'inventory', 'process'],
     defaultNS: 'common',
     
     interpolation: {

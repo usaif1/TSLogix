@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect, useCallback } from "react";
 import { Plus } from "@phosphor-icons/react";
 import debounce from "lodash.debounce";
+import { useTranslation } from "react-i18next";
 
 // components
 import { OrderBtnGroup } from "../../components";
@@ -14,17 +15,18 @@ import { ProcessService } from "@/globalService";
 import { ProcessesStore } from "@/globalStore";
 
 const Entry: React.FC = () => {
+  const { t } = useTranslation(["process", "common"]);
   const { loaders } = ProcessesStore();
 
   const buttonGroup = useMemo(
     () => [
       {
-        title: "Generate Order",
+        title: t("process:generate_order"),
         icon: Plus,
         route: "/processes/entry/new",
       },
     ],
-    []
+    [t]
   );
 
   // Debounced search function
@@ -42,14 +44,14 @@ const Entry: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        Entry Order
+        {t("process:entry_orders")}
       </Text>
       <Divider />
       <div className="w-1/2">
         <Searchbar
           searchButton={true}
           iconHidden={true}
-          placeholder="Enter Order Number"
+          placeholder={t("process:enter_order_number")}
           onSearch={handleSearch}
         />
       </div>
@@ -60,7 +62,7 @@ const Entry: React.FC = () => {
         {loaders["processes/fetch-entry-orders"] ? (
           <>
             <Divider height="md" />
-            <LoaderSync loaderText="Fetching Entry Orders. Please Wait" />
+            <LoaderSync loaderText={t("process:fetching_entry_orders")} />
           </>
         ) : (
           <EntryRecordsTable />

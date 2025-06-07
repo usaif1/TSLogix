@@ -54,5 +54,18 @@
   "created_at": "Creado en",
   "updated_at": "Actualizado en",
   "created_by": "Creado por",
-  "updated_by": "Actualizado por"
+  "updated_by": "Actualizado por",
+  "creating": "Creando...",
+  "updating": "Actualizando...",
+  "submitting": "Enviando...",
+  "processing": "Procesando...",
+  "please_wait": "Por favor espere",
+  "select": "Seleccionar",
+  "selected": "Seleccionado",
+  "available": "Disponible",
+  "not_available": "No disponible",
+  "enabled": "Habilitado",
+  "disabled": "Deshabilitado",
+  "active": "Activo",
+  "inactive": "Inactivo"
 }

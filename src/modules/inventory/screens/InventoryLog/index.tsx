@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { InventoryLogService } from "@/modules/inventory/api/inventory.service";
 import { useInventoryLogStore } from "@/modules/inventory/store/index";
 import Button from "@/components/Button";
@@ -9,6 +10,7 @@ import { CellContext, ColumnDef } from "@tanstack/react-table";
 import { useNavigate } from "react-router-dom";
 
 const InventoryLog: React.FC = () => {
+  const { t } = useTranslation(['inventory', 'common']);
   const { inventoryLogs, loaders } = useInventoryLogStore();
   const navigate = useNavigate();
 
@@ -22,16 +24,48 @@ const InventoryLog: React.FC = () => {
 
   const isLoading = loaders["inventoryLogs/fetch-logs"];
 
+  // ✅ Helper function to get movement type translation
+  const getMovementTypeText = (type: string) => {
+    switch (type) {
+      case "ENTRY":
+        return t('inventory:entry');
+      case "DEPARTURE":
+        return t('inventory:departure');
+      case "TRANSFER":
+        return t('inventory:transfer');
+      case "ADJUSTMENT":
+        return t('inventory:adjustment');
+      default:
+        return type || t('inventory:entry');
+    }
+  };
+
+  // ✅ Helper function to get product status translation
+  const getProductStatusText = (status: string) => {
+    switch (status) {
+      case "GOOD_CONDITION":
+        return t('inventory:good_condition');
+      case "DAMAGED":
+        return t('inventory:damaged');
+      case "EXPIRED":
+        return t('inventory:expired');
+      case "QUARANTINE":
+        return t('inventory:quarantine');
+      default:
+        return status || t('inventory:good_condition');
+    }
+  };
+
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
       {
-        header: "User",
+        header: t('inventory:user'),
         accessorFn: (row: any) =>
-          `${row.user?.first_name || "System"} ${row.user?.last_name || "User"}`,
+          `${row.user?.first_name || t('inventory:system')} ${row.user?.last_name || t('inventory:user')}`,
         id: "userName",
       },
       {
-        header: "Entry Order",
+        header: t('inventory:entry_order'),
         accessorFn: (row: any) => {
           // ✅ Updated to handle mapped data structure
           return row.entry_order?.entry_order_no || "-";
@@ -39,17 +73,17 @@ const InventoryLog: React.FC = () => {
         id: "entryOrderNo",
       },
       {
-        header: "Product",
+        header: t('inventory:product'),
         accessorFn: (row: any) => row.product?.name || "-",
         id: "productName",
       },
       {
-        header: "Product Code",
+        header: t('inventory:product_code'),
         accessorFn: (row: any) => row.product?.product_code || "-",
         id: "productCode",
       },
       {
-        header: "Inventory Quantity",
+        header: t('inventory:inventory_quantity'),
         accessorKey: "quantity_change",
         cell: (info: CellContext<any, any>) => {
           const change = info.getValue<number>();
@@ -64,7 +98,7 @@ const InventoryLog: React.FC = () => {
         },
       },
       {
-        header: "Package Quantity",
+        header: t('inventory:package_quantity'),
         accessorKey: "package_change",
         cell: (info: CellContext<any, any>) => {
           const change = info.getValue<number>();
@@ -79,7 +113,7 @@ const InventoryLog: React.FC = () => {
         },
       },
       {
-        header: "Weight (kg)",
+        header: t('inventory:weight_kg'),
         accessorKey: "weight_change",
         cell: (info: CellContext<any, any>) => {
           const change = info.getValue<number>();
@@ -94,7 +128,7 @@ const InventoryLog: React.FC = () => {
         },
       },
       {
-        header: "Volume (m³)",
+        header: t('inventory:volume_m3'),
         accessorKey: "volume_change",
         cell: (info: CellContext<any, any>) => {
           const change = info.getValue<number>();
@@ -109,7 +143,7 @@ const InventoryLog: React.FC = () => {
         },
       },
       {
-        header: "Cell Location",
+        header: t('inventory:cell_location'),
         accessorFn: (row: any) => {
           if (row.warehouseCell) {
             const cell = row.warehouseCell;
@@ -120,12 +154,12 @@ const InventoryLog: React.FC = () => {
         id: "cellLocation",
       },
       {
-        header: "Warehouse",
+        header: t('inventory:warehouse'),
         accessorFn: (row: any) => row.warehouse?.name || "-",
         id: "warehouseName",
       },
       {
-        header: "Product Status",
+        header: t('inventory:product_status'),
         accessorKey: "product_status",
         cell: (info: CellContext<any, any>) => {
           const status = info.getValue<string>();
@@ -135,11 +169,11 @@ const InventoryLog: React.FC = () => {
             status === "EXPIRED" ? "text-orange-600" :
             status === "QUARANTINE" ? "text-yellow-600" :
             "text-gray-600";
-          return <span className={color}>{status || "GOOD_CONDITION"}</span>;
+          return <span className={color}>{getProductStatusText(status || "GOOD_CONDITION")}</span>;
         },
       },
       {
-        header: "Status Code",
+        header: t('inventory:status_code'),
         accessorKey: "status_code",
         cell: (info: CellContext<any, any>) => {
           const code = info.getValue<number>();
@@ -147,7 +181,7 @@ const InventoryLog: React.FC = () => {
         },
       },
       { 
-        header: "Movement Type", 
+        header: t('inventory:movement_type'), 
         accessorKey: "movement_type",
         cell: (info: CellContext<any, any>) => {
           const type = info.getValue<string>();
@@ -157,11 +191,11 @@ const InventoryLog: React.FC = () => {
             type === "TRANSFER" ? "text-blue-600" :
             type === "ADJUSTMENT" ? "text-purple-600" :
             "text-gray-600";
-          return <span className={color}>{type || "ENTRY"}</span>;
+          return <span className={color}>{getMovementTypeText(type || "ENTRY")}</span>;
         }
       },
       {
-        header: "Date",
+        header: t('inventory:date'),
         accessorKey: "timestamp",
         cell: (info) => {
           const timestamp = info.getValue<string>();
@@ -169,7 +203,7 @@ const InventoryLog: React.FC = () => {
         },
       },
       {
-        header: "Notes",
+        header: t('inventory:notes'),
         accessorKey: "notes",
         cell: (info) => {
           const notes = info.getValue<string>();
@@ -181,7 +215,7 @@ const InventoryLog: React.FC = () => {
         },
       },
     ],
-    []
+    [t, getMovementTypeText, getProductStatusText]
   );
 
   const handleAssignProductClick = () => {
@@ -195,22 +229,24 @@ const InventoryLog: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Inventory Overview</h1>
+        <h1 className="text-2xl font-bold">{t('inventory:inventory_overview')}</h1>
         <div className="flex space-x-2">
           <Button onClick={handleViewSummaryClick}>
-            View Summary
+            {t('inventory:view_summary')}
           </Button>
           <Button onClick={handleAssignProductClick}>
-            + Assign Product
+            + {t('inventory:assign_product')}
           </Button>
         </div>
       </div>
 
       {/* ✅ Info Card */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <h3 className="text-lg font-medium text-blue-900 mb-2">Current Inventory Status</h3>
+        <h3 className="text-lg font-medium text-blue-900 mb-2">
+          {t('inventory:current_inventory_status')}
+        </h3>
         <p className="text-blue-700 text-sm">
-          Showing current inventory allocations and their status. This data represents products currently assigned to warehouse cells.
+          {t('inventory:inventory_status_description')}
         </p>
       </div>
       
@@ -225,12 +261,14 @@ const InventoryLog: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10" />
             </svg>
           </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No Inventory Data</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {t('inventory:no_inventory_data')}
+          </h3>
           <p className="text-gray-500 mb-4">
-            No products have been assigned to warehouse cells yet.
+            {t('inventory:no_products_assigned_yet')}
           </p>
           <Button onClick={handleAssignProductClick}>
-            Assign Your First Product
+            {t('inventory:assign_first_product')}
           </Button>
         </div>
       ) : (

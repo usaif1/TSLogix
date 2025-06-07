@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Select from "react-select";
 import { Text, LoaderSync, Divider, Button } from "@/components";
 import ProcessesStore from "@/modules/process/store";
@@ -62,6 +63,7 @@ const reactSelectStyle = {
 };
 
 const Review: React.FC = () => {
+  const { t } = useTranslation(['process', 'common']);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const rawOrderNo = searchParams.get("orderNo") || "";
@@ -284,18 +286,18 @@ const Review: React.FC = () => {
 
       const statusText =
         reviewMode === "approve"
-          ? "approved"
+          ? t('process:approved')
           : reviewMode === "reject"
-          ? "rejected"
-          : "marked for revision";
+          ? t('process:rejected')
+          : t('process:marked_for_revision');
 
-      console.log(`Entry order ${statusText} successfully!`);
+      console.log(`${t('process:entry_order')} ${statusText} ${t('common:successfully')}!`);
     } catch (err) {
-      console.error(`Failed to ${reviewMode} entry order:`, err);
+      console.error(`${t('process:failed_to')} ${reviewMode} ${t('process:entry_order')}:`, err);
     } finally {
       setIsSubmitting(false);
     }
-  }, [entry, reviewMode, reviewComments, orderNo]);
+  }, [entry, reviewMode, reviewComments, orderNo, t]);
 
   const openModal = useCallback((mode: "approve" | "reject" | "revision") => {
     setReviewMode(mode);
@@ -313,7 +315,7 @@ const Review: React.FC = () => {
     return (
       <div className="flex flex-col h-full">
         <Divider height="lg" />
-        <LoaderSync loaderText="Loading order details..." />
+        <LoaderSync loaderText={t('process:loading_order_details')} />
       </div>
     );
   }
@@ -322,22 +324,22 @@ const Review: React.FC = () => {
     return (
       <div className="flex flex-col h-full">
         <Text size="3xl" weight="font-bold">
-          Entry Order Review: {orderNo}
+          {t('process:entry_order_review')}: {orderNo}
         </Text>
         <Divider height="lg" />
         <div className="bg-red-50 border border-red-200 rounded-md p-6 text-center">
           <Text size="lg" additionalClass="text-red-600 mb-2">
-            Entry order not found
+            {t('process:entry_order_not_found')}
           </Text>
           <Text size="sm" additionalClass="text-red-500">
-            The requested entry order "{orderNo}" could not be found.
+            {t('process:entry_order_not_found_message', { orderNo })}
           </Text>
           <Button
             variant="cancel"
             onClick={() => navigate(-1)}
             additionalClass="mt-4"
           >
-            Back
+            {t('common:back')}
           </Button>
         </div>
       </div>
@@ -351,7 +353,7 @@ const Review: React.FC = () => {
         {/* Edit Header */}
         <div className="flex justify-between items-center">
           <Text size="3xl" weight="font-bold">
-            Edit Entry Order: {orderNo}
+            {t('process:edit_entry_order')}: {orderNo}
           </Text>
           <div className="flex space-x-2">
             <Button
@@ -359,7 +361,7 @@ const Review: React.FC = () => {
               onClick={() => setIsEditMode(false)}
               disabled={isUpdating}
             >
-              Cancel Edit
+              {t('process:cancel_edit')}
             </Button>
           </div>
         </div>
@@ -377,7 +379,7 @@ const Review: React.FC = () => {
             </Text>
             {submitStatus.success && (
               <Text size="xs" additionalClass="mt-1">
-                Returning to view mode...
+                {t('process:returning_to_view_mode')}
               </Text>
             )}
           </div>
@@ -387,7 +389,7 @@ const Review: React.FC = () => {
         {entry.review_comments && (
           <div className="bg-orange-50 border border-orange-200 rounded-md p-4 mb-4">
             <Text size="sm" weight="font-medium" additionalClass="text-orange-800 mb-2">
-              Admin Review Comments:
+              {t('process:admin_review_comments')}:
             </Text>
             <Text size="sm" additionalClass="text-orange-700">
               {entry.review_comments}
@@ -402,13 +404,13 @@ const Review: React.FC = () => {
             {/* Basic Information */}
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-                Basic Information
+                {t('process:basic_information')}
               </Text>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {/* Origin */}
                 <div className="flex flex-col">
-                  <label className="font-medium text-gray-700 mb-1">Origin *</label>
+                  <label className="font-medium text-gray-700 mb-1">{t('process:origin')} *</label>
                   <Select
                     options={entryFormFields.origins?.map((origin: any) => ({
                       value: origin.origin_id || origin.value,
@@ -420,14 +422,14 @@ const Review: React.FC = () => {
                       label: entryFormFields.origins?.find((o: any) => (o.origin_id || o.value) === editFormData.origin_id)?.name || entryFormFields.origins?.find((o: any) => (o.origin_id || o.value) === editFormData.origin_id)?.label
                     } : null}
                     onChange={(selected: any) => handleEditInputChange('origin_id', selected?.value || '')}
-                    placeholder="Select origin..."
+                    placeholder={t('process:select_origin')}
                     isClearable
                   />
                 </div>
 
                 {/* Document Type */}
                 <div className="flex flex-col">
-                  <label className="font-medium text-gray-700 mb-1">Document Type *</label>
+                  <label className="font-medium text-gray-700 mb-1">{t('process:document_type')} *</label>
                   <Select
                     options={entryFormFields.documentTypes?.map((dt: any) => ({
                       value: dt.document_type_id || dt.value,
@@ -439,7 +441,7 @@ const Review: React.FC = () => {
                       label: entryFormFields.documentTypes?.find((dt: any) => (dt.document_type_id || dt.value) === editFormData.document_type_id)?.name || entryFormFields.documentTypes?.find((dt: any) => (dt.document_type_id || dt.value) === editFormData.document_type_id)?.label
                     } : null}
                     onChange={(selected: any) => handleEditInputChange('document_type_id', selected?.value || '')}
-                    placeholder="Select document type..."
+                    placeholder={t('process:select_document_type')}
                     isClearable
                   />
                 </div>
@@ -448,7 +450,7 @@ const Review: React.FC = () => {
               {/* Dates */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="flex flex-col">
-                  <label className="font-medium text-gray-700 mb-1">Registration Date *</label>
+                  <label className="font-medium text-gray-700 mb-1">{t('process:registration_date')} *</label>
                   <input
                     type="date"
                     value={editFormData.registration_date}
@@ -459,7 +461,7 @@ const Review: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="font-medium text-gray-700 mb-1">Document Date *</label>
+                  <label className="font-medium text-gray-700 mb-1">{t('process:document_date')} *</label>
                   <input
                     type="date"
                     value={editFormData.document_date}
@@ -470,7 +472,7 @@ const Review: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="font-medium text-gray-700 mb-1">Entry Date & Time *</label>
+                  <label className="font-medium text-gray-700 mb-1">{t('process:entry_date_time')} *</label>
                   <input
                     type="datetime-local"
                     value={editFormData.entry_date_time}
@@ -484,7 +486,7 @@ const Review: React.FC = () => {
               {/* Order Details */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="flex flex-col">
-                  <label className="font-medium text-gray-700 mb-1">Order Status</label>
+                  <label className="font-medium text-gray-700 mb-1">{t('process:order_status')}</label>
                   <select
                     value={editFormData.order_status}
                     onChange={(e) => handleEditInputChange('order_status', e.target.value)}
@@ -496,16 +498,16 @@ const Review: React.FC = () => {
                       </option>
                     )) || (
                       <>
-                        <option value="PENDING">PENDING</option>
-                        <option value="IN_PROGRESS">IN_PROGRESS</option>
-                        <option value="COMPLETED">COMPLETED</option>
+                        <option value="PENDING">{t('process:pending')}</option>
+                        <option value="IN_PROGRESS">{t('process:in_progress')}</option>
+                        <option value="COMPLETED">{t('process:completed')}</option>
                       </>
                     )}
                   </select>
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="font-medium text-gray-700 mb-1">CIF Value</label>
+                  <label className="font-medium text-gray-700 mb-1">{t('process:cif_value')}</label>
                   <input
                     type="number"
                     step="0.01"
@@ -517,7 +519,7 @@ const Review: React.FC = () => {
                 </div>
 
                 <div className="flex flex-col">
-                  <label className="font-medium text-gray-700 mb-1">Total Pallets</label>
+                  <label className="font-medium text-gray-700 mb-1">{t('process:total_pallets')}</label>
                   <input
                     type="number"
                     value={editFormData.total_pallets}
@@ -530,13 +532,13 @@ const Review: React.FC = () => {
 
               {/* Observations */}
               <div className="flex flex-col">
-                <label className="font-medium text-gray-700 mb-1">Observations</label>
+                <label className="font-medium text-gray-700 mb-1">{t('process:observation')}</label>
                 <textarea
                   value={editFormData.observation}
                   onChange={(e) => handleEditInputChange('observation', e.target.value)}
                   rows={3}
                   className="border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-1 focus-visible:outline-primary-500"
-                  placeholder="Enter any observations..."
+                  placeholder={t('process:enter_observations')}
                 />
               </div>
             </div>
@@ -545,7 +547,7 @@ const Review: React.FC = () => {
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <div className="flex justify-between items-center mb-4">
                 <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
-                  Products ({editFormData.products.length})
+                  {t('process:products')} ({editFormData.products.length})
                 </Text>
                 <Button
                   type="button"
@@ -553,21 +555,21 @@ const Review: React.FC = () => {
                   onClick={addProduct}
                   additionalClass="px-4 py-2"
                 >
-                  Add Product
+                  {t('process:add_product')}
                 </Button>
               </div>
 
               {editFormData.products.map((product: any, index: number) => (
                 <div key={index} className="bg-white p-4 rounded-lg border border-gray-200 mb-4">
                   <div className="flex justify-between items-center mb-4">
-                    <Text weight="font-semibold">Product #{index + 1}</Text>
+                    <Text weight="font-semibold">{t('process:product')} #{index + 1}</Text>
                     {editFormData.products.length > 1 && (
                       <Button
                         type="button"
                         onClick={() => removeProduct(index)}
                         additionalClass="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm"
                       >
-                        Remove
+                        {t('common:remove')}
                       </Button>
                     )}
                   </div>
@@ -575,7 +577,7 @@ const Review: React.FC = () => {
                   {/* Product Basic Info */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Product *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:product')} *</label>
                       <Select
                         options={entryFormFields.products?.map((p: any) => ({
                           value: p.product_id || p.value,
@@ -593,13 +595,13 @@ const Review: React.FC = () => {
                             handleProductChange(index, 'product_code', selectedProduct.product_code || '');
                           }
                         }}
-                        placeholder="Select product..."
+                        placeholder={t('process:select_product')}
                         isClearable
                       />
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Supplier *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:supplier')} *</label>
                       <Select
                         options={entryFormFields.suppliers?.map((s: any) => ({
                           value: s.supplier_id || s.value,
@@ -611,13 +613,13 @@ const Review: React.FC = () => {
                           label: entryFormFields.suppliers?.find((s: any) => (s.supplier_id || s.value) === product.supplier_id)?.name || entryFormFields.suppliers?.find((s: any) => (s.supplier_id || s.value) === product.supplier_id)?.label
                         } : null}
                         onChange={(selected: any) => handleProductChange(index, 'supplier_id', selected?.value || '')}
-                        placeholder="Select supplier..."
+                        placeholder={t('process:select_supplier')}
                         isClearable
                       />
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Serial Number *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:serial_number')} *</label>
                       <input
                         type="text"
                         value={product.serial_number}
@@ -631,7 +633,7 @@ const Review: React.FC = () => {
                   {/* Product Details */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Lot Series *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:lot_series')} *</label>
                       <input
                         type="text"
                         value={product.lot_series}
@@ -642,7 +644,7 @@ const Review: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Guide Number *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:guide_number')} *</label>
                       <input
                         type="text"
                         value={product.guide_number}
@@ -653,7 +655,7 @@ const Review: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Inventory Qty *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:inventory_quantity')} *</label>
                       <input
                         type="number"
                         value={product.inventory_quantity}
@@ -665,7 +667,7 @@ const Review: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Package Qty *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:package_quantity')} *</label>
                       <input
                         type="number"
                         value={product.package_quantity}
@@ -680,7 +682,7 @@ const Review: React.FC = () => {
                   {/* Dates */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Manufacturing Date *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:manufacturing_date')} *</label>
                       <input
                         type="date"
                         value={product.manufacturing_date}
@@ -691,7 +693,7 @@ const Review: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Expiration Date *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:expiration_date')} *</label>
                       <input
                         type="date"
                         value={product.expiration_date}
@@ -705,7 +707,7 @@ const Review: React.FC = () => {
                   {/* Additional Fields */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Weight (kg) *</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:weight_kg')} *</label>
                       <input
                         type="number"
                         step="0.01"
@@ -718,7 +720,7 @@ const Review: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Presentation</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:presentation')}</label>
                       <select
                         value={product.presentation}
                         onChange={(e) => handleProductChange(index, 'presentation', e.target.value)}
@@ -730,21 +732,21 @@ const Review: React.FC = () => {
                           </option>
                         )) || (
                           <>
-                            <option value="PALETA">PALETA</option>
-                            <option value="CAJA">CAJA</option>
-                            <option value="SACO">SACO</option>
-                            <option value="UNIDAD">UNIDAD</option>
-                            <option value="PAQUETE">PAQUETE</option>
-                            <option value="TAMBOS">TAMBOS</option>
-                            <option value="BULTO">BULTO</option>
-                            <option value="OTRO">OTRO</option>
+                            <option value="PALETA">{t('process:paleta')}</option>
+                            <option value="CAJA">{t('process:caja')}</option>
+                            <option value="SACO">{t('process:saco')}</option>
+                            <option value="UNIDAD">{t('process:unidad')}</option>
+                            <option value="PAQUETE">{t('process:paquete')}</option>
+                            <option value="TAMBOS">{t('process:tambo')}</option>
+                            <option value="BULTO">{t('process:bulto')}</option>
+                            <option value="OTRO">{t('process:otro')}</option>
                           </>
                         )}
                       </select>
                     </div>
 
                     <div className="flex flex-col">
-                      <label className="font-medium text-gray-700 mb-1">Temperature Range</label>
+                      <label className="font-medium text-gray-700 mb-1">{t('process:temperature_range')}</label>
                       <select
                         value={product.temperature_range}
                         onChange={(e) => handleProductChange(index, 'temperature_range', e.target.value)}
@@ -756,9 +758,9 @@ const Review: React.FC = () => {
                           </option>
                         )) || (
                           <>
-                            <option value="AMBIENTE">AMBIENTE</option>
-                            <option value="FRIO">FRIO</option>
-                            <option value="CONGELADO">CONGELADO</option>
+                            <option value="AMBIENTE">{t('process:ambient')}</option>
+                            <option value="FRIO">{t('process:refrigerated')}</option>
+                            <option value="CONGELADO">{t('process:frozen')}</option>
                           </>
                         )}
                       </select>
@@ -777,7 +779,7 @@ const Review: React.FC = () => {
                 additionalClass="w-40"
                 disabled={isUpdating}
               >
-                Cancel
+                {t('common:cancel')}
               </Button>
               
               <Button
@@ -786,7 +788,7 @@ const Review: React.FC = () => {
                 variant="action"
                 additionalClass="w-48"
               >
-                {isUpdating ? "Updating..." : "Update Entry Order"}
+                {isUpdating ? t('process:updating') : t('process:update_entry_order')}
               </Button>
             </div>
           </form>
@@ -811,29 +813,44 @@ const Review: React.FC = () => {
     }
   };
 
+  const getReviewStatusText = (status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return t('process:approved');
+      case "REJECTED":
+        return t('process:rejected');
+      case "NEEDS_REVISION":
+        return t('process:needs_revision');
+      case "PENDING":
+        return t('process:pending');
+      default:
+        return status;
+    }
+  };
+
   const orderInfo = [
-    { label: "Entry Order No", value: entry.entry_order_no },
+    { label: t('process:entry_order_no'), value: entry.entry_order_no },
     {
-      label: "Organisation",
+      label: t('process:organisation'),
       value: entry.organisation_name || entry.order?.organisation?.name,
     },
-    { label: "Total Products", value: entry.products?.length || 0 },
+    { label: t('process:total_products'), value: entry.products?.length || 0 },
     {
-      label: "Total Inventory Qty",
+      label: t('process:total_inventory_qty'),
       // ✅ Calculate from products array instead of relying on stored total
       value: entry.products?.reduce((sum: number, product: any) => {
         return sum + (Number(product.inventory_quantity) || 0);
       }, 0) || 0,
     },
     { 
-      label: "Total Package Qty", 
+      label: t('process:total_package_qty'), 
       // ✅ Calculate from products array instead of relying on stored total
       value: entry.products?.reduce((sum: number, product: any) => {
         return sum + (Number(product.package_quantity) || 0);
       }, 0) || 0,
     },
     {
-      label: "Total Weight",
+      label: t('process:total_weight'),
       // ✅ Calculate from products array if calculated totals are not available
       value: `${
         entry.calculated_total_weight || 
@@ -844,7 +861,7 @@ const Review: React.FC = () => {
       } kg`,
     },
     {
-      label: "Total Volume",
+      label: t('process:total_volume'),
       // ✅ Calculate from products array if calculated totals are not available
       value: `${
         entry.calculated_total_volume || 
@@ -855,30 +872,30 @@ const Review: React.FC = () => {
       } m³`,
     },
     {
-      label: "Registration Date",
+      label: t('process:registration_date'),
       // ✅ Pass string directly to formatDate
       value: formatDate(entry.registration_date),
     },
     {
-      label: "Document Date",
+      label: t('process:document_date'),
       // ✅ Pass string directly to formatDate
       value: formatDate(entry.document_date),
     },
     {
-      label: "Entry Date",
+      label: t('process:entry_date'),
       // ✅ Pass string directly to formatDate
       value: formatDate(entry.entry_date_time),
     },
-    { label: "Order Status", value: entry.order_status },
-    { label: "Document Type", value: entry.documentType?.name },
-    { label: "Supplier", value: getMainSupplier(entry.products) },
-    { label: "Origin", value: entry.origin?.name },
-    { label: "Review Status", value: entry.review_status },
-    { label: "Reviewed By", value: entry.reviewer_name || "Not reviewed" },
+    { label: t('process:order_status'), value: entry.order_status },
+    { label: t('process:document_type'), value: entry.documentType?.name },
+    { label: t('process:supplier'), value: getMainSupplier(entry.products) },
+    { label: t('process:origin'), value: entry.origin?.name },
+    { label: t('process:review_status'), value: getReviewStatusText(entry.review_status) },
+    { label: t('process:reviewed_by'), value: entry.reviewer_name || t('process:not_reviewed') },
     {
-      label: "Reviewed At",
+      label: t('process:reviewed_at'),
       // ✅ Pass string directly to formatDate with null check
-      value: entry.reviewed_at ? formatDate(entry.reviewed_at) : "Not reviewed",
+      value: entry.reviewed_at ? formatDate(entry.reviewed_at) : t('process:not_reviewed'),
     },
   ];
 
@@ -892,7 +909,7 @@ const Review: React.FC = () => {
     if (suppliers.length === 1) {
       return suppliers[0];
     } else if (suppliers.length > 1) {
-      return `Multiple (${suppliers.length} suppliers)`;
+      return t('process:multiple_suppliers_count', { count: suppliers.length });
     } else {
       return "-";
     }
@@ -907,13 +924,13 @@ const Review: React.FC = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <Text size="3xl" weight="font-bold">
-          Entry Order Review: {orderNo}
+          {t('process:entry_order_review')}: {orderNo}
         </Text>
         <Button
           variant="cancel"
           onClick={() => navigate(-1)}
         >
-          Back
+          {t('common:back')}
         </Button>
       </div>
       <Divider height="lg" />
@@ -940,14 +957,14 @@ const Review: React.FC = () => {
               weight="font-semibold"
               additionalClass="text-gray-800"
             >
-              Order Information
+              {t('process:order_information')}
             </Text>
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${getReviewStatusColor(
                 entry.review_status
               )}`}
             >
-              {entry.review_status}
+              {getReviewStatusText(entry.review_status)}
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -968,7 +985,7 @@ const Review: React.FC = () => {
               weight="font-semibold"
               additionalClass="mb-3 text-gray-800"
             >
-              Review Comments
+              {t('process:review_comments')}
             </Text>
             <div className="bg-gray-50 rounded-lg p-4">
               <Text size="sm" additionalClass="text-gray-700">
@@ -986,7 +1003,7 @@ const Review: React.FC = () => {
               weight="font-semibold"
               additionalClass="text-gray-800"
             >
-              Products ({entry.products?.length || 0})
+              {t('process:products')} ({entry.products?.length || 0})
             </Text>
 
             <div className="flex space-x-2">
@@ -998,7 +1015,7 @@ const Review: React.FC = () => {
                   additionalClass="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={isSubmitting}
                 >
-                  Edit Order
+                  {t('process:edit_order')}
                 </Button>
               )}
 
@@ -1011,21 +1028,21 @@ const Review: React.FC = () => {
                     additionalClass="px-4 py-2 bg-green-600 hover:bg-green-700 text-white"
                     disabled={isSubmitting}
                   >
-                    Approve
+                    {t('process:approve')}
                   </Button>
                   <Button
                     onClick={() => openModal("revision")}
                     additionalClass="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white"
                     disabled={isSubmitting}
                   >
-                    Needs Revision
+                    {t('process:needs_revision')}
                   </Button>
                   <Button
                     onClick={() => openModal("reject")}
                     additionalClass="px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
                     disabled={isSubmitting}
                   >
-                    Reject
+                    {t('process:reject')}
                   </Button>
                 </>
               )}
@@ -1046,7 +1063,7 @@ const Review: React.FC = () => {
                       #{index + 1}: {product.product?.name}
                     </Text>
                     <Text size="sm" additionalClass="text-gray-600">
-                      Code: {product.product?.product_code} | Serial: {product.serial_number}
+                      {t('process:product_code')}: {product.product?.product_code} | {t('process:serial_number')}: {product.serial_number}
                     </Text>
                   </div>
                 </div>
@@ -1055,7 +1072,7 @@ const Review: React.FC = () => {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Inventory Qty:
+                      {t('process:inventory_quantity')}:
                     </span>
                     <span className="text-gray-600">
                       {product.inventory_quantity}
@@ -1064,7 +1081,7 @@ const Review: React.FC = () => {
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Package Qty:
+                      {t('process:package_quantity')}:
                     </span>
                     <span className="text-gray-600">
                       {product.package_quantity}
@@ -1073,14 +1090,14 @@ const Review: React.FC = () => {
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Weight:
+                      {t('process:weight_kg')}:
                     </span>
                     <span className="text-gray-600">{product.weight_kg} kg</span>
                   </div>
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Volume:
+                      {t('process:volume_m3')}:
                     </span>
                     <span className="text-gray-600">
                       {product.volume_m3 || 0} m³
@@ -1089,21 +1106,21 @@ const Review: React.FC = () => {
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Presentation:
+                      {t('process:presentation')}:
                     </span>
                     <span className="text-gray-600">{product.presentation}</span>
                   </div>
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Lot Series:
+                      {t('process:lot_series')}:
                     </span>
                     <span className="text-gray-600">{product.lot_series}</span>
                   </div>
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Temperature:
+                      {t('process:temperature_range')}:
                     </span>
                     <span className="text-gray-600">
                       {product.temperature_range}
@@ -1112,7 +1129,7 @@ const Review: React.FC = () => {
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Supplier:
+                      {t('process:supplier')}:
                     </span>
                     <span className="text-gray-600">
                       {product.supplier?.name}
@@ -1121,7 +1138,7 @@ const Review: React.FC = () => {
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Country:
+                      {t('process:country')}:
                     </span>
                     <span className="text-gray-600">
                       {product.supplier?.country?.name ||
@@ -1131,14 +1148,14 @@ const Review: React.FC = () => {
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Guide Number:
+                      {t('process:guide_number')}:
                     </span>
                     <span className="text-gray-600">{product.guide_number}</span>
                   </div>
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Insured Value:
+                      {t('process:insured_value')}:
                     </span>
                     <span className="text-gray-600">
                       ${product.insured_value || 0}
@@ -1147,7 +1164,7 @@ const Review: React.FC = () => {
 
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Humidity:
+                      {t('process:humidity')}:
                     </span>
                     <span className="text-gray-600">{product.humidity}%</span>
                   </div>
@@ -1157,7 +1174,7 @@ const Review: React.FC = () => {
                 <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Manufacturing Date:
+                      {t('process:manufacturing_date')}:
                     </span>
                     <span className="text-gray-600">
                       {formatDate(product.manufacturing_date)}
@@ -1165,7 +1182,7 @@ const Review: React.FC = () => {
                   </div>
                   <div>
                     <span className="font-medium text-gray-700 block mb-1">
-                      Expiration Date:
+                      {t('process:expiration_date')}:
                     </span>
                     <span className="text-gray-600">
                       {formatDate(product.expiration_date)}
@@ -1177,7 +1194,7 @@ const Review: React.FC = () => {
                 {product.health_registration && (
                   <div className="mt-3 text-sm">
                     <span className="font-medium text-gray-700 block mb-1">
-                      Health Registration:
+                      {t('process:health_registration')}:
                     </span>
                     <span className="text-gray-600">
                       {product.health_registration}
@@ -1190,7 +1207,7 @@ const Review: React.FC = () => {
 
           {(!entry.products || entry.products.length === 0) && (
             <div className="text-center py-8 text-gray-500">
-              <Text>No products found</Text>
+              <Text>{t('process:no_products_found')}</Text>
             </div>
           )}
         </div>
@@ -1203,10 +1220,10 @@ const Review: React.FC = () => {
             <div className="flex justify-between items-center mb-4">
               <Text size="xl" weight="font-bold">
                 {reviewMode === "approve"
-                  ? "Approve Order"
+                  ? t('process:approve_order')
                   : reviewMode === "reject"
-                  ? "Reject Order"
-                  : "Request Revision"}
+                  ? t('process:reject_order')
+                  : t('process:request_revision_order')}
                 : {orderNo}
               </Text>
               <button
@@ -1235,16 +1252,16 @@ const Review: React.FC = () => {
             <div className="mt-4 space-y-4">
               <div>
                 <label className="block font-medium text-gray-700 mb-2">
-                  Review Comments {reviewMode !== "approve" && "*"}
+                  {t('process:review_comments')} {reviewMode !== "approve" && "*"}
                 </label>
                 <textarea
                   className="w-full rounded p-3 h-32 resize-none bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   placeholder={
                     reviewMode === "approve"
-                      ? "Enter any additional comments (optional)..."
+                      ? t('process:enter_additional_comments_optional')
                       : reviewMode === "reject"
-                      ? "Please explain why this order is being rejected..."
-                      : "Please specify what needs to be revised..."
+                      ? t('process:explain_rejection_reason')
+                      : t('process:specify_revision_needs')
                   }
                   value={reviewComments}
                   onChange={(e) => setReviewComments(e.target.value)}
@@ -1255,7 +1272,7 @@ const Review: React.FC = () => {
 
               {reviewMode !== "approve" && !reviewComments.trim() && (
                 <Text size="sm" additionalClass="text-red-600">
-                  Comments are required for rejection or revision requests.
+                  {t('process:comments_required_for_rejection_revision')}
                 </Text>
               )}
             </div>
@@ -1269,7 +1286,7 @@ const Review: React.FC = () => {
                 additionalClass="px-6 py-2"
                 disabled={isSubmitting}
               >
-                Cancel
+                {t('common:cancel')}
               </Button>
 
               <Button
@@ -1287,12 +1304,12 @@ const Review: React.FC = () => {
                 }
               >
                 {isSubmitting
-                  ? "Processing..."
+                  ? t('process:processing')
                   : reviewMode === "approve"
-                  ? "Approve Order"
+                  ? t('process:approve_order')
                   : reviewMode === "reject"
-                  ? "Reject Order"
-                  : "Request Revision"}
+                  ? t('process:reject_order')
+                  : t('process:request_revision')}
               </Button>
             </div>
           </div>

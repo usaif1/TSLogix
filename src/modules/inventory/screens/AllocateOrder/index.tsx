@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Select from "react-select";
 import { useInventoryLogStore, ProductReadyForAssignment } from "@/modules/inventory/store";
 import { InventoryLogService } from "@/modules/inventory/api/inventory.service";
@@ -33,6 +34,7 @@ const reactSelectStyle = {
 };
 
 const AssignProduct: React.FC = () => {
+  const { t } = useTranslation(['inventory', 'common', 'process']);
   const navigate = useNavigate();
   const {
     warehouses,
@@ -67,39 +69,39 @@ const AssignProduct: React.FC = () => {
   const isLoadingCells = loaders["inventoryLogs/fetch-cells"];
   const isAssigning = loaders["inventoryLogs/assign-product-to-cell"];
 
-  // ✅ Presentation options
+  // ✅ Presentation options with translations
   const presentationOptions = [
-    { value: "PALETA", label: "PALETA" },
-    { value: "CAJA", label: "CAJA" },
-    { value: "SACO", label: "SACO" },
-    { value: "UNIDAD", label: "UNIDAD" },
-    { value: "PAQUETE", label: "PAQUETE" },
-    { value: "TAMBOS", label: "TAMBOS" },
-    { value: "BULTO", label: "BULTO" },
-    { value: "OTRO", label: "OTRO" },
+    { value: "PALETA", label: t('process:paleta') },
+    { value: "CAJA", label: t('process:caja') },
+    { value: "SACO", label: t('process:saco') },
+    { value: "UNIDAD", label: t('process:unidad') },
+    { value: "PAQUETE", label: t('process:paquete') },
+    { value: "TAMBOS", label: t('process:tambo') },
+    { value: "BULTO", label: t('process:bulto') },
+    { value: "OTRO", label: t('process:otro') },
   ];
 
-  // ✅ Product status options with enhanced labels
+  // ✅ Product status options with enhanced labels and translations
   const productStatusOptions = [
     // Normal statuses
-    { value: "30-PAL-NORMAL", label: "30-PAL-NORMAL (Paleta Normal)" },
-    { value: "31-CAJ-NORMAL", label: "31-CAJ-NORMAL (Caja Normal)" },
-    { value: "32-SAC-NORMAL", label: "32-SAC-NORMAL (Saco Normal)" },
-    { value: "33-UNI-NORMAL", label: "33-UNI-NORMAL (Unidad Normal)" },
-    { value: "34-PAQ-NORMAL", label: "34-PAQ-NORMAL (Paquete Normal)" },
-    { value: "35-TAM-NORMAL", label: "35-TAM-NORMAL (Tambo Normal)" },
-    { value: "36-BUL-NORMAL", label: "36-BUL-NORMAL (Bulto Normal)" },
-    { value: "37-OTR-NORMAL", label: "37-OTR-NORMAL (Otro Normal)" },
+    { value: "30-PAL-NORMAL", label: `30-PAL-NORMAL (${t('inventory:pallet_normal')})` },
+    { value: "31-CAJ-NORMAL", label: `31-CAJ-NORMAL (${t('inventory:box_normal')})` },
+    { value: "32-SAC-NORMAL", label: `32-SAC-NORMAL (${t('inventory:sack_normal')})` },
+    { value: "33-UNI-NORMAL", label: `33-UNI-NORMAL (${t('inventory:unit_normal')})` },
+    { value: "34-PAQ-NORMAL", label: `34-PAQ-NORMAL (${t('inventory:package_normal')})` },
+    { value: "35-TAM-NORMAL", label: `35-TAM-NORMAL (${t('inventory:drum_normal')})` },
+    { value: "36-BUL-NORMAL", label: `36-BUL-NORMAL (${t('inventory:bundle_normal')})` },
+    { value: "37-OTR-NORMAL", label: `37-OTR-NORMAL (${t('inventory:other_normal')})` },
     
     // Damaged statuses
-    { value: "40-PAL-DAÑADA", label: "40-PAL-DAÑADA (Paleta Dañada)" },
-    { value: "41-CAJ-DAÑADA", label: "41-CAJ-DAÑADA (Caja Dañada)" },
-    { value: "42-SAC-DAÑADO", label: "42-SAC-DAÑADO (Saco Dañado)" },
-    { value: "43-UNI-DAÑADA", label: "43-UNI-DAÑADA (Unidad Dañada)" },
-    { value: "44-PAQ-DAÑADO", label: "44-PAQ-DAÑADO (Paquete Dañado)" },
-    { value: "45-TAM-DAÑADO", label: "45-TAM-DAÑADO (Tambo Dañado)" },
-    { value: "46-BUL-DAÑADO", label: "46-BUL-DAÑADO (Bulto Dañado)" },
-    { value: "47-OTR-DAÑADO", label: "47-OTR-DAÑADO (Otro Dañado)" },
+    { value: "40-PAL-DAÑADA", label: `40-PAL-DAÑADA (${t('inventory:pallet_damaged')})` },
+    { value: "41-CAJ-DAÑADA", label: `41-CAJ-DAÑADA (${t('inventory:box_damaged')})` },
+    { value: "42-SAC-DAÑADO", label: `42-SAC-DAÑADO (${t('inventory:sack_damaged')})` },
+    { value: "43-UNI-DAÑADA", label: `43-UNI-DAÑADA (${t('inventory:unit_damaged')})` },
+    { value: "44-PAQ-DAÑADO", label: `44-PAQ-DAÑADO (${t('inventory:package_damaged')})` },
+    { value: "45-TAM-DAÑADO", label: `45-TAM-DAÑADO (${t('inventory:drum_damaged')})` },
+    { value: "46-BUL-DAÑADO", label: `46-BUL-DAÑADO (${t('inventory:bundle_damaged')})` },
+    { value: "47-OTR-DAÑADO", label: `47-OTR-DAÑADO (${t('inventory:other_damaged')})` },
   ];
 
   // Load initial data on mount
@@ -115,7 +117,7 @@ const AssignProduct: React.FC = () => {
       setApprovedEntryOrders(response);
     } catch (error) {
       console.error("Error fetching approved entry orders:", error);
-      setError("Failed to load approved entry orders");
+      setError(t('inventory:failed_to_load_entry_orders'));
     }
   };
 
@@ -126,7 +128,7 @@ const AssignProduct: React.FC = () => {
       setSelectedOrderProducts(response.products);
     } catch (error) {
       console.error("Error fetching entry order products:", error);
-      setError("Failed to load entry order products");
+      setError(t('inventory:failed_to_load_products'));
     }
   };
 
@@ -255,38 +257,38 @@ const AssignProduct: React.FC = () => {
     setError(null);
     setSuccess(null);
 
-    // ✅ Enhanced validation with better error messages
+    // ✅ Enhanced validation with translated error messages
     const validationErrors: string[] = [];
 
     if (!formData.selected_product) {
-      validationErrors.push("Please select a product");
+      validationErrors.push(t('inventory:please_select_product'));
     }
     if (!formData.warehouse_id?.value) {
-      validationErrors.push("Please select a warehouse");
+      validationErrors.push(t('inventory:please_select_warehouse'));
     }
     if (!formData.cell_id) {
-      validationErrors.push("Please select a cell");
+      validationErrors.push(t('inventory:please_select_cell'));
     }
     if (!formData.inventory_quantity || formData.inventory_quantity.trim() === "") {
-      validationErrors.push("Inventory quantity is required");
+      validationErrors.push(t('inventory:inventory_quantity_required'));
     }
     if (!formData.package_quantity || formData.package_quantity.trim() === "") {
-      validationErrors.push("Package quantity is required");
+      validationErrors.push(t('inventory:package_quantity_required'));
     }
     if (!formData.weight_kg || formData.weight_kg.trim() === "") {
-      validationErrors.push("Weight is required");
+      validationErrors.push(t('inventory:weight_required'));
     }
     if (!formData.presentation) {
-      validationErrors.push("Presentation is required");
+      validationErrors.push(t('inventory:presentation_required'));
     }
     if (!formData.product_status) {
-      validationErrors.push("Product status is required");
+      validationErrors.push(t('inventory:product_status_required'));
     }
 
     // ✅ Check if user is authenticated
     const userId = localStorage.getItem("id");
     if (!userId) {
-      validationErrors.push("User not authenticated. Please log in again.");
+      validationErrors.push(t('inventory:user_not_authenticated'));
     }
 
     if (validationErrors.length > 0) {
@@ -296,7 +298,7 @@ const AssignProduct: React.FC = () => {
 
     // ✅ Type guard to ensure we have required data before proceeding
     if (!formData.selected_product || !formData.warehouse_id) {
-      setError("Missing required data. Please refresh and try again.");
+      setError(t('inventory:missing_required_data'));
       return;
     }
 
@@ -305,27 +307,27 @@ const AssignProduct: React.FC = () => {
     const weight = parseFloat(formData.weight_kg);
     const pallets = formData.quantity_pallets ? parseInt(formData.quantity_pallets) : undefined;
 
-    // ✅ Numeric validation
+    // ✅ Numeric validation with translated messages
     if (isNaN(inventoryQty) || inventoryQty <= 0) {
-      setError("Inventory quantity must be a number greater than 0");
+      setError(t('inventory:inventory_quantity_invalid'));
       return;
     }
     if (isNaN(packageQty) || packageQty <= 0) {
-      setError("Package quantity must be a number greater than 0");
+      setError(t('inventory:package_quantity_invalid'));
       return;
     }
     if (isNaN(weight) || weight <= 0) {
-      setError("Weight must be a number greater than 0");
+      setError(t('inventory:weight_invalid'));
       return;
     }
     if (formData.quantity_pallets && (isNaN(pallets!) || pallets! < 0)) {
-      setError("Quantity pallets must be a valid number");
+      setError(t('inventory:quantity_pallets_invalid'));
       return;
     }
 
     const maxQuantity = formData.selected_product.remaining_quantity || formData.selected_product.inventory_quantity;
     if (inventoryQty > maxQuantity) {
-      setError(`Cannot assign more than ${maxQuantity} units`);
+      setError(t('inventory:cannot_assign_more_than', { max: maxQuantity }));
       return;
     }
 
@@ -364,7 +366,12 @@ const AssignProduct: React.FC = () => {
         warehouse_id: formData.warehouse_id.value,
       });
 
-      setSuccess(`Successfully assigned ${inventoryQty} units (${packageQty} packages) to cell ${result.cellReference || selectedCell?.cellReference} in ${formData.warehouse_id.label}`);
+      setSuccess(t('inventory:assignment_success', {
+        quantity: inventoryQty,
+        packages: packageQty,
+        cell: result.cellReference || selectedCell?.cellReference,
+        warehouse: formData.warehouse_id.label
+      }));
 
       // ✅ Refresh the products list to show updated remaining quantities
       if (formData.selected_entry_order?.entry_order_id) {
@@ -395,8 +402,8 @@ const AssignProduct: React.FC = () => {
     } catch (err: any) {
       console.error("Assignment error:", err);
       
-      // ✅ Enhanced error handling
-      let errorMessage = "Failed to assign product to cell";
+      // ✅ Enhanced error handling with translations
+      let errorMessage = t('inventory:assignment_failed');
       
       if (err.response?.data) {
         if (typeof err.response.data === 'string') {
@@ -409,7 +416,10 @@ const AssignProduct: React.FC = () => {
           try {
             errorMessage = JSON.stringify(err.response.data);
           } catch {
-            errorMessage = `Server error: ${err.response.status} ${err.response.statusText}`;
+            errorMessage = t('inventory:server_error', { 
+              status: err.response.status, 
+              statusText: err.response.statusText 
+            });
           }
         }
       } else if (err.message) {
@@ -420,15 +430,15 @@ const AssignProduct: React.FC = () => {
     }
   };
 
-  // ✅ Create dropdown options
+  // ✅ Create dropdown options with translations
   const entryOrderOptions = approvedEntryOrders.map((order) => ({
     value: order.entry_order_id,
-    label: `${order.entry_order_no} - ${order.organisation_name} (${order.products_needing_allocation} pending)`,
+    label: `${order.entry_order_no} - ${order.organisation_name} (${order.products_needing_allocation} ${t('inventory:pending')})`,
   }));
 
   const productOptions = selectedOrderProducts.map((product) => ({
     value: product.entry_order_product_id,
-    label: `${product.product.name} (${product.product.product_code}) - ${product.remaining_quantity} units remaining`,
+    label: `${product.product.name} (${product.product.product_code}) - ${product.remaining_quantity} ${t('inventory:units_remaining')}`,
   }));
 
   const warehouseOptions = warehouses.map((wh: any) => ({
@@ -440,7 +450,7 @@ const AssignProduct: React.FC = () => {
     return (
       <div className="flex flex-col h-full">
         <Divider height="lg" />
-        <LoaderSync loaderText="Loading warehouses..." />
+        <LoaderSync loaderText={t('inventory:loading_warehouses')} />
       </div>
     );
   }
@@ -449,7 +459,7 @@ const AssignProduct: React.FC = () => {
     <div className="flex flex-col h-full">
       {/* ✅ Consistent header layout with the rest of the app */}
       <Text size="3xl" weight="font-bold">
-        Inventory Assignment
+        {t('inventory:inventory_assignment')}
       </Text>
       <Divider height="lg" />
 
@@ -476,13 +486,13 @@ const AssignProduct: React.FC = () => {
           {/* ✅ Product Selection Section - consistent with NewEntryOrderForm */}
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
             <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-              Product Selection
+              {t('inventory:product_selection')}
             </Text>
             
             <div className="w-full flex items-center gap-x-6">
               {/* Entry Order Selection */}
               <div className="w-full flex flex-col">
-                <label htmlFor="entry_order">Entry Order *</label>
+                <label htmlFor="entry_order">{t('process:entry_order')} *</label>
                 <Select
                   options={entryOrderOptions}
                   styles={reactSelectStyle}
@@ -493,18 +503,18 @@ const AssignProduct: React.FC = () => {
                     label: `${formData.selected_entry_order.entry_order_no} - ${formData.selected_entry_order.organisation_name}`
                   } : null}
                   onChange={handleEntryOrderSelect}
-                  placeholder="Select entry order..."
+                  placeholder={t('inventory:select_entry_order')}
                   isClearable
                   isSearchable
                 />
                 <Text size="xs" additionalClass="text-gray-500 mt-1">
-                  {approvedEntryOrders.length} approved orders available
+                  {t('inventory:approved_orders_available', { count: approvedEntryOrders.length })}
                 </Text>
               </div>
 
               {/* Product Selection */}
               <div className="w-full flex flex-col">
-                <label htmlFor="product">Product *</label>
+                <label htmlFor="product">{t('process:product')} *</label>
                 <Select
                   options={productOptions}
                   styles={reactSelectStyle}
@@ -515,13 +525,13 @@ const AssignProduct: React.FC = () => {
                     label: `${formData.selected_product.product.name} (${formData.selected_product.product.product_code})`
                   } : null}
                   onChange={handleProductSelect}
-                  placeholder="Select product..."
+                  placeholder={t('process:select_product')}
                   isClearable
                   isSearchable
                   isDisabled={!formData.selected_entry_order}
                 />
                 <Text size="xs" additionalClass="text-gray-500 mt-1">
-                  {selectedOrderProducts.length} products available
+                  {t('inventory:products_available', { count: selectedOrderProducts.length })}
                 </Text>
               </div>
             </div>
@@ -532,25 +542,25 @@ const AssignProduct: React.FC = () => {
                 <Divider height="sm" />
                 <div className="bg-white p-3 rounded-md">
                   <Text weight="font-medium" additionalClass="mb-2 text-gray-800">
-                    Product Details
+                    {t('inventory:product_details')}
                   </Text>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div>
-                      <Text size="xs" additionalClass="text-gray-500">Serial Number</Text>
+                      <Text size="xs" additionalClass="text-gray-500">{t('process:serial_number')}</Text>
                       <Text weight="font-medium">{formData.selected_product.serial_number}</Text>
                     </div>
                     <div>
-                      <Text size="xs" additionalClass="text-gray-500">Lot Series</Text>
+                      <Text size="xs" additionalClass="text-gray-500">{t('process:lot_series')}</Text>
                       <Text weight="font-medium">{formData.selected_product.lot_series}</Text>
                     </div>
                     <div>
-                      <Text size="xs" additionalClass="text-gray-500">Remaining Quantity</Text>
+                      <Text size="xs" additionalClass="text-gray-500">{t('inventory:remaining_quantity')}</Text>
                       <Text weight="font-medium" additionalClass="text-orange-600">
-                        {formData.selected_product.remaining_quantity} units
+                        {formData.selected_product.remaining_quantity} {t('inventory:units')}
                       </Text>
                     </div>
                     <div>
-                      <Text size="xs" additionalClass="text-gray-500">Supplier</Text>
+                      <Text size="xs" additionalClass="text-gray-500">{t('process:supplier')}</Text>
                       <Text weight="font-medium">{formData.selected_product.supplier_name}</Text>
                     </div>
                   </div>
@@ -563,13 +573,13 @@ const AssignProduct: React.FC = () => {
           {formData.selected_product && (
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
               <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-                Location Selection
+                {t('inventory:location_selection')}
               </Text>
               
               <div className="w-full flex items-center gap-x-6">
                 {/* Warehouse Selection */}
                 <div className="w-full flex flex-col">
-                  <label htmlFor="warehouse">Warehouse *</label>
+                  <label htmlFor="warehouse">{t('inventory:warehouse')} *</label>
                   <Select
                     options={warehouseOptions}
                     styles={reactSelectStyle}
@@ -577,7 +587,7 @@ const AssignProduct: React.FC = () => {
                     name="warehouse"
                     value={formData.warehouse_id}
                     onChange={handleWarehouseChange}
-                    placeholder="Select warehouse..."
+                    placeholder={t('inventory:select_warehouse')}
                     isClearable
                   />
                 </div>
@@ -585,13 +595,13 @@ const AssignProduct: React.FC = () => {
                 {/* Selected Cell Display */}
                 {selectedCell && (
                   <div className="w-full flex flex-col">
-                    <label>Selected Cell</label>
+                    <label>{t('inventory:selected_cell')}</label>
                     <div className="h-10 flex items-center px-4 bg-blue-50 border border-blue-200 rounded-md">
                       <Text weight="font-semibold" additionalClass="text-blue-900">
                         {selectedCell.cellReference || `${selectedCell.row}.${String(selectedCell.bay).padStart(2, "0")}.${String(selectedCell.position).padStart(2, "0")}`}
                       </Text>
                       <Text size="xs" additionalClass="text-blue-700 ml-2">
-                        (Capacity: {selectedCell.capacity})
+                        ({t('inventory:capacity')}: {selectedCell.capacity})
                       </Text>
                     </div>
                   </div>
@@ -604,17 +614,17 @@ const AssignProduct: React.FC = () => {
                   <Divider height="sm" />
                   <div>
                     <Text weight="font-medium" additionalClass="mb-2">
-                      Available Cells in {formData.warehouse_id.label}
+                      {t('inventory:available_cells_in', { warehouse: formData.warehouse_id.label })}
                     </Text>
                     
                     {isLoadingCells ? (
                       <div className="flex justify-center py-8">
-                        <LoaderSync loaderText="Loading cells..." />
+                        <LoaderSync loaderText={t('inventory:loading_cells')} />
                       </div>
                     ) : cells.length === 0 ? (
                       <div className="text-center py-8 bg-white rounded-lg border border-gray-200">
                         <Text additionalClass="text-gray-500">
-                          No available cells in this warehouse
+                          {t('inventory:no_available_cells')}
                         </Text>
                       </div>
                     ) : (
@@ -636,12 +646,12 @@ const AssignProduct: React.FC = () => {
           {formData.selected_product && selectedCell && (
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
               <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-                Assignment Details
+                {t('inventory:assignment_details')}
               </Text>
               
               <div className="w-full flex items-center gap-x-6 mb-4">
                 <div className="w-full flex flex-col">
-                  <label htmlFor="inventory_quantity">Inventory Quantity *</label>
+                  <label htmlFor="inventory_quantity">{t('process:inventory_quantity')} *</label>
                   <input
                     type="number"
                     id="inventory_quantity"
@@ -654,12 +664,12 @@ const AssignProduct: React.FC = () => {
                     required
                   />
                   <Text size="xs" additionalClass="text-gray-500 mt-1">
-                    Max: {formData.selected_product.remaining_quantity || formData.selected_product.inventory_quantity}
+                    {t('inventory:max')}: {formData.selected_product.remaining_quantity || formData.selected_product.inventory_quantity}
                   </Text>
                 </div>
 
                 <div className="w-full flex flex-col">
-                  <label htmlFor="package_quantity">Package Quantity *</label>
+                  <label htmlFor="package_quantity">{t('process:package_quantity')} *</label>
                   <input
                     type="number"
                     id="package_quantity"
@@ -673,7 +683,7 @@ const AssignProduct: React.FC = () => {
                 </div>
 
                 <div className="w-full flex flex-col">
-                  <label htmlFor="quantity_pallets">Quantity Pallets</label>
+                  <label htmlFor="quantity_pallets">{t('process:quantity_pallets')}</label>
                   <input
                     type="number"
                     id="quantity_pallets"
@@ -688,7 +698,7 @@ const AssignProduct: React.FC = () => {
 
               <div className="w-full flex items-center gap-x-6 mb-4">
                 <div className="w-full flex flex-col">
-                  <label htmlFor="presentation">Presentation *</label>
+                  <label htmlFor="presentation">{t('process:presentation')} *</label>
                   <select
                     id="presentation"
                     name="presentation"
@@ -706,7 +716,7 @@ const AssignProduct: React.FC = () => {
                 </div>
 
                 <div className="w-full flex flex-col">
-                  <label htmlFor="weight_kg">Weight (kg) *</label>
+                  <label htmlFor="weight_kg">{t('process:weight_kg')} *</label>
                   <input
                     type="number"
                     step="0.01"
@@ -721,7 +731,7 @@ const AssignProduct: React.FC = () => {
                 </div>
 
                 <div className="w-full flex flex-col">
-                  <label htmlFor="product_status">Product Status *</label>
+                  <label htmlFor="product_status">{t('inventory:product_status')} *</label>
                   <select
                     id="product_status"
                     name="product_status"
@@ -737,14 +747,14 @@ const AssignProduct: React.FC = () => {
                     ))}
                   </select>
                   <Text size="xs" additionalClass="text-gray-500 mt-1">
-                    Auto-synced with presentation
+                    {t('inventory:auto_synced_with_presentation')}
                   </Text>
                 </div>
               </div>
 
               <div className="w-full flex items-center gap-x-6 mb-4">
                 <div className="w-full flex flex-col">
-                  <label htmlFor="guide_number">Guide Number</label>
+                  <label htmlFor="guide_number">{t('process:guide_number')}</label>
                   <input
                     type="text"
                     id="guide_number"
@@ -752,12 +762,12 @@ const AssignProduct: React.FC = () => {
                     value={formData.guide_number}
                     onChange={handleInputChange}
                     className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-                    placeholder="Enter guide number..."
+                    placeholder={t('inventory:enter_guide_number')}
                   />
                 </div>
 
                 <div className="w-full flex flex-col">
-                  <label htmlFor="uploaded_documents">Document Upload</label>
+                  <label htmlFor="uploaded_documents">{t('inventory:document_upload')}</label>
                   <input
                     type="file"
                     id="uploaded_documents"
@@ -768,14 +778,14 @@ const AssignProduct: React.FC = () => {
                   />
                   {formData.uploaded_documents && formData.uploaded_documents.length > 0 && (
                     <Text size="xs" additionalClass="text-green-600 mt-1">
-                      {formData.uploaded_documents.length} file(s) selected
+                      {t('inventory:files_selected', { count: formData.uploaded_documents.length })}
                     </Text>
                   )}
                 </div>
               </div>
 
               <div className="w-full flex flex-col">
-                <label htmlFor="observations">Observations</label>
+                <label htmlFor="observations">{t('process:observation')}</label>
                 <textarea
                   id="observations"
                   name="observations"
@@ -783,7 +793,7 @@ const AssignProduct: React.FC = () => {
                   onChange={handleInputChange}
                   rows={3}
                   className="border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-1 focus-visible:outline-primary-500"
-                  placeholder="Enter observations..."
+                  placeholder={t('inventory:enter_observations')}
                 />
               </div>
             </div>
@@ -798,7 +808,7 @@ const AssignProduct: React.FC = () => {
               additionalClass="w-50"
               disabled={isAssigning}
             >
-              Cancel
+              {t('common:cancel')}
             </Button>
 
             <Button
@@ -807,7 +817,7 @@ const AssignProduct: React.FC = () => {
               variant="action"
               additionalClass="w-50"
             >
-              {isAssigning ? "Assigning..." : "Assign to Inventory"}
+              {isAssigning ? t('inventory:assigning') : t('inventory:assign_to_inventory')}
             </Button>
           </div>
         </form>

@@ -75,9 +75,7 @@ interface NewEntryOrderFormProps {
   submitButtonText?: string;
 }
 
-const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
-  submitButtonText = "Create Entry Order",
-}) => {
+const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
   const { t } = useTranslation(["process", "common"]);
   const navigate = useNavigate();
 
@@ -481,7 +479,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
               onChange={(selectedOption) =>
                 handleSelectChange("origin", selectedOption)
               }
-              placeholder="Select origin..."
+              placeholder={t("process:select_origin")}
               isClearable
             />
           </div>
@@ -499,7 +497,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
               value={formData.entry_order_no}
               onChange={handleEntryOrderNoChange}
               className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-gray-100"
-              placeholder="Loading order number..."
+              placeholder={t("process:loading_order_number")}
             />
           </div>
 
@@ -515,7 +513,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
               onChange={(selectedOption) =>
                 handleSelectChange("document_type_id", selectedOption)
               }
-              placeholder="Select document type..."
+              placeholder={t("process:select_document_type")}
               isClearable
             />
           </div>
@@ -602,7 +600,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
               onChange={(selectedOption) =>
                 handleSelectChange("personnel_incharge_id", selectedOption)
               }
-              placeholder="Select personnel..."
+              placeholder={t("process:select_personnel")}
               isClearable
             />
           </div>
@@ -628,7 +626,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
               className={
                 isReconditionedOrigin ? "react-select--is-disabled" : ""
               }
-              placeholder="Select supplier..."
+              placeholder={t("process:select_supplier")}
               isClearable
             />
             {isReconditionedOrigin && (
@@ -654,7 +652,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
               onChange={(selectedOption) =>
                 handleSelectChange("order_status", selectedOption)
               }
-              placeholder="Select status..."
+              placeholder={t("process:select_status")}
               isClearable
             />
           </div>
@@ -771,8 +769,8 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
           }`}
         >
           {submitStatus.success
-            ? t("process:entry_success")
-            : submitStatus.message || t("process:entry_failure")}
+            ? t("process:entry_order_created_successfully")
+            : submitStatus.message || t("process:failed_to_create_entry_order")}
         </div>
       )}
 
@@ -784,7 +782,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
           additionalClass="w-40"
           disabled={loading}
         >
-          Cancel
+          {t("common:cancel")}
         </Button>
         
         <Button
@@ -793,7 +791,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = ({
           variant="action"
           additionalClass="w-48"
         >
-          {loading ? "Creating..." : submitButtonText}
+          {loading ? t("process:creating") : t("process:create_entry_order")}
         </Button>
       </div>
     </form>
