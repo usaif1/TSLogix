@@ -1,6 +1,7 @@
 // dependencies
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 
 // components
 import { Button, Divider, Text } from "@/components";
@@ -8,34 +9,35 @@ import { Button, Divider, Text } from "@/components";
 // store
 import { GlobalStore } from "@/globalStore";
 
-const departureRadioOptions = [
-  {
-    label: "From Approved Products",
-    route: "/processes/departure/approved",
-    htmlFor: "approved_products",
-  },
-  {
-    label: "About Returned Products",
-    route: "/processes/departure/returned",
-    htmlFor: "returned_products",
-  },
-  {
-    label: "From Products in Counter Sample",
-    route: "/processes/departure/counter",
-    htmlFor: "counter_sample",
-  },
-];
-
 const DepartureOptions: React.FC = () => {
+  const { t } = useTranslation(['process', 'common']);
   const [selectedRoute, setSelectedRoute] = useState<string>("");
 
   const navigation = useNavigate();
   const closeModal = GlobalStore.use.closeModal();
 
+  const departureRadioOptions = [
+    {
+      label: t('from_approved_products'),
+      route: "/processes/departure/approved",
+      htmlFor: "approved_products",
+    },
+    {
+      label: t('about_returned_products'),
+      route: "/processes/departure/returned",
+      htmlFor: "returned_products",
+    },
+    {
+      label: t('from_products_counter_sample'),
+      route: "/processes/departure/counter",
+      htmlFor: "counter_sample",
+    },
+  ];
+
   return (
     <div>
       <Text size="2xl" weight="font-bold">
-        Select Exit Option
+        {t('select_exit_option')}
       </Text>
       <Divider height="sm" />
       <div className="flex items-center gap-x-4">
@@ -69,7 +71,7 @@ const DepartureOptions: React.FC = () => {
             closeModal();
           }}
         >
-          Proceed
+          {t('common:proceed')}
         </Button>
       </div>
     </div>

@@ -176,6 +176,15 @@ const processesInitialState: ProcessesStore = {
     "processes/submit-departure": false,
     "processes/fetch-departure-orders": false,
     "processes/load-departure-form-fields": false,
+    "processes/get-departure-order-no": false,
+    "processes/create-departure-order": false,
+    "processes/fetch-entry-orders-for-departure": false,
+    "processes/fetch-products-by-entry-order": false,
+    "processes/fetch-cells-for-entry-product": false,
+    "processes/validate-departure-cell": false,
+    "processes/validate-multiple-departure-cells": false,
+    "processes/fetch-departure-inventory-summary": false,
+    "processes/create-departure-from-entry": false,
   },
 };
 

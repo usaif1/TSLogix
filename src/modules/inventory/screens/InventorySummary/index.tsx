@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Select from "react-select";
 import { useInventoryLogStore } from "@/modules/inventory/store";
 import { InventoryLogService } from "@/modules/inventory/api/inventory.service";
@@ -9,6 +10,7 @@ import { InventoryTable } from "../InventoryLog/components";
 import { ColumnDef, CellContext } from "@tanstack/react-table";
 
 const InventorySummary: React.FC = () => {
+  const { t } = useTranslation(['inventory', 'common']);
   const navigate = useNavigate();
   const {
     warehouses,
@@ -233,7 +235,7 @@ const InventorySummary: React.FC = () => {
   if (isLoadingWarehouses) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <LoaderSync loaderText="Loading..." />
+        <LoaderSync loaderText={t('common:loading')} />
       </div>
     );
   }
@@ -243,13 +245,13 @@ const InventorySummary: React.FC = () => {
       {/* Fixed Header */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Inventory Summary</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('inventory_summary')}</h1>
           <div className="flex space-x-2">
             <Button onClick={() => navigate("/inventory/assign-product")}>
-              Assign Product
+              {t('assign_product')}
             </Button>
             <Button onClick={() => navigate("/inventory")}>
-              View Logs
+              {t('view_logs')}
             </Button>
           </div>
         </div>
@@ -261,30 +263,30 @@ const InventorySummary: React.FC = () => {
           {/* Filters */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <Text size="lg" weight="font-semibold" additionalClass="mb-4">
-              Filters
+              {t('common:filters')}
             </Text>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Warehouse
+                  {t('warehouse')}
                 </label>
                 <Select
                   options={warehouseOptions}
                   value={filters.warehouse_id}
                   onChange={(option) => handleFilterChange("warehouse_id", option)}
-                  placeholder="All warehouses"
+                  placeholder={t('all_warehouses')}
                   isClearable
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
+                  {t('common:status')}
                 </label>
                 <Select
                   options={statusOptions}
                   value={filters.status}
                   onChange={(option) => handleFilterChange("status", option)}
-                  placeholder="All statuses"
+                  placeholder={t('all_statuses')}
                   isClearable
                 />
               </div>
@@ -294,39 +296,39 @@ const InventorySummary: React.FC = () => {
           {/* Summary Statistics */}
           <div className="bg-white rounded-lg p-6 shadow-sm">
             <Text size="lg" weight="font-semibold" additionalClass="mb-4">
-              Summary Statistics
+              {t('summary_statistics')}
             </Text>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center p-4 bg-gray-50 rounded">
                 <Text size="2xl" weight="font-bold" additionalClass="text-blue-600">
                   {summaryStats.totalProducts}
                 </Text>
-                <Text size="sm" additionalClass="text-gray-600">Total Inventory Items</Text>
+                <Text size="sm" additionalClass="text-gray-600">{t('total_inventory_items')}</Text>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded">
                 <Text size="2xl" weight="font-bold" additionalClass="text-green-600">
                   {summaryStats.totalPackaging}
                 </Text>
-                <Text size="sm" additionalClass="text-gray-600">Total Packages</Text>
+                <Text size="sm" additionalClass="text-gray-600">{t('total_packages')}</Text>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded">
                 <Text size="2xl" weight="font-bold" additionalClass="text-purple-600">
                   {summaryStats.totalWeight.toFixed(2)}
                 </Text>
-                <Text size="sm" additionalClass="text-gray-600">Total Weight (kg)</Text>
+                <Text size="sm" additionalClass="text-gray-600">{t('total_weight_kg')}</Text>
               </div>
               <div className="text-center p-4 bg-gray-50 rounded">
                 <Text size="2xl" weight="font-bold" additionalClass="text-orange-600">
                   {summaryStats.totalVolume.toFixed(2)}
                 </Text>
-                <Text size="sm" additionalClass="text-gray-600">Total Volume (m³)</Text>
+                <Text size="sm" additionalClass="text-gray-600">{t('total_volume_m3')}</Text>
               </div>
             </div>
 
             {/* Status Breakdown */}
             {Object.keys(summaryStats.statusBreakdown).length > 0 && (
               <div className="mt-4">
-                <Text weight="font-medium" additionalClass="mb-2">Status Breakdown:</Text>
+                <Text weight="font-medium" additionalClass="mb-2">{t('status_breakdown')}:</Text>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(summaryStats.statusBreakdown).map(([status, count]) => (
                     <span
@@ -350,7 +352,7 @@ const InventorySummary: React.FC = () => {
           <div className="bg-white rounded-lg shadow-sm">
             {isLoadingSummary ? (
               <div className="flex justify-center items-center py-8">
-                <LoaderSync loaderText="Loading inventory summary..." />
+                <LoaderSync loaderText={t('loading_inventory_summary')} />
               </div>
             ) : inventorySummary.length === 0 ? (
               <div className="text-center py-8">
@@ -359,11 +361,11 @@ const InventorySummary: React.FC = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2m-2 0h2m-2 0v3M6 13h2m2 0H6m2 0v3" />
                   </svg>
                 </div>
-                <Text size="lg" additionalClass="text-gray-500 mb-2">No inventory items found</Text>
-                <Text size="sm" additionalClass="text-gray-400">Try adjusting your filters or assign some products to cells first</Text>
+                <Text size="lg" additionalClass="text-gray-500 mb-2">{t('no_inventory_items_found')}</Text>
+                <Text size="sm" additionalClass="text-gray-400">{t('try_adjusting_filters_assign_products')}</Text>
                 <div className="mt-4">
                   <Button onClick={() => navigate("/inventory/assign-product")}>
-                    Assign Product to Cell
+                    {t('assign_product_to_cell')}
                   </Button>
                 </div>
               </div>

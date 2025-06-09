@@ -561,7 +561,7 @@ const AssignProduct: React.FC = () => {
                     </div>
                     <div>
                       <Text size="xs" additionalClass="text-gray-500">{t('process:supplier')}</Text>
-                      <Text weight="font-medium">{formData.selected_product.supplier_name}</Text>
+                      <Text weight="font-medium">{formData.selected_product.supplier?.name || formData.selected_product.supplier_name || "-"}</Text>
                     </div>
                   </div>
                 </div>

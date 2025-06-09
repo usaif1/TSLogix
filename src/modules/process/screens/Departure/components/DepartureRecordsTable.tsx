@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 // store
 import { ProcessesStore } from "@/globalStore";
@@ -7,18 +8,19 @@ import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
 
 const DepartureRecordsTable: React.FC = () => {
+  const { t } = useTranslation(['process', 'common']);
   const departureOrders = ProcessesStore.use.departureOrders();
   
   const columns = useMemo(() => 
     createTableColumns([
-      { accessor: 'departure_order_no', header: 'Order' },
+      { accessor: 'departure_order_no', header: t('process:order') },
       { 
         accessor: 'total_qty', 
-        header: 'Total Qty',
+        header: t('process:total_qty'),
         cell: (info: any) => {
           const order = info.row.original;
           const totalQty = order.products?.reduce((sum: number, p: any) => {
-            const qty = Number(p.total_qty) || 0;
+            const qty = Number(p.requested_quantity) || 0;
             return sum + qty;
           }, 0) || 0;
           return totalQty;
@@ -26,11 +28,11 @@ const DepartureRecordsTable: React.FC = () => {
       },
       { 
         accessor: 'total_weight', 
-        header: 'Total Weight (kg)',
+        header: t('process:total_weight_kg'),
         cell: (info: any) => {
           const order = info.row.original;
           const totalWeight = order.products?.reduce((sum: number, p: any) => {
-            const weight = Number(p.total_weight) || 0;
+            const weight = Number(p.requested_weight) || 0;
             return sum + weight;
           }, 0) || 0;
           
@@ -42,11 +44,11 @@ const DepartureRecordsTable: React.FC = () => {
       },
       { 
         accessor: 'insured_value', 
-        header: 'Insured Value',
+        header: t('process:insured_value'),
         cell: (info: any) => {
           const order = info.row.original;
           const totalInsuredValue = order.products?.reduce((sum: number, p: any) => {
-            const value = Number(p.insured_value) || 0;
+            const value = Number(p.total_value) || 0;
             return sum + value;
           }, 0) || 0;
           
@@ -57,48 +59,67 @@ const DepartureRecordsTable: React.FC = () => {
       },
       { 
         accessor: 'departure_date', 
-        header: 'Date of Departure',
+        header: t('process:departure_date'),
         cell: (info: any) => {
-          const date = info.getValue();
+          const order = info.row.original;
+          const date = order.departure_date_time;
           return date ? new Date(date).toLocaleDateString() : '-';
         }
       },
-      { accessor: 'departure_transfer_note', header: 'Departure Transfer Note' },
+      { accessor: 'departure_transfer_note', header: t('process:departure_transfer_note') },
       { 
         accessor: 'presentation', 
-        header: 'Presentation',
+        header: t('process:presentation'),
         cell: (info: any) => {
           const order = info.row.original;
-          // Since presentation might be product-specific, show count of products
-          return order.products?.length || 0;
+          // Get unique presentations from products
+          const presentations = order.products?.map((p: any) => p.presentation).filter(Boolean) || [];
+          const uniquePresentations = [...new Set(presentations)];
+          return uniquePresentations.length > 0 ? uniquePresentations.join(', ') : '-';
         }
       },
       { 
         accessor: 'status', 
-        header: 'Status',
-        cell: () => 'Active' // Default status since it's not in the schema
+        header: t('process:status'),
+        cell: (info: any) => {
+          const order = info.row.original;
+          return order.order_status || 'PENDING';
+        }
       },
       { 
         accessor: 'type', 
-        header: 'Type',
+        header: t('process:type'),
         cell: (info: any) => {
           const order = info.row.original;
-          // Get unique types from products
-          const types = order.products?.map((p: any) => p.type).filter(Boolean) || [];
-          return types.length > 0 ? types.join(', ') : '-';
+          return order.transport_type || '-';
         }
       },
       { 
         accessor: 'comments', 
-        header: 'Comments',
+        header: t('process:comments'),
         cell: (info: any) => {
           const order = info.row.original;
           return order.observation || '-';
         }
       },
-      { accessor: 'documentType.name', header: 'Document Type' },
+      { 
+        accessor: 'customer', 
+        header: t('process:customer'),
+        cell: (info: any) => {
+          const order = info.row.original;
+          return order.customer?.name || '-';
+        }
+      },
+      { 
+        accessor: 'warehouse', 
+        header: t('process:warehouse'),
+        cell: (info: any) => {
+          const order = info.row.original;
+          return order.warehouse?.name || '-';
+        }
+      },
     ]), 
-  []);
+  [t]);
 
   // Transform data to ensure all calculations are safe
   const transformedData = useMemo(() => {
@@ -106,16 +127,16 @@ const DepartureRecordsTable: React.FC = () => {
       ...order,
       // Pre-calculate totals to avoid recalculation in each cell render
       calculated_total_qty: order.products?.reduce((sum: number, p: any) => {
-        return sum + (Number(p.total_qty) || 0);
+        return sum + (Number(p.requested_quantity) || 0);
       }, 0) || 0,
       calculated_total_weight: order.products?.reduce((sum: number, p: any) => {
-        return sum + (Number(p.total_weight) || 0);
+        return sum + (Number(p.requested_weight) || 0);
       }, 0) || 0,
       calculated_total_volume: order.products?.reduce((sum: number, p: any) => {
-        return sum + (Number(p.total_volume) || 0);
+        return sum + (Number(p.requested_volume) || 0);
       }, 0) || 0,
       calculated_insured_value: order.products?.reduce((sum: number, p: any) => {
-        return sum + (Number(p.insured_value) || 0);
+        return sum + (Number(p.total_value) || 0);
       }, 0) || 0,
     }));
   }, [departureOrders]);
@@ -126,7 +147,7 @@ const DepartureRecordsTable: React.FC = () => {
         data={transformedData} 
         columns={columns}
         showPagination={true}
-        emptyMessage="No departure orders found"
+        emptyMessage={t('common:no_data', 'No departure orders found')}
       />
     </div>
   );

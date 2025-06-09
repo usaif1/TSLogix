@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import Select, { CSSObjectWithLabel } from "react-select";
 import { Divider } from "@/components";
 import DataTable from "@/components/DataTable";
@@ -37,25 +38,27 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
   searchText,
   setSearchText,
 }) => {
+  const { t } = useTranslation(['maintenance', 'common']);
+  
   const columns = useMemo(
     () =>
       createTableColumns([
-        { accessor: "name", header: "Product Name" },
-        { accessor: "manufacturer", header: "Manufacturer" },
+        { accessor: "name", header: t('product_name') },
+        { accessor: "manufacturer", header: t('manufacturer') },
         {
           accessor: "product_line.name",
-          header: "Product Line",
+          header: t('product_line'),
           cell: (info) => info.getValue() || "N/A",
         },
         {
           accessor: "group.name",
-          header: "Group",
+          header: t('group'),
           cell: (info) => info.getValue() || "N/A",
         },
-        { accessor: "humidity", header: "Humidity" },
+        { accessor: "humidity", header: t('humidity') },
         {
           accessor: "min_temperature",
-          header: "Min Temp",
+          header: t('min_temp'),
           cell: (info) => {
             const value = info.getValue();
             return value !== undefined && value !== null ? `${value}°C` : "N/A";
@@ -63,25 +66,25 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
         },
         {
           accessor: "max_temperature",
-          header: "Max Temp",
+          header: t('max_temp'),
           cell: (info) => {
             const value = info.getValue();
             return value !== undefined && value !== null ? `${value}°C` : "N/A";
           },
         },
       ]),
-    []
+    [t]
   );
 
   const buttonGroup = useMemo(
     () => [
       {
-        title: "Add",
+        title: t('common:add'),
         icon: Plus,
         route: "/maintenance/product/new",
       },
     ],
-    []
+    [t]
   );
 
   return (
@@ -89,7 +92,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
       {/* Filter section */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="product_line">Product Line</label>
+          <label htmlFor="product_line">{t('product_line')}</label>
           <Select
             inputId="product_line"
             name="product_line"
@@ -97,20 +100,20 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
             options={productLineOptions}
             styles={reactSelectStyle}
             onChange={(option) => setSelectedProductLine(option)}
-            placeholder="Select Product Line"
+            placeholder={t('select_product_line')}
             value={selectedProductLine}
             isClearable
           />
         </div>
         <div className="w-full flex flex-col">
-          <label htmlFor="group">Group</label>
+          <label htmlFor="group">{t('group')}</label>
           <Select
             inputId="group"
             name="group"
             options={groupOptions}
             styles={reactSelectStyle}
             onChange={(option) => setSelectedGroup(option)}
-            placeholder="Select Group"
+            placeholder={t('select_group')}
             value={selectedGroup}
             isClearable
           />
@@ -122,7 +125,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
       {/* Search field for product name or id */}
       <div className="w-full flex items-end gap-x-6">
         <div className="w-1/2 flex flex-col">
-          <label htmlFor="searchText">Product Name or ID</label>
+          <label htmlFor="searchText">{t('product_name_or_id')}</label>
           <input
             type="text"
             id="searchText"
@@ -130,7 +133,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
-            placeholder="Search by product name or id"
+            placeholder={t('search_by_product_name_or_id')}
           />
         </div>
         <OrderBtnGroup items={buttonGroup} />
@@ -140,7 +143,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
       <div className="w-full overflow-x-auto">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-600">
-            {products.length} product{products.length !== 1 ? "s" : ""} found
+            {t('products_found', { count: products.length })}
           </span>
         </div>
 
@@ -151,7 +154,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
             columns={columns}
             showPagination={true}
             pageSize={10}
-            emptyMessage="No products found. Try adjusting your filters."
+            emptyMessage={t('no_products_found_adjust_filters')}
           />
         </div>
       </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import debounce from "lodash.debounce";
 import { Divider, Text, Searchbar } from "@/components";
 import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
@@ -7,6 +8,8 @@ import { SupplierService } from "../../api/maintenance.service";
 import SuppliersTable from "./components/SuppliersTable";
 
 const Supplier: React.FC = () => {
+  const { t } = useTranslation(['maintenance', 'common']);
+  
   const debouncedFetchSuppliers = useCallback(
     debounce((searchValue: string) => {
       SupplierService.fetchAllSuppliers(searchValue);
@@ -28,25 +31,25 @@ const Supplier: React.FC = () => {
   const buttonGroup = useMemo(
     () => [
       {
-        title: "Add",
+        title: t('common:add'),
         icon: Plus,
         route: "/maintenance/supplier/new",
       },
     ],
-    []
+    [t]
   );
 
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        Supplier Maintenance
+        {t('supplier_maintenance')}
       </Text>
       <Divider />
       <div className="w-1/2">
         <Searchbar
           searchButton={true}
           iconHidden={true}
-          placeholder="Enter Supplier Name"
+          placeholder={t('enter_supplier_name')}
           onSearch={handleSearch}
         />
       </div>

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 // components
 import { Button, Divider } from "@/components";
@@ -27,6 +28,7 @@ interface ProductFormData {
 }
 
 const NewProductForm: React.FC = () => {
+  const { t } = useTranslation(['maintenance', 'common']);
   const navigate = useNavigate();
 
   // Get options from the global maintenance store
@@ -90,14 +92,14 @@ const NewProductForm: React.FC = () => {
       addProduct(response);
       setSubmitStatus({
         success: true,
-        message: "Product created successfully",
+        message: t('product_created_successfully'),
       });
       navigate("/maintenance/product");
     } catch (error) {
       console.error("Error creating product:", error);
       setSubmitStatus({
         success: false,
-        message: "Failed to create product. Please try again.",
+        message: t('failed_create_product_try_again'),
       });
     } finally {
       setIsSubmitting(false);
@@ -109,7 +111,7 @@ const NewProductForm: React.FC = () => {
       {/* Section 1: Product Options */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="product_line">Product Line</label>
+          <label htmlFor="product_line">{t('product_line')}</label>
           <Select
             inputId="product_line"
             name="product_line"
@@ -117,12 +119,12 @@ const NewProductForm: React.FC = () => {
             value={formData.product_line}
             onChange={(option) => handleSelectChange("product_line", option)}
             styles={reactSelectStyle}
-            placeholder="Select product line"
+            placeholder={t('select_product_line')}
           />
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="group">Group</label>
+          <label htmlFor="group">{t('group')}</label>
           <Select
             inputId="group"
             name="group"
@@ -130,7 +132,7 @@ const NewProductForm: React.FC = () => {
             value={formData.group}
             onChange={(option) => handleSelectChange("group", option)}
             styles={reactSelectStyle}
-            placeholder="Select group"
+            placeholder={t('select_group')}
           />
         </div>
       </div>
@@ -140,27 +142,27 @@ const NewProductForm: React.FC = () => {
       {/* Section 2: Product Details */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="name">Product Name</label>
+          <label htmlFor="name">{t('product_name')}</label>
           <input
             type="text"
             id="name"
             name="name"
             value={formData.name}
             onChange={handleChange}
-            placeholder="Enter product name"
+            placeholder={t('enter_product_name')}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
           />
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="manufacturer">Manufacturer</label>
+          <label htmlFor="manufacturer">{t('manufacturer')}</label>
           <input
             type="text"
             id="manufacturer"
             name="manufacturer"
             value={formData.manufacturer}
             onChange={handleChange}
-            placeholder="Enter manufacturer"
+            placeholder={t('enter_manufacturer')}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
           />
         </div>
@@ -171,7 +173,7 @@ const NewProductForm: React.FC = () => {
       {/* Section 3: Additional Info */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="temperature_range">Temperature Range</label>
+          <label htmlFor="temperature_range">{t('temperature_range')}</label>
           <Select
             inputId="temperature_range"
             name="temperature_range"
@@ -181,19 +183,19 @@ const NewProductForm: React.FC = () => {
               handleSelectChange("temperature_range", option)
             }
             styles={reactSelectStyle}
-            placeholder="Select temperature range"
+            placeholder={t('select_temperature_range')}
           />
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="humidity">Humidity</label>
+          <label htmlFor="humidity">{t('humidity')}</label>
           <input
             type="text"
             id="humidity"
             name="humidity"
             value={formData.humidity}
             onChange={handleChange}
-            placeholder="Enter humidity"
+            placeholder={t('enter_humidity')}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
           />
         </div>
@@ -203,13 +205,13 @@ const NewProductForm: React.FC = () => {
 
       {/* Section 4: Storage Conditions */}
       <div className="w-full flex flex-col">
-        <label htmlFor="storage_conditions">Storage Conditions</label>
+        <label htmlFor="storage_conditions">{t('storage_conditions')}</label>
         <textarea
           id="storage_conditions"
           name="storage_conditions"
           value={formData.storage_conditions}
           onChange={handleChange}
-          placeholder="Enter storage conditions"
+          placeholder={t('enter_storage_conditions')}
           className="h-20 border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-1 focus-visible:outline-primary-500 bg-white"
         />
       </div>
@@ -224,7 +226,7 @@ const NewProductForm: React.FC = () => {
           type="submit"
           additionalClass="w-40"
         >
-          {isSubmitting ? "Submitting..." : "Add Product"}
+          {isSubmitting ? t('submitting') : t('add_product')}
         </Button>
         <Button
           variant="cancel"
@@ -232,7 +234,7 @@ const NewProductForm: React.FC = () => {
           additionalClass="w-40"
           onClick={() => navigate("/maintenance/product")}
         >
-          Cancel
+          {t('common:cancel')}
         </Button>
       </div>
 

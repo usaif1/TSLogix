@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Select, { CSSObjectWithLabel } from "react-select";
@@ -7,7 +7,6 @@ import DatePicker from "react-datepicker";
 import { Button, Text, LoaderSync, Divider } from "@/components";
 import ProcessesStore from "@/modules/process/store";
 import { ProcessService } from "@/modules/process/api/process.service";
-import { InventorySelection } from "@/modules/process/types";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -16,81 +15,217 @@ const reactSelectStyle = {
   }),
 };
 
+interface EntryOrderOption {
+  value: string;
+  label: string;
+  option: string;
+  entry_order_id: string;
+  entry_order_no: string;
+  customer_name: string;
+  entry_date: string;
+  products_count: number;
+  total_quantity: number;
+  total_weight: number;
+}
+
+interface ProductFromEntryOrder {
+  allocation_id: string;
+  inventory_id: string;
+  entry_order_product_id: string;
+  entry_order_no: string;
+  product_code: string;
+  product_name: string;
+  lot_number: string;
+  quantity_inventory_units: number;
+  packaging_quantity: number;
+  packaging_type: string;
+  cell_position: string;
+  entry_date_time: string;
+  manufacturer: string;
+  product_line: string;
+  group_name: string;
+  supplier_name: string;
+  available_weight: number;
+  available_volume: number;
+  quality_status: string;
+  product_status: string;
+  warehouse_name: string;
+  warehouse_location: string;
+  guide_number: string;
+  observations: string;
+  manufacturing_date: string;
+  expiration_date: string;
+  registration_date: string;
+  document_date: string;
+  can_depart: boolean;
+  max_selectable_quantity: number;
+  max_selectable_packages: number;
+  max_selectable_weight: number;
+}
+
+interface SelectedProduct {
+  allocation_id: string;
+  inventory_id: string;
+  entry_order_product_id: string;
+  product_name: string;
+  product_code: string;
+  lot_number: string;
+  requested_qty: number;
+  requested_weight: number;
+  max_selectable_quantity: number;
+  max_selectable_packages: number;
+  max_selectable_weight: number;
+  cell_position: string;
+  packaging_type: string;
+}
+
 const DepartureApprovedForm: React.FC = () => {
-  const { t } = useTranslation(['process']);
+  const { t } = useTranslation(['process', 'common']);
   const navigate = useNavigate();
   
   const {
     departureFormFields,
     warehouses,
-    productsWithInventory,
-    inventorySelections,
-    inventoryError,
-    submitStatus,
     loaders,
-    addInventorySelection,
-    removeInventorySelection,
-    clearInventorySelections,
-    setInventoryError,
   } = ProcessesStore();
 
-  const [formData, setFormData] = useState({
-    departure_order_no: "",
-    registration_date: new Date(),
-    document_no: "",
-    document_date: new Date(),
-    date_and_time_of_transfer: new Date(),
-    arrival_point: "",
-    id_responsible: { option: "", value: "", label: "" },
-    customer_id: { option: "", value: "", label: "" },
-    document_type_id: { option: "", value: "", label: "" },
-    warehouse_id: { option: "", value: "", label: "" },
-    responsible_for_collection: "",
-    order_progress: "",
-    observation: "",
-    total_volume: "",
-    palettes: "",
-    insured_value: "",
-    product_description: "",
-    departure_date: new Date(),
-    type: "",
-    departure_transfer_note: "",
-    personnel_in_charge_id: "",
-    packaging_id: "",
-    label_id: "",
-    document_status: "",
-    packaging_list: "",
-  });
-
-  const [selectedProduct, setSelectedProduct] = useState<string>("");
-  const [availableCells, setAvailableCells] = useState<any[]>([]);
+  // Form state
+  const [selectedWarehouse, setSelectedWarehouse] = useState<any>(null);
+  const [selectedEntryOrder, setSelectedEntryOrder] = useState<EntryOrderOption | null>(null);
+  const [availableEntryOrders, setAvailableEntryOrders] = useState<EntryOrderOption[]>([]);
+  const [entryOrderProducts, setEntryOrderProducts] = useState<ProductFromEntryOrder[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const isLoadingProducts = loaders["processes/load-products-inventory"];
-  const isLoadingCells = loaders["processes/load-cells"];
-  const isLoadingFormFields = loaders["processes/load-form-fields"];
+  // Departure order form data
+  const [formData, setFormData] = useState({
+    departure_order_no: "",
+    customer_id: { option: "", value: "", label: "" },
+    document_type_id: { option: "", value: "", label: "" },
+    document_no: "",
+    document_date: new Date(),
+    departure_date: new Date(),
+    responsible_person_id: { option: "", value: "", label: "" },
+    arrival_point: "",
+    observations: "",
+    transport_type: "",
+    total_volume: "",
+    insured_value: "",
+  });
 
+  // Load initial data
   useEffect(() => {
     ProcessService.loadDepartureFormFields();
     ProcessService.fetchWarehouses();
+    
+    // Auto-generate departure order number
+    ProcessService.getCurrentDepartureOrderNo()
+      .then(orderNo => {
+        setFormData(prev => ({ ...prev, departure_order_no: orderNo }));
+      })
+      .catch(console.error);
   }, []);
 
+  // Load entry orders when warehouse is selected
   useEffect(() => {
-    if (formData.warehouse_id.value) {
-      ProcessService.loadProductsWithInventory(formData.warehouse_id.value);
-      clearInventorySelections();
-      setSelectedProduct("");
-      setAvailableCells([]);
+    if (selectedWarehouse?.value) {
+      setError("");
+      ProcessService.getEntryOrdersForDeparture(selectedWarehouse.value)
+        .then((entryOrders) => {
+          const formattedOrders = entryOrders.map((order: any) => ({
+            value: order.entry_order_id,
+            label: `${order.entry_order_no}${order.customer_name ? ` - ${order.customer_name}` : ''}`,
+            option: order.entry_order_no,
+            entry_order_id: order.entry_order_id,
+            entry_order_no: order.entry_order_no,
+            customer_name: order.customer_name || '',
+            entry_date: order.entry_date || '',
+            products_count: order.products_count || 0,
+            total_quantity: order.total_quantity || 0,
+            total_weight: order.total_weight || 0,
+          }));
+          setAvailableEntryOrders(formattedOrders);
+          
+          // Reset selections
+          setSelectedEntryOrder(null);
+          setEntryOrderProducts([]);
+          setSelectedProducts([]);
+        })
+        .catch((error) => {
+          console.error("Failed to load entry orders:", error);
+          setError("Failed to load entry orders for selected warehouse");
+          setAvailableEntryOrders([]);
+        });
+    } else {
+      setAvailableEntryOrders([]);
+      setSelectedEntryOrder(null);
+      setEntryOrderProducts([]);
     }
-  }, [formData.warehouse_id.value, clearInventorySelections]);
+  }, [selectedWarehouse]);
 
+  // Load products when entry order is selected
   useEffect(() => {
-    if (selectedProduct && formData.warehouse_id.value) {
-      ProcessService.loadAvailableCellsForEntryProduct(selectedProduct, formData.warehouse_id.value)
-        .then(cells => setAvailableCells(cells || []))
-        .catch(error => console.error("Error loading cells:", error));
+    if (selectedEntryOrder?.entry_order_id && selectedWarehouse?.value) {
+      setError("");
+      ProcessService.getProductsByEntryOrder(selectedEntryOrder.entry_order_id, selectedWarehouse.value)
+        .then((products) => {
+          setEntryOrderProducts(products);
+          setSelectedProducts([]);
+        })
+        .catch((error) => {
+          console.error("Failed to load products:", error);
+          setError("Failed to load products for selected entry order");
+          setEntryOrderProducts([]);
+        });
+    } else {
+      setEntryOrderProducts([]);
+      setSelectedProducts([]);
     }
-  }, [selectedProduct, formData.warehouse_id.value]);
+  }, [selectedEntryOrder, selectedWarehouse]);
+
+  const handleWarehouseChange = (selectedOption: any) => {
+    setSelectedWarehouse(selectedOption);
+  };
+
+  const handleEntryOrderChange = (selectedOption: any) => {
+    setSelectedEntryOrder(selectedOption);
+  };
+
+  const handleProductSelect = (product: ProductFromEntryOrder, isSelected: boolean) => {
+    if (isSelected) {
+      // Add product to selection with default quantities
+      const selectedProduct: SelectedProduct = {
+        allocation_id: product.allocation_id,
+        inventory_id: product.inventory_id,
+        entry_order_product_id: product.entry_order_product_id,
+        product_name: product.product_name,
+        product_code: product.product_code,
+        lot_number: product.lot_number,
+        requested_qty: 1,
+        requested_weight: 1,
+        max_selectable_quantity: product.max_selectable_quantity,
+        max_selectable_packages: product.max_selectable_packages,
+        max_selectable_weight: product.max_selectable_weight,
+        cell_position: product.cell_position,
+        packaging_type: product.packaging_type,
+      };
+      setSelectedProducts(prev => [...prev, selectedProduct]);
+    } else {
+      // Remove product from selection
+      setSelectedProducts(prev => prev.filter(p => p.allocation_id !== product.allocation_id));
+    }
+  };
+
+  const handleQuantityChange = (allocationId: string, field: 'requested_qty' | 'requested_weight', value: string) => {
+    const numValue = field === 'requested_qty' ? parseInt(value) || 0 : parseFloat(value) || 0;
+    
+    setSelectedProducts(prev => prev.map(product => 
+      product.allocation_id === allocationId 
+        ? { ...product, [field]: numValue }
+        : product
+    ));
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -105,171 +240,118 @@ const DepartureApprovedForm: React.FC = () => {
     setFormData(prev => ({ ...prev, [name]: date || new Date() }));
   };
 
-  const handleProductSelect = (entryOrderProductId: string) => {
-    setSelectedProduct(entryOrderProductId);
+  const validateQuantities = () => {
+    for (const product of selectedProducts) {
+      if (product.requested_qty <= 0 || product.requested_weight <= 0) {
+        return `Please enter valid quantities for ${product.product_name}`;
+      }
+      if (product.requested_qty > product.max_selectable_quantity) {
+        return `Requested quantity for ${product.product_name} exceeds available quantity (${product.max_selectable_quantity})`;
+      }
+      if (product.requested_weight > product.max_selectable_weight) {
+        return `Requested weight for ${product.product_name} exceeds available weight (${product.max_selectable_weight} kg)`;
+      }
+    }
+    return null;
   };
 
-  const handleCellSelection = (cell: any, requested_qty: number, requested_weight: number) => {
-    if (requested_qty <= 0 || requested_weight <= 0) {
-      setInventoryError("Quantities must be greater than 0");
-      return;
-    }
-
-    if (requested_qty > cell.available_packaging) {
-      setInventoryError(`Cannot request more than ${cell.available_packaging} packages from this cell`);
-      return;
-    }
-
-    if (requested_weight > cell.available_weight) {
-      setInventoryError(`Cannot request more than ${cell.available_weight}kg from this cell`);
-      return;
-    }
-
-    const selection: InventorySelection = {
-      inventory_id: cell.inventory_id,
-      entry_order_product_id: selectedProduct,
-      cell_reference: cell.cell_reference,
-      warehouse_name: cell.warehouse_name,
-      product_code: cell.product_code,
-      product_name: cell.product_name,
-      requested_qty,
-      requested_weight,
-      available_packaging: cell.available_packaging,
-      available_weight: cell.available_weight,
-      packaging_type: cell.packaging_type,
-      packaging_status: cell.packaging_status,
-      entry_order_no: cell.entry_order_no,
-      expiration_date: cell.expiration_date,
-      packaging_code: cell.packaging_code || 37, // Add packaging_code with default
-    };
-
-    addInventorySelection(selection);
-    setInventoryError("");
-  };
-
-  const handleRemoveSelection = (inventoryId: string) => {
-    removeInventorySelection(inventoryId);
-  };
-
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (inventorySelections.length === 0) {
-      setInventoryError("Please select at least one inventory item");
+    
+    if (!selectedEntryOrder) {
+      setError("Please select an entry order");
       return;
     }
 
-    // Basic frontend validation
-    for (const selection of inventorySelections) {
-      if (selection.requested_qty <= 0 || selection.requested_weight <= 0) {
-        setInventoryError("All requested quantities and weights must be greater than 0");
-        return;
-      }
-      if (selection.requested_qty > selection.available_packaging) {
-        setInventoryError(`Cannot request more than ${selection.available_packaging} packages from cell ${selection.cell_reference}`);
-        return;
-      }
-      if (selection.requested_weight > selection.available_weight) {
-        setInventoryError(`Cannot request more than ${selection.available_weight}kg from cell ${selection.cell_reference}`);
-        return;
-      }
+    if (selectedProducts.length === 0) {
+      setError("Please select at least one product");
+      return;
+    }
+
+    const validationError = validateQuantities();
+    if (validationError) {
+      setError(validationError);
+      return;
     }
 
     setIsSubmitting(true);
-    setInventoryError("");
+    setError("");
 
     try {
-      const inventory_selections = inventorySelections.map(selection => ({
-        inventory_id: selection.inventory_id,
-        requested_qty: selection.requested_qty,
-        requested_weight: selection.requested_weight,
-        packaging_code: selection.packaging_code || 37, // Include packaging_code
-        packaging_type: selection.packaging_type,
-        packaging_status: selection.packaging_status,
+      const inventory_selections = selectedProducts.map(product => ({
+        allocation_id: product.allocation_id,
+        inventory_id: product.inventory_id,
+        entry_order_product_id: product.entry_order_product_id,
+        requested_qty: product.requested_qty,
+        requested_weight: product.requested_weight,
       }));
 
       const submissionData = {
         departure_order_no: formData.departure_order_no,
-        registration_date: formData.registration_date.toISOString(),
-        document_no: formData.document_no,
-        document_date: formData.document_date.toISOString(),
-        date_and_time_of_transfer: formData.date_and_time_of_transfer.toISOString(),
-        arrival_point: formData.arrival_point,
-        id_responsible: formData.id_responsible.value,
         customer_id: formData.customer_id.value,
+        warehouse_id: selectedWarehouse.value,
         document_type_id: formData.document_type_id.value,
-        warehouse_id: formData.warehouse_id.value,
+        document_number: formData.document_no,
+        document_date: formData.document_date.toISOString(),
         departure_date: formData.departure_date.toISOString(),
-        responsible_for_collection: formData.responsible_for_collection,
-        order_progress: formData.order_progress,
-        observation: formData.observation,
-        departure_transfer_note: formData.departure_transfer_note,
-        packaging_list: formData.packaging_list,
-        total_volume: formData.total_volume ? parseFloat(formData.total_volume) : undefined,
-        palettes: formData.palettes ? parseInt(formData.palettes) : undefined,
-        insured_value: formData.insured_value ? parseFloat(formData.insured_value) : undefined,
-        product_description: formData.product_description,
-        type: formData.type,
+        arrival_point: formData.arrival_point,
+        observations: formData.observations,
         inventory_selections,
-        organisation_id: localStorage.getItem("organisation_id"),
-        created_by: localStorage.getItem("id"),
-        order_type: "DEPARTURE",
       };
-
-      console.log("Submitting departure order data:", submissionData);
 
       await ProcessService.createDepartureOrderWithInventorySelections(submissionData);
       navigate("/processes/departure");
     } catch (error: any) {
-      console.error("Submission failed:", error);
-      
-      // Better error handling
-      let errorMessage = "Failed to create departure order. Please try again.";
-      
-      if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      setInventoryError(errorMessage);
+      console.error("Failed to create departure order:", error);
+      setError(error.message || "Failed to create departure order");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const selectedProductData = useMemo(() => {
-    return productsWithInventory.find(p => p.entry_order_product_id === selectedProduct);
-  }, [productsWithInventory, selectedProduct]);
+  const totalSelectedProducts = selectedProducts.length;
+  const totalRequestedQty = selectedProducts.reduce((sum, product) => sum + product.requested_qty, 0);
+  const totalRequestedWeight = selectedProducts.reduce((sum, product) => sum + product.requested_weight, 0);
 
-  const totalSelectedQty = useMemo(() => {
-    return inventorySelections.reduce((sum, selection) => sum + selection.requested_qty, 0);
-  }, [inventorySelections]);
+  const isLoadingEntryOrders = loaders["processes/fetch-entry-orders-for-departure"];
+  const isLoadingProducts = loaders["processes/fetch-products-by-entry-order"];
+  const isLoadingFormFields = loaders["processes/load-departure-form-fields"];
 
-  const totalSelectedWeight = useMemo(() => {
-    return inventorySelections.reduce((sum, selection) => sum + selection.requested_weight, 0);
-  }, [inventorySelections]);
+  // Helper function to safely parse dates
+  const parseDate = (dateString: string) => {
+    if (!dateString || dateString === 'null' || dateString === 'undefined') return "N/A";
+    try {
+      const date = new Date(dateString);
+      return isNaN(date.getTime()) ? "N/A" : date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return "N/A";
+    }
+  };
 
   if (isLoadingFormFields) {
     return (
       <div className="flex items-center justify-center h-64">
-        <LoaderSync loaderText="Loading form..." />
+        <LoaderSync loaderText={t('common:loading')} />
       </div>
     );
   }
 
-  // Format dropdown options to match your codebase pattern
-  const customerOptions = departureFormFields.customers?.map((c: any) => ({
-    option: c.label,
-    value: c.value,
-    label: c.label,
-  })) || [];
-
+  // Format dropdown options
   const warehouseOptions = warehouses.map(w => ({
     option: w.name,
     value: w.warehouse_id,
     label: w.name,
   }));
+
+  const customerOptions = departureFormFields.customers?.map((c: any) => ({
+    option: c.label,
+    value: c.value,
+    label: c.label,
+  })) || [];
 
   const documentTypeOptions = departureFormFields.documentTypes?.map((dt: any) => ({
     option: dt.label,
@@ -284,18 +366,18 @@ const DepartureApprovedForm: React.FC = () => {
   })) || [];
 
   return (
-    <form className="order_entry_form" onSubmit={onSubmit}>
+    <form className="order_entry_form" onSubmit={handleSubmit}>
       {/* Departure Order Header Information */}
       <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
         <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-          Departure Order Information
+          {t('process:departure_information')}
         </Text>
 
         <div className="w-full flex items-center gap-x-6">
           {/* Departure Order No */}
           <div className="w-full flex flex-col">
             <label htmlFor="departure_order_no">
-              Departure Order No. *
+              {t('process:departure_order_no')} *
             </label>
             <input
               type="text"
@@ -310,7 +392,7 @@ const DepartureApprovedForm: React.FC = () => {
 
           {/* Customer */}
           <div className="w-full flex flex-col">
-            <label htmlFor="customer">Customer *</label>
+            <label htmlFor="customer">{t('process:customer')} *</label>
             <Select
               options={customerOptions}
               styles={reactSelectStyle}
@@ -323,14 +405,14 @@ const DepartureApprovedForm: React.FC = () => {
 
           {/* Warehouse */}
           <div className="w-full flex flex-col">
-            <label htmlFor="warehouse">Warehouse *</label>
+            <label htmlFor="warehouse">{t('process:warehouse')} *</label>
             <Select
               options={warehouseOptions}
               styles={reactSelectStyle}
               inputId="warehouse"
               name="warehouse"
-              value={formData.warehouse_id}
-              onChange={(selectedOption) => handleSelectChange("warehouse_id", selectedOption)}
+              value={selectedWarehouse}
+              onChange={handleWarehouseChange}
             />
           </div>
         </div>
@@ -338,6 +420,27 @@ const DepartureApprovedForm: React.FC = () => {
         <Divider />
 
         <div className="w-full flex items-center gap-x-6">
+          {/* Entry Order */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="entry_order">Entry Order *</label>
+            {isLoadingEntryOrders ? (
+              <div className="h-10 flex items-center justify-center border border-slate-400 rounded-md">
+                <LoaderSync loaderText="Loading..." />
+              </div>
+            ) : (
+              <Select
+                options={availableEntryOrders}
+                styles={reactSelectStyle}
+                inputId="entry_order"
+                name="entry_order"
+                value={selectedEntryOrder}
+                onChange={handleEntryOrderChange}
+                placeholder={selectedWarehouse ? "Select entry order..." : "Select warehouse first"}
+                isDisabled={!selectedWarehouse || availableEntryOrders.length === 0}
+              />
+            )}
+          </div>
+
           {/* Document Type */}
           <div className="w-full flex flex-col">
             <label htmlFor="document_type">Document Type *</label>
@@ -351,38 +454,6 @@ const DepartureApprovedForm: React.FC = () => {
             />
           </div>
 
-          {/* Registration Date */}
-          <div className="w-full flex flex-col">
-            <label htmlFor="registration_date">Registration Date *</label>
-            <DatePicker
-              showTimeSelect
-              dateFormat="Pp"
-              className="w-full border border-slate-400 h-10 rounded-md pl-4"
-              id="registration_date"
-              name="registration_date"
-              selected={formData.registration_date}
-              onChange={(date) => handleDateChange(date, "registration_date")}
-            />
-          </div>
-
-          {/* Document Date */}
-          <div className="w-full flex flex-col">
-            <label htmlFor="document_date">Document Date *</label>
-            <DatePicker
-              showTimeSelect
-              dateFormat="Pp"
-              className="w-full border border-slate-400 h-10 rounded-md pl-4"
-              id="document_date"
-              name="document_date"
-              selected={formData.document_date}
-              onChange={(date) => handleDateChange(date, "document_date")}
-            />
-          </div>
-        </div>
-
-        <Divider />
-
-        <div className="w-full flex items-center gap-x-6">
           {/* Document No */}
           <div className="w-full flex flex-col">
             <label htmlFor="document_no">Document No. *</label>
@@ -396,57 +467,27 @@ const DepartureApprovedForm: React.FC = () => {
               required
             />
           </div>
-
-          {/* Date and Time of Transfer */}
-          <div className="w-full flex flex-col">
-            <label htmlFor="date_and_time_of_transfer">
-              Date and Time of Transfer *
-            </label>
-            <DatePicker
-              showTimeSelect
-              dateFormat="Pp"
-              className="w-full border border-slate-400 h-10 rounded-md pl-4"
-              id="date_and_time_of_transfer"
-              name="date_and_time_of_transfer"
-              selected={formData.date_and_time_of_transfer}
-              onChange={(date) => handleDateChange(date, "date_and_time_of_transfer")}
-            />
-          </div>
-
-          {/* Arrival Point */}
-          <div className="w-full flex flex-col">
-            <label htmlFor="arrival_point">Arrival Point *</label>
-            <input
-              type="text"
-              id="arrival_point"
-              name="arrival_point"
-              value={formData.arrival_point}
-              onChange={handleInputChange}
-              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
-              required
-            />
-          </div>
         </div>
 
         <Divider />
 
         <div className="w-full flex items-center gap-x-6">
-          {/* Responsible Person */}
+          {/* Document Date */}
           <div className="w-full flex flex-col">
-            <label htmlFor="id_responsible">Responsible Person *</label>
-            <Select
-              options={userOptions}
-              styles={reactSelectStyle}
-              inputId="id_responsible"
-              name="id_responsible"
-              value={formData.id_responsible}
-              onChange={(selectedOption) => handleSelectChange("id_responsible", selectedOption)}
+            <label htmlFor="document_date">Document Date *</label>
+            <DatePicker
+              dateFormat="Pp"
+              className="w-full border border-slate-400 h-10 rounded-md pl-4"
+              id="document_date"
+              name="document_date"
+              selected={formData.document_date}
+              onChange={(date) => handleDateChange(date, "document_date")}
             />
           </div>
 
           {/* Departure Date */}
           <div className="w-full flex flex-col">
-            <label htmlFor="departure_date">Departure Date</label>
+            <label htmlFor="departure_date">Departure Date *</label>
             <DatePicker
               showTimeSelect
               dateFormat="Pp"
@@ -458,15 +499,14 @@ const DepartureApprovedForm: React.FC = () => {
             />
           </div>
 
-          {/* Total Volume */}
+          {/* Arrival Point */}
           <div className="w-full flex flex-col">
-            <label htmlFor="total_volume">Total Volume (m³)</label>
+            <label htmlFor="arrival_point">Arrival Point</label>
             <input
-              type="number"
-              step="0.01"
-              id="total_volume"
-              name="total_volume"
-              value={formData.total_volume}
+              type="text"
+              id="arrival_point"
+              name="arrival_point"
+              value={formData.arrival_point}
               onChange={handleInputChange}
               className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
             />
@@ -476,14 +516,15 @@ const DepartureApprovedForm: React.FC = () => {
         <Divider />
 
         <div className="w-full flex items-center gap-x-6">
-          {/* Palettes */}
+          {/* Total Volume */}
           <div className="w-full flex flex-col">
-            <label htmlFor="palettes">Palettes</label>
+            <label htmlFor="total_volume">Total Volume (m³)</label>
             <input
               type="number"
-              id="palettes"
-              name="palettes"
-              value={formData.palettes}
+              step="0.01"
+              id="total_volume"
+              name="total_volume"
+              value={formData.total_volume}
               onChange={handleInputChange}
               className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
             />
@@ -503,214 +544,191 @@ const DepartureApprovedForm: React.FC = () => {
             />
           </div>
 
-          {/* Type */}
-          <div className="w-full flex flex-col">
-            <label htmlFor="type">Type</label>
-            <input
-              type="text"
-              id="type"
-              name="type"
-              value={formData.type}
-              onChange={handleInputChange}
-              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
-            />
-          </div>
+          {/* Spacer for alignment */}
+          <div className="w-full"></div>
         </div>
 
         <Divider />
 
-        {/* Additional Information */}
-        <div className="w-full flex items-center gap-x-6">
-          <div className="w-full flex flex-col">
-            <label htmlFor="product_description">Product Description</label>
-            <textarea
-              id="product_description"
-              name="product_description"
-              value={formData.product_description}
-              onChange={handleInputChange}
-              rows={3}
-              className="border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-primary-500"
-            />
-          </div>
-          <div className="w-full flex flex-col">
-            <label htmlFor="observation">Observation</label>
-            <textarea
-              id="observation"
-              name="observation"
-              value={formData.observation}
-              onChange={handleInputChange}
-              rows={3}
-              className="border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-primary-500"
-            />
-          </div>
+        {/* Observations */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="observations">Observations</label>
+          <textarea
+            id="observations"
+            name="observations"
+            value={formData.observations}
+            onChange={handleInputChange}
+            rows={3}
+            className="border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-primary-500"
+          />
         </div>
       </div>
 
+      {/* Selected Entry Order Summary */}
+      {selectedEntryOrder && (
+        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+          <Text size="lg" weight="font-semibold" additionalClass="mb-2 text-blue-800">
+            Selected Entry Order: {selectedEntryOrder.entry_order_no}
+          </Text>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+            <div>
+              <span className="text-blue-600">Customer:</span>
+              <div className="font-medium">{selectedEntryOrder.customer_name || 'N/A'}</div>
+            </div>
+            <div>
+              <span className="text-blue-600">Entry Date:</span>
+              <div className="font-medium">{parseDate(selectedEntryOrder.entry_date)}</div>
+            </div>
+            <div>
+              <span className="text-blue-600">Available Products:</span>
+              <div className="font-medium">{entryOrderProducts.length}</div>
+            </div>
+            <div>
+              <span className="text-blue-600">Total Weight:</span>
+              <div className="font-medium">{selectedEntryOrder.total_weight?.toFixed(2)} kg</div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Product Selection Section */}
-      {formData.warehouse_id.value && (
+      {selectedEntryOrder && (
         <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
           <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-            Select Products ({productsWithInventory.length} available)
+            Select Products for Departure ({entryOrderProducts.length} available)
           </Text>
           
           {isLoadingProducts ? (
             <div className="flex justify-center py-4">
               <LoaderSync loaderText="Loading products..." />
             </div>
-          ) : productsWithInventory.length === 0 ? (
+          ) : entryOrderProducts.length === 0 ? (
             <Text additionalClass="text-gray-500">
-              No products with inventory available in this warehouse
-            </Text>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-80 overflow-y-auto">
-              {productsWithInventory.map((product) => (
-                <div
-                  key={product.entry_order_product_id}
-                  className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-sm ${
-                    selectedProduct === product.entry_order_product_id
-                      ? 'border-blue-500 bg-blue-50'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => handleProductSelect(product.entry_order_product_id)}
-                >
-                  <div className="space-y-2">
-                    <Text weight="font-semibold" additionalClass="text-gray-800">
-                      {product.product_name}
-                    </Text>
-                    <Text size="sm" additionalClass="text-gray-600">
-                      Code: {product.product_code}
-                    </Text>
-                    <Text size="sm" additionalClass="text-gray-600">
-                      Entry Order: {product.entry_order_no}
-                    </Text>
-                    <Text size="sm" additionalClass="text-gray-600">
-                      Supplier: {product.supplier_name}
-                    </Text>
-                    <div className="text-sm space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Available:</span>
-                        <span className="font-medium">{product.total_packaging} pkg</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Weight:</span>
-                        <span className="font-medium">{product.total_weight?.toFixed(2) || 0} kg</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-500">Locations:</span>
-                        <span className="font-medium">{product.location_count} cells</span>
-                      </div>
-                    </div>
-                    
-                    {product.expiration_date && (
-                      <Text size="xs" additionalClass="text-orange-600">
-                        Expires: {new Date(product.expiration_date).toLocaleDateString()}
-                      </Text>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Cell Selection Section */}
-      {selectedProduct && selectedProductData && (
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-          <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-            Select Cells for {selectedProductData.product_name}
-          </Text>
-          
-          {isLoadingCells ? (
-            <div className="flex justify-center py-4">
-              <LoaderSync loaderText="Loading available cells..." />
-            </div>
-          ) : availableCells.length === 0 ? (
-            <Text additionalClass="text-gray-500">
-              No available cells for this product in the selected warehouse
+              No products available for this entry order
             </Text>
           ) : (
             <div className="space-y-4">
-              {availableCells.map((cell) => (
-                <CellSelectionRow
-                  key={cell.inventory_id}
-                  cell={cell}
-                  onSelect={handleCellSelection}
-                  disabled={inventorySelections.some(s => s.inventory_id === cell.inventory_id)}
-                />
-              ))}
+              <div className="overflow-x-auto">
+                <table className="w-full border-collapse border border-gray-300">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="border border-gray-300 p-2 text-center">Select</th>
+                      <th className="border border-gray-300 p-2 text-left">Product</th>
+                      <th className="border border-gray-300 p-2 text-left">LOT Number</th>
+                      <th className="border border-gray-300 p-2 text-center">Available</th>
+                      <th className="border border-gray-300 p-2 text-center">Request Qty</th>
+                      <th className="border border-gray-300 p-2 text-center">Request Weight</th>
+                      <th className="border border-gray-300 p-2 text-left">Cell Position</th>
+                      <th className="border border-gray-300 p-2 text-left">Dates</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entryOrderProducts.map((product) => {
+                      const isSelected = selectedProducts.some(p => p.allocation_id === product.allocation_id);
+                      return (
+                        <tr key={product.allocation_id} className="hover:bg-gray-50">
+                          <td className="border border-gray-300 p-2 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => handleProductSelect(product, e.target.checked)}
+                              className="w-4 h-4"
+                            />
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            <div>
+                              <div className="font-medium">{product.product_name || 'N/A'}</div>
+                              <div className="text-sm text-gray-600">{product.product_code || 'N/A'}</div>
+                              <div className="text-sm text-gray-500">{product.supplier_name || 'N/A'}</div>
+                            </div>
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            <div>{product.lot_number || 'N/A'}</div>
+                            <div className="text-xs text-gray-500">
+                              Quality: {product.quality_status || 'N/A'}
+                            </div>
+                          </td>
+                          <td className="border border-gray-300 p-2 text-center">
+                            <div className="font-medium">{product.max_selectable_quantity || 0} units</div>
+                            <div className="text-sm text-gray-600">{product.max_selectable_packages || 0} pkg</div>
+                            <div className="text-sm text-gray-600">{product.max_selectable_weight?.toFixed(2) || '0.00'} kg</div>
+                          </td>
+                          <td className="border border-gray-300 p-2 text-center">
+                            {isSelected ? (
+                              <input
+                                type="number"
+                                min="1"
+                                max={product.max_selectable_quantity}
+                                value={selectedProducts.find(p => p.allocation_id === product.allocation_id)?.requested_qty || 1}
+                                onChange={(e) => handleQuantityChange(product.allocation_id, 'requested_qty', e.target.value)}
+                                className="w-16 h-8 border border-gray-300 rounded px-2 text-center"
+                              />
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="border border-gray-300 p-2 text-center">
+                            {isSelected ? (
+                              <input
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                max={product.max_selectable_weight}
+                                value={selectedProducts.find(p => p.allocation_id === product.allocation_id)?.requested_weight || 1}
+                                onChange={(e) => handleQuantityChange(product.allocation_id, 'requested_weight', e.target.value)}
+                                className="w-20 h-8 border border-gray-300 rounded px-2 text-center"
+                              />
+                            ) : (
+                              <span className="text-gray-400">-</span>
+                            )}
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            <div className="text-sm font-medium">{product.cell_position || 'N/A'}</div>
+                            <div className="text-xs text-gray-500">{product.packaging_type || 'N/A'}</div>
+                          </td>
+                          <td className="border border-gray-300 p-2">
+                            <div className="text-xs">
+                              <div>Mfg: {parseDate(product.manufacturing_date)}</div>
+                              <div>Exp: {parseDate(product.expiration_date)}</div>
+                              <div>Entry: {parseDate(product.entry_date_time)}</div>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {/* Selected Inventory Summary */}
-      {inventorySelections.length > 0 && (
-        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-          <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
-            Selected Inventory Summary
-          </Text>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div className="text-center p-4 bg-white rounded border">
-              <Text size="xl" weight="font-bold" additionalClass="text-blue-600">
-                {totalSelectedQty}
-              </Text>
-              <Text size="sm" additionalClass="text-gray-600">Total Packages</Text>
+      {/* Selection Summary */}
+      {selectedProducts.length > 0 && (
+        <div className="bg-white p-4 rounded border mb-6">
+          <Text weight="font-semibold" additionalClass="mb-2">Selection Summary</Text>
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            <div className="text-center">
+              <div className="text-xl font-bold text-blue-600">{totalSelectedProducts}</div>
+              <div className="text-gray-600">Products Selected</div>
             </div>
-            <div className="text-center p-4 bg-white rounded border">
-              <Text size="xl" weight="font-bold" additionalClass="text-green-600">
-                {totalSelectedWeight.toFixed(2)}
-              </Text>
-              <Text size="sm" additionalClass="text-gray-600">Total Weight (kg)</Text>
+            <div className="text-center">
+              <div className="text-xl font-bold text-green-600">{totalRequestedQty}</div>
+              <div className="text-gray-600">Total Quantity</div>
             </div>
-            <div className="text-center p-4 bg-white rounded border">
-              <Text size="xl" weight="font-bold" additionalClass="text-purple-600">
-                {inventorySelections.length}
-              </Text>
-              <Text size="sm" additionalClass="text-gray-600">Cells Selected</Text>
+            <div className="text-center">
+              <div className="text-xl font-bold text-purple-600">{totalRequestedWeight.toFixed(2)}</div>
+              <div className="text-gray-600">Total Weight (kg)</div>
             </div>
-          </div>
-          
-          <div className="space-y-2 max-h-60 overflow-y-auto">
-            {inventorySelections.map((selection) => (
-              <div key={selection.inventory_id} className="flex items-center justify-between bg-white p-3 rounded border">
-                <div className="flex-1">
-                  <Text weight="font-medium">
-                    {selection.product_name} - Cell {selection.cell_reference}
-                  </Text>
-                  <Text size="sm" additionalClass="text-gray-600">
-                    {selection.requested_qty} packages ({selection.requested_weight}kg) from {selection.entry_order_no}
-                  </Text>
-                </div>
-                <Button
-                  type="button"
-                  variant="cancel"
-                  size="sm"
-                  onClick={() => handleRemoveSelection(selection.inventory_id)}
-                >
-                  Remove
-                </Button>
-              </div>
-            ))}
           </div>
         </div>
       )}
 
-      {/* Error and Status Messages */}
-      {inventoryError && (
+      {/* Error Messages */}
+      {error && (
         <div className="bg-red-100 text-red-800 p-4 rounded-lg mb-4">
-          <Text>{inventoryError}</Text>
-        </div>
-      )}
-
-      {submitStatus.message && (
-        <div className={`p-4 rounded-lg mb-4 ${
-          submitStatus.success 
-            ? "bg-green-100 text-green-800"
-            : "bg-red-100 text-red-800"
-        }`}>
-          <Text>{submitStatus.message}</Text>
+          <Text>{error}</Text>
         </div>
       )}
 
@@ -720,17 +738,16 @@ const DepartureApprovedForm: React.FC = () => {
           type="button"
           variant="cancel"
           onClick={() => navigate(-1)}
-          additionalClass="px-6 py-2"
           disabled={isSubmitting}
         >
           Cancel
         </Button>
 
         <Button
-          disabled={inventorySelections.length === 0 || isSubmitting}
-          variant="action"
-          additionalClass="w-40"
           type="submit"
+          variant="action"
+          disabled={!selectedEntryOrder || selectedProducts.length === 0 || isSubmitting}
+          additionalClass="w-48"
         >
           {isSubmitting ? "Creating..." : "Create Departure Order"}
         </Button>
@@ -739,89 +756,4 @@ const DepartureApprovedForm: React.FC = () => {
   );
 };
 
-// Cell Selection Row Component
-interface CellSelectionRowProps {
-  cell: any;
-  onSelect: (cell: any, qty: number, weight: number) => void;
-  disabled: boolean;
-}
-
-const CellSelectionRow: React.FC<CellSelectionRowProps> = ({ cell, onSelect, disabled }) => {
-  const [requestedQty, setRequestedQty] = useState<string>("");
-  const [requestedWeight, setRequestedWeight] = useState<string>("");
-
-  const handleSelect = () => {
-    const qty = parseInt(requestedQty);
-    const weight = parseFloat(requestedWeight);
-    
-    if (qty > 0 && weight > 0) {
-      onSelect(cell, qty, weight);
-      setRequestedQty("");
-      setRequestedWeight("");
-    }
-  };
-
-  return (
-    <div className={`border rounded-lg p-4 bg-white ${disabled ? 'opacity-50' : ''}`}>
-      <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
-        <div className="md:col-span-2">
-          <Text weight="font-medium">Cell {cell.cell_reference}</Text>
-          <Text size="sm" additionalClass="text-gray-600">
-            {cell.warehouse_name}
-          </Text>
-          <Text size="sm" additionalClass="text-gray-600">
-            Order: {cell.entry_order_no}
-          </Text>
-        </div>
-        
-        <div>
-          <Text size="sm" additionalClass="text-gray-500">Available</Text>
-          <Text weight="font-medium">{cell.available_packaging} pkg</Text>
-          <Text size="sm">{cell.available_weight?.toFixed(2) || 0} kg</Text>
-        </div>
-        
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Request Qty</label>
-          <input
-            type="number"
-            value={requestedQty}
-            onChange={(e) => setRequestedQty(e.target.value)}
-            max={cell.available_packaging}
-            min="1"
-            className="w-full h-8 border border-slate-400 rounded px-2 text-sm focus-visible:outline-primary-500"
-            disabled={disabled}
-          />
-        </div>
-        
-        <div>
-          <label className="block text-xs text-gray-500 mb-1">Request Weight (kg)</label>
-          <input
-            type="number"
-            step="0.01"
-            value={requestedWeight}
-            onChange={(e) => setRequestedWeight(e.target.value)}
-            max={cell.available_weight}
-            min="0.01"
-            className="w-full h-8 border border-slate-400 rounded px-2 text-sm focus-visible:outline-primary-500"
-            disabled={disabled}
-          />
-        </div>
-        
-        <div>
-          <Button
-            type="button"
-            variant="action"
-            size="sm"
-            onClick={handleSelect}
-            disabled={disabled || !requestedQty || !requestedWeight}
-            additionalClass="w-full"
-          >
-            {disabled ? "Selected" : "Select"}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default DepartureApprovedForm;
+export default DepartureApprovedForm; 

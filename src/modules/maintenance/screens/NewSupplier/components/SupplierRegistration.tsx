@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import Select, { CSSObjectWithLabel, SingleValue } from "react-select";
 import { Button, Divider } from "@/components";
 import { SupplierService } from "@/modules/maintenance/api/maintenance.service";
@@ -30,6 +31,7 @@ interface CountryOption {
 }
 
 const SupplierRegistration: React.FC = () => {
+  const { t } = useTranslation(['maintenance', 'common']);
   const navigate = useNavigate();
   const { countries, loaders, startLoader, stopLoader } = MaintenanceStore();
 
@@ -62,7 +64,7 @@ const SupplierRegistration: React.FC = () => {
     e.preventDefault();
 
     if (!formData.country) {
-      alert("Please select a country");
+      alert(t('please_select_country'));
       return;
     }
 
@@ -93,7 +95,7 @@ const SupplierRegistration: React.FC = () => {
       navigate(-1);
     } catch (error) {
       console.error("Error creating supplier:", error);
-      alert("Failed to create supplier");
+      alert(t('failed_create_supplier'));
     } finally {
       stopLoader("suppliers/create-supplier");
     }
@@ -104,7 +106,7 @@ const SupplierRegistration: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* Company Name */}
         <div className="w-full flex flex-col">
-          <label htmlFor="companyName">Company Name</label>
+          <label htmlFor="companyName">{t('company_name')}</label>
           <input
             type="text"
             id="companyName"
@@ -118,7 +120,7 @@ const SupplierRegistration: React.FC = () => {
 
         {/* RUC */}
         <div className="w-full flex flex-col">
-          <label htmlFor="ruc">RUC</label>
+          <label htmlFor="ruc">{t('ruc')}</label>
           <input
             type="text"
             id="ruc"
@@ -136,7 +138,7 @@ const SupplierRegistration: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* Address */}
         <div className="w-full flex flex-col">
-          <label htmlFor="address">Address</label>
+          <label htmlFor="address">{t('address')}</label>
           <input
             type="text"
             id="address"
@@ -149,7 +151,7 @@ const SupplierRegistration: React.FC = () => {
 
         {/* City */}
         <div className="w-full flex flex-col">
-          <label htmlFor="city">City</label>
+          <label htmlFor="city">{t('city')}</label>
           <input
             type="text"
             id="city"
@@ -166,7 +168,7 @@ const SupplierRegistration: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* Country */}
         <div className="w-full flex flex-col">
-          <label htmlFor="country">Country</label>
+          <label htmlFor="country">{t('country')}</label>
           <Select
             options={countries}
             styles={reactSelectStyle}
@@ -174,14 +176,14 @@ const SupplierRegistration: React.FC = () => {
             name="country"
             onChange={(selected) => handleSelectChange("country", selected)}
             value={formData.country || null}
-            placeholder="Select Country"
+            placeholder={t('select_country')}
             isSearchable
           />
         </div>
 
         {/* Phone */}
         <div className="w-full flex flex-col">
-          <label htmlFor="phone">Phone</label>
+          <label htmlFor="phone">{t('phone')}</label>
           <input
             type="text"
             id="phone"
@@ -209,7 +211,7 @@ const SupplierRegistration: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* Email */}
         <div className="w-full flex flex-col">
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">{t('email')}</label>
           <input
             type="email"
             id="email"
@@ -230,7 +232,7 @@ const SupplierRegistration: React.FC = () => {
           type="submit"
           disabled={loaders["suppliers/create-supplier"]}
         >
-          {loaders["suppliers/create-supplier"] ? "Registering..." : "Register"}
+          {loaders["suppliers/create-supplier"] ? t('registering') : t('register')}
         </Button>
 
         <Button
@@ -249,7 +251,7 @@ const SupplierRegistration: React.FC = () => {
             })
           }
         >
-          Cancel
+          {t('common:cancel')}
         </Button>
       </div>
     </form>

@@ -18,7 +18,7 @@ type Props = {
 };
 
 const HomeRoute: React.FC<Props> = ({ item }) => {
-  const isActive = location.pathname === item.route;
+  const isActive = window.location.pathname === item.route;
 
   return (
     <AccordionItem
@@ -32,7 +32,7 @@ const HomeRoute: React.FC<Props> = ({ item }) => {
               size={20}
               weight={isActive ? "bold" : "regular"}
             />
-            <Text color="text-white">Home</Text>
+            <Text color="text-white">{item.title}</Text>
           </div>
         </NavLink>
       )}

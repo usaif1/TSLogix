@@ -95,7 +95,16 @@ export type ProcessLoaderTypes =
   | "processes/validate-cell"
   | "processes/submit-departure"
   | "processes/fetch-departure-orders"
-  | "processes/load-departure-form-fields";
+  | "processes/load-departure-form-fields"
+  | "processes/get-departure-order-no"
+  | "processes/create-departure-order"
+  | "processes/fetch-entry-orders-for-departure"
+  | "processes/fetch-products-by-entry-order"
+  | "processes/fetch-cells-for-entry-product"
+  | "processes/validate-departure-cell"
+  | "processes/validate-multiple-departure-cells"
+  | "processes/fetch-departure-inventory-summary"
+  | "processes/create-departure-from-entry";
 
 // Legacy single-product fields (kept for backward compatibility if needed)
 export interface LegacyEntryFormData {
@@ -219,16 +228,38 @@ export interface DocumentType {
 // ✅ NEW: Inventory Selection interface
 export interface InventorySelection {
   inventory_id: string;
-  selected_quantity: number;
-  cell_id?: string;
+  entry_order_product_id?: string;
+  cell_reference?: string;
+  warehouse_name?: string;
+  product_code?: string;
+  product_name?: string;
+  requested_qty: number;
+  requested_weight: number;
+  available_packaging?: number;
+  available_weight?: number;
+  packaging_type?: string;
+  packaging_status?: string;
+  packaging_code?: number;
+  entry_order_no?: string;
+  expiration_date?: string;
+  selected_quantity?: number; // Legacy compatibility
+  cell_id?: string; // Legacy compatibility
   observations?: string;
 }
 
 // ✅ NEW: Product with Inventory interface
 export interface ProductWithInventory {
+  entry_order_product_id: string;
   product_id: string;
   product_code: string;
-  name: string;
+  product_name: string;
+  name?: string; // Alternative name field
+  entry_order_no: string;
+  supplier_name: string;
+  total_packaging: number;
+  total_weight: number;
+  location_count: number;
+  expiration_date?: string;
   inventory: any[];
 }
 

@@ -12,6 +12,10 @@ import inventoryEn from './locales/en/inventory.json';
 import inventoryEs from './locales/es/inventory.json';
 import processEn from './locales/en/process.json';
 import processEs from './locales/es/process.json';
+import maintenanceEn from './locales/en/maintenance.json';
+import maintenanceEs from './locales/es/maintenance.json';
+import componentsEn from './locales/en/components.json';
+import componentsEs from './locales/es/components.json';
 
 const resources = {
   en: {
@@ -20,6 +24,8 @@ const resources = {
     warehouse: warehouseEn,
     inventory: inventoryEn,
     process: processEn,
+    maintenance: maintenanceEn,
+    components: componentsEn,
   },
   es: {
     common: commonEs,
@@ -27,6 +33,8 @@ const resources = {
     warehouse: warehouseEs,
     inventory: inventoryEs,
     process: processEs,
+    maintenance: maintenanceEs,
+    components: componentsEs,
   },
 };
 
@@ -39,7 +47,7 @@ i18n
     debug: process.env.NODE_ENV === 'development',
     
     // Have a common namespace used around the app
-    ns: ['common', 'home', 'warehouse', 'inventory', 'process'],
+    ns: ['common', 'home', 'warehouse', 'inventory', 'process', 'maintenance', 'components'],
     defaultNS: 'common',
     
     interpolation: {

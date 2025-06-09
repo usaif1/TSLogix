@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 // store
 import { MaintenanceStore } from "@/globalStore";
@@ -6,24 +7,25 @@ import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
 
 const EntryRecordsTable: React.FC = () => {
+  const { t } = useTranslation(['maintenance', 'common']);
   const suppliers = MaintenanceStore.use.suppliers();
 
   const columns = useMemo(
     () =>
       createTableColumns([
-        { accessor: "name", header: "Supplier" },
-        { accessor: "email", header: "Supplier Email" },
-        { accessor: "phone", header: "Supplier Phone" },
-        { accessor: "address", header: "Address" },
-        { accessor: "city", header: "City" },
+        { accessor: "name", header: t('supplier_name') },
+        { accessor: "email", header: t('supplier_email') },
+        { accessor: "phone", header: t('supplier_phone') },
+        { accessor: "address", header: t('address') },
+        { accessor: "city", header: t('city') },
         {
           accessor: "country",
-          header: "Country",
+          header: t('country'),
           cell: ({ row }) => row.original.country?.name || "", 
         },
-        { accessor: "ruc", header: "RUC" },
+        { accessor: "ruc", header: t('ruc') },
       ]),
-    []
+    [t]
   );
 
   return (
@@ -32,7 +34,7 @@ const EntryRecordsTable: React.FC = () => {
         data={suppliers}
         columns={columns}
         showPagination={true}
-        emptyMessage="No entry orders found"
+        emptyMessage={t('no_suppliers_found')}
       />
     </div>
   );

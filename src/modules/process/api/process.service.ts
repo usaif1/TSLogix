@@ -6,7 +6,7 @@ import { EntryOrder, EntryFormFields, EntryOrderReview, InventorySelection } fro
 const entryBaseURL = "/entry";
 const departureBaseURL = "/departure";
 const inventoryBaseURL = "/inventory";
-const warehouseBaseURL = "/warehouses";
+const warehouseBaseURL = "/warehouse";
 
 // Define interfaces for better type safety
 interface ReviewPayload extends Omit<EntryOrderReview, 'reviewed_at'> {
@@ -607,7 +607,7 @@ export const ProcessService = {
     startLoader("processes/fetch-warehouses");
 
     try {
-      const response = await api.get(`${warehouseBaseURL}`);
+      const response = await api.get(`${warehouseBaseURL}/warehouses`);
       const warehouses = response.data.data || response.data;
       
       // Transform for consistent format
@@ -670,7 +670,7 @@ export const ProcessService = {
 
     try {
       const response = await api.get(
-        `${inventoryBaseURL}/available-cells/${productId}?warehouseId=${warehouseId}`
+        `${departureBaseURL}/cells-for-entry-product/${productId}?warehouseId=${warehouseId}`
       );
       const cells = response.data.data || response.data;
       
@@ -696,7 +696,7 @@ export const ProcessService = {
     startLoader("processes/validate-cell");
 
     try {
-      const response = await api.post(`${inventoryBaseURL}/validate-cell`, {
+      const response = await api.post(`${departureBaseURL}/validate-cell`, {
         cellId,
         productId,
         requestedQuantity,
@@ -723,15 +723,63 @@ export const ProcessService = {
 
     try {
       const response = await api.get(`${departureBaseURL}/departure-formfields`);
-      const formFields = response.data;
-      setDepartureFormFields(formFields);
-      return formFields;
+      const formFields = response.data.data || response.data;
+      
+      // Transform data to consistent format for React Select
+      const transformedFields = {
+        ...formFields,
+        customers: formFields.customers?.map((customer: any) => ({
+          value: customer.customer_id || customer.id,
+          label: customer.name || customer.company_name,
+          option: customer.name || customer.company_name
+        })) || [],
+        
+        documentTypes: formFields.documentTypes?.map((doc: any) => ({
+          value: doc.document_type_id || doc.id,
+          label: doc.name,
+          option: doc.name
+        })) || [],
+        
+        users: formFields.users?.map((user: any) => ({
+          value: user.id,
+          label: `${user.first_name} ${user.last_name}`,
+          option: `${user.first_name} ${user.last_name}`
+        })) || [],
+        
+        suppliers: formFields.suppliers?.map((supplier: any) => ({
+          value: supplier.supplier_id || supplier.id,
+          label: supplier.name,
+          option: supplier.name
+        })) || [],
+        
+        transportTypes: formFields.transportTypes?.map((transport: any) => ({
+          value: transport.value || transport.id,
+          label: transport.label || transport.name,
+          option: transport.label || transport.name
+        })) || [],
+        
+        destinations: formFields.destinations?.map((dest: any) => ({
+          value: dest.destination_id || dest.id,
+          label: dest.name,
+          option: dest.name
+        })) || []
+      };
+      
+      setDepartureFormFields(transformedFields);
+      return transformedFields;
     } catch (error) {
       console.error("Failed to load departure form fields:", error);
       throw error;
     } finally {
       stopLoader("processes/load-departure-form-fields");
     }
+  },
+
+  /**
+   * Alias for loadDepartureFormFields to match expected naming
+   */
+  fetchDepartureFormFields: async () => {
+    return ProcessService.loadDepartureFormFields();
   },
 
   /**
@@ -759,13 +807,208 @@ export const ProcessService = {
   },
 
   /**
-   * Create departure order with inventory selections
+   * Alias for fetchDepartureOrders with search support
    */
-  createDepartureOrderWithInventorySelections: async (formData: DepartureFormData) => {
-    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
-    startLoader("processes/submit-departure");
+  fetchAllDepartureOrders: async (searchQuery?: string) => {
+    const organisationId = localStorage.getItem("organisation_id");
+    return ProcessService.fetchDepartureOrders({ 
+      organisationId: organisationId || undefined, 
+      orderNo: searchQuery 
+    });
+  },
+
+  /**
+   * Get current departure order number
+   */
+  getCurrentDepartureOrderNo: async () => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/get-departure-order-no");
 
     try {
+      const response = await api.get(`${departureBaseURL}/current-departure-order-no`);
+      const orderNumber = response.data?.departure_order_no || response.data?.currentOrderNo;
+      return orderNumber;
+    } catch (error) {
+      console.error("Failed to get current departure order number:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/get-departure-order-no");
+    }
+  },
+
+  // =====================================
+  // NEW: ENTRY ORDER-CENTRIC DEPARTURE WORKFLOW
+  // =====================================
+
+  /**
+   * Step 1: Get entry orders that have approved inventory for departure
+   */
+  getEntryOrdersForDeparture: async (warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/fetch-entry-orders-for-departure");
+
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouse_id", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/entry-orders-for-departure?${params.toString()}`);
+      const entryOrders = response.data.data || response.data;
+      return entryOrders;
+    } catch (error) {
+      console.error("Failed to fetch entry orders for departure:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-entry-orders-for-departure");
+    }
+  },
+
+  /**
+   * Step 2: Get products from a specific entry order for departure
+   */
+  getProductsByEntryOrder: async (entryOrderId: string, warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/fetch-products-by-entry-order");
+
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouse_id", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/entry-order/${entryOrderId}/products?${params.toString()}`);
+      const products = response.data.data || response.data;
+      return products;
+    } catch (error) {
+      console.error("Failed to fetch products by entry order:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-products-by-entry-order");
+    }
+  },
+
+  /**
+   * Get available cells for a specific entry order product (for departure)
+   */
+  getCellsForEntryProduct: async (entryOrderProductId: string, warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/fetch-cells-for-entry-product");
+
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouseId", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/cells-for-entry-product/${entryOrderProductId}?${params.toString()}`);
+      const cells = response.data.data || response.data;
+      
+      return cells.map((cell: any) => ({
+        value: cell.cell_id || cell.id,
+        label: `${cell.cell_code} - Row: ${cell.row}, Bay: ${cell.bay}, Pos: ${cell.position}`,
+        option: `${cell.cell_code} - Available: ${cell.available_quantity || 0}`,
+        ...cell
+      }));
+    } catch (error) {
+      console.error("Failed to fetch cells for entry product:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-cells-for-entry-product");
+    }
+  },
+
+  /**
+   * Validate selected cell for departure
+   */
+  validateDepartureCell: async (inventoryId: string, requestedQty: number, requestedWeight: number) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/validate-departure-cell");
+
+    try {
+      const response = await api.post(`${departureBaseURL}/validate-cell`, {
+        inventory_id: inventoryId,
+        requested_qty: requestedQty,
+        requested_weight: requestedWeight,
+      });
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Failed to validate departure cell:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/validate-departure-cell");
+    }
+  },
+
+  /**
+   * Validate multiple cell selections for bulk departure
+   */
+  validateMultipleDepartureCells: async (inventorySelections: Array<{
+    inventory_id: string;
+    requested_qty: number;
+    requested_weight: number;
+  }>) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/validate-multiple-departure-cells");
+
+    try {
+      const response = await api.post(`${departureBaseURL}/validate-multiple-cells`, {
+        inventory_selections: inventorySelections,
+      });
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Failed to validate multiple departure cells:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/validate-multiple-departure-cells");
+    }
+  },
+
+  /**
+   * Get departure inventory summary by warehouse
+   */
+  getDepartureInventorySummary: async (warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/fetch-departure-inventory-summary");
+
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouseId", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/inventory-summary?${params.toString()}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Failed to fetch departure inventory summary:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-departure-inventory-summary");
+    }
+  },
+
+  /**
+   * Step 4: Create departure order with entry order-centric data
+   */
+  createDepartureOrderFromEntryOrder: async (formData: {
+    entry_order_id: string;
+    departure_order_no?: string;
+    customer_id: string;
+    warehouse_id: string;
+    departure_date: string;
+    document_type_id: string;
+    document_number: string;
+    document_date: string;
+    inventory_selections: Array<{
+      inventory_id: string;
+      requested_qty: number;
+      requested_weight: number;
+      observations?: string;
+    }>;
+    observations?: string;
+    uploaded_documents?: File[];
+  }) => {
+    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
+    startLoader("processes/create-departure-from-entry");
+
+    try {
+      // If no departure order number provided, generate one
+      if (!formData.departure_order_no) {
+        formData.departure_order_no = await ProcessService.getCurrentDepartureOrderNo();
+      }
+
       const payload = {
         ...formData,
         organisation_id: localStorage.getItem("organisation_id"),
@@ -777,22 +1020,40 @@ export const ProcessService = {
         throw new Error("At least one inventory selection is required");
       }
 
-      const response = await api.post(`${departureBaseURL}/create-departure-order`, payload);
+      // Validate each inventory selection
+      for (const [index, selection] of payload.inventory_selections.entries()) {
+        if (!selection.inventory_id) {
+          throw new Error(`Selection ${index + 1}: Inventory ID is required`);
+        }
+        if (!selection.requested_qty || selection.requested_qty <= 0) {
+          throw new Error(`Selection ${index + 1}: Requested quantity must be greater than 0`);
+        }
+        if (!selection.requested_weight || selection.requested_weight <= 0) {
+          throw new Error(`Selection ${index + 1}: Requested weight must be greater than 0`);
+        }
+      }
+
+      const response = await api.post(`${departureBaseURL}/orders`, payload);
 
       setSubmitStatus({
         success: true,
         message: "Departure order created successfully",
       });
 
+      // Refresh departure orders list
+      try {
+        await ProcessService.fetchDepartureOrders({ 
+          organisationId: localStorage.getItem("organisation_id") || undefined 
+        });
+      } catch (refreshError) {
+        console.warn("Failed to refresh departure orders list:", refreshError);
+      }
+
       return response.data;
-    } catch (error: unknown) {
+    } catch (error: any) {
       console.error("Failed to create departure order:", error);
       
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
-        || "Failed to create departure order";
-      
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create departure order";
       setSubmitStatus({
         success: false,
         message: errorMessage,
@@ -800,7 +1061,7 @@ export const ProcessService = {
       
       throw new Error(errorMessage);
     } finally {
-      stopLoader("processes/submit-departure");
+      stopLoader("processes/create-departure-from-entry");
     }
   },
 
@@ -816,7 +1077,7 @@ export const ProcessService = {
     startLoader("processes/load-products-inventory");
 
     try {
-      const response = await api.get(`${inventoryBaseURL}/products-with-inventory/${warehouseId}`);
+      const response = await api.get(`${departureBaseURL}/products-with-inventory?warehouseId=${warehouseId}`);
       const products = response.data.data || response.data;
       setProductsWithInventory(products);
       return products;
@@ -825,6 +1086,76 @@ export const ProcessService = {
       throw error;
     } finally {
       stopLoader("processes/load-products-inventory");
+    }
+  },
+
+  /**
+   * Create departure order with inventory selections (Traditional departure workflow)
+   */
+  createDepartureOrderWithInventorySelections: async (formData: any) => {
+    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
+    startLoader("processes/create-departure-order");
+
+    try {
+      // If no departure order number provided, generate one
+      if (!formData.departure_order_no) {
+        const orderNumber = await ProcessService.getCurrentDepartureOrderNo();
+        formData.departure_order_no = orderNumber;
+      }
+
+      const payload = {
+        ...formData,
+        organisation_id: localStorage.getItem("organisation_id"),
+        created_by: localStorage.getItem("id"),
+      };
+
+      // Validate inventory selections
+      if (!payload.inventory_selections || payload.inventory_selections.length === 0) {
+        throw new Error("At least one inventory selection is required");
+      }
+
+      // Validate each inventory selection
+      for (const [index, selection] of payload.inventory_selections.entries()) {
+        if (!selection.inventory_id) {
+          throw new Error(`Selection ${index + 1}: Inventory ID is required`);
+        }
+        if (!selection.requested_qty || selection.requested_qty <= 0) {
+          throw new Error(`Selection ${index + 1}: Requested quantity must be greater than 0`);
+        }
+        if (!selection.requested_weight || selection.requested_weight <= 0) {
+          throw new Error(`Selection ${index + 1}: Requested weight must be greater than 0`);
+        }
+      }
+
+      const response = await api.post(`${departureBaseURL}/create-departure-order`, payload);
+
+      setSubmitStatus({
+        success: true,
+        message: "Departure order created successfully",
+      });
+
+      // Refresh departure orders list
+      try {
+        await ProcessService.fetchDepartureOrders({ 
+          organisationId: localStorage.getItem("organisation_id") || undefined 
+        });
+      } catch (refreshError) {
+        console.warn("Failed to refresh departure orders list:", refreshError);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error("Failed to create departure order:", error);
+      
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create departure order";
+      setSubmitStatus({
+        success: false,
+        message: errorMessage,
+      });
+      
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/create-departure-order");
     }
   },
 

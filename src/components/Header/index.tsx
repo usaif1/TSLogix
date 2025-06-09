@@ -1,6 +1,7 @@
 // dependencies
 import React from "react";
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 
 // components
 import TSLogixLogo from "@/assets/TSLogixLogo.webp";
@@ -9,6 +10,7 @@ import LanguageSwitcher from "../LanguageSwitcher";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation(['common']);
   return (
     <div className="w-full flex bg-white items-center justify-between px-4">
       <div className="flex items-center gap-x-4">
@@ -17,7 +19,7 @@ const Header: React.FC = () => {
             onClick={() => navigate("/")} 
             src={TSLogixLogo} 
             className="w-64 cursor-pointer" 
-            alt="TSLogix Logo"
+            alt={t('common:logo_alt_text')}
           />
         </div>
         <div>

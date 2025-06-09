@@ -3,7 +3,10 @@ import api from "@/utils/api/axios.config";
 import {
   useInventoryLogStore,
   InventorySummary,
-} from "@/modules/inventory/store";
+  QualityControlStatus,
+  QuarantineInventoryItem,
+  SystemAuditLog,
+} from "@/modules/inventory/store/index";
 import { Cell } from "../screens/AllocateOrder/components/CellGrid";
 
 // ✅ Fixed: Updated to match backend routes
@@ -17,6 +20,9 @@ const {
   setWarehouses,
   setCells,
   setInventorySummary,
+  setQuarantineInventory,
+  setAvailableInventoryForDeparture,
+  setAuditTrail,
   startLoader,
   stopLoader,
 } = useInventoryLogStore.getState();
@@ -93,6 +99,7 @@ export const InventoryLogService = {
           : null,
         product_status: item.product_status,
         status_code: item.status_code,
+        quality_status: item.quality_status,
         timestamp: item.allocation?.allocated_at || new Date().toISOString(),
         notes: item.allocation?.observations || "Current inventory",
       }));
@@ -157,8 +164,8 @@ export const InventoryLogService = {
         current_packaging_qty: Number(c.current_packaging_qty || 0),
         current_weight: Number(c.current_weight || 0),
         status: c.status,
-        cellKind: c.cellKind,
-        cellRole: c.cellRole,
+        cellKind: c.kind,
+        cellRole: c.cell_role,
         cellReference: `${c.row}.${String(c.bay).padStart(2, "0")}.${String(
           c.position
         ).padStart(2, "0")}`,
@@ -279,6 +286,7 @@ export const InventoryLogService = {
         product: data.product || { name: "Unknown Product" },
         timestamp: new Date().toISOString(),
         notes: `Assigned to cell ${data.cellReference || "Unknown Cell"}`,
+        quality_status: "CUARENTENA",
       });
 
       return data;
@@ -342,6 +350,7 @@ export const InventoryLogService = {
         status: item.status,
         product_status: item.product_status,
         status_code: item.status_code,
+        quality_status: item.quality_status,
 
         product: {
           product_id: item.product.product_id,
@@ -371,6 +380,9 @@ export const InventoryLogService = {
               guide_number: item.allocation.guide_number,
               observations: item.allocation.observations,
               allocated_at: item.allocation.allocated_at,
+              allocated_by: item.allocation.allocated_by,
+              last_modified_by: item.allocation.last_modified_by,
+              last_modified_at: item.allocation.last_modified_at,
               entry_order_no: item.allocation.entry_order?.entry_order_no,
             }
           : null,
@@ -383,6 +395,129 @@ export const InventoryLogService = {
       throw error;
     } finally {
       stopLoader("inventoryLogs/fetch-inventory-summary");
+    }
+  },
+
+  // ✅ NEW: Get inventory by quality status (dynamic) with filters
+  fetchInventoryByQualityStatus: async (qualityStatus: QualityControlStatus, filters?: {
+    warehouse_id?: string;
+  }) => {
+    try {
+      startLoader("inventoryLogs/fetch-quarantine-inventory");
+      const params: any = { 
+        quality_status: qualityStatus 
+      };
+      
+      if (filters?.warehouse_id) {
+        params.warehouse_id = filters.warehouse_id;
+      }
+
+      const response = await api.get(`${baseURL}/by-quality-status`, { params });
+      const data: QuarantineInventoryItem[] = response.data.data || response.data;
+
+      // Update store based on quality status
+      if (qualityStatus === QualityControlStatus.CUARENTENA) {
+        setQuarantineInventory(data);
+      } else {
+        // For other statuses, we could add different store setters if needed
+        // For now, we'll use quarantine inventory store for all quality statuses
+        setQuarantineInventory(data);
+      }
+      
+      return data;
+    } catch (error) {
+      console.error("Fetch inventory by quality status error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/fetch-quarantine-inventory");
+    }
+  },
+
+  // ✅ NEW: Transition inventory quality status
+  transitionQualityStatus: async (transitionData: {
+    allocation_id: string;
+    to_status: QualityControlStatus;
+    quantity_to_move: number;
+    package_quantity_to_move: number;
+    weight_to_move: number;
+    volume_to_move: number;
+    reason: string;
+    notes?: string;
+  }) => {
+    try {
+      startLoader("inventoryLogs/quality-transition");
+
+      const userId = localStorage.getItem("id");
+      if (!userId) {
+        throw new Error("User not authenticated. Please log in again.");
+      }
+
+      const payload = {
+        ...transitionData,
+        performed_by: userId,
+      };
+
+      console.log("=== QUALITY TRANSITION ===");
+      console.log("URL:", `${baseURL}/quality-transition`);
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+
+      const response = await api.post(`${baseURL}/quality-transition`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("✅ Quality transition successful:", response.data);
+
+      const data = response.data.data || response.data;
+      return data;
+    } catch (error: any) {
+      console.error("❌ Quality transition failed:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/quality-transition");
+    }
+  },
+
+  // ✅ NEW: Get available inventory for departure (only approved items)
+  fetchAvailableInventoryForDeparture: async (filters?: {
+    warehouse_id?: string;
+    product_id?: string;
+  }) => {
+    try {
+      startLoader("inventoryLogs/fetch-available-for-departure");
+      const response = await api.get(`${baseURL}/available-for-departure`, { params: filters });
+      const data: InventorySummary[] = response.data.data || response.data;
+
+      setAvailableInventoryForDeparture(data);
+      return data;
+    } catch (error) {
+      console.error("Fetch available inventory for departure error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/fetch-available-for-departure");
+    }
+  },
+
+  // ✅ NEW: Get audit trail for inventory operations
+  fetchAuditTrail: async (filters?: {
+    entity_id?: string;
+    user_id?: string;
+    action?: string;
+    limit?: number;
+  }) => {
+    try {
+      startLoader("inventoryLogs/fetch-audit-trail");
+      const response = await api.get(`${baseURL}/audit-trail`, { params: filters });
+      const data: SystemAuditLog[] = response.data.data || response.data;
+
+      setAuditTrail(data);
+      return data;
+    } catch (error) {
+      console.error("Fetch audit trail error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/fetch-audit-trail");
     }
   },
 
@@ -404,8 +539,8 @@ export const InventoryLogService = {
         current_packaging_qty: Number(c.current_packaging_qty || 0),
         current_weight: Number(c.current_weight || 0),
         status: c.status,
-        cellKind: c.cellKind,
-        cellRole: c.cellRole,
+        cellKind: c.kind,
+        cellRole: c.cell_role,
       }));
 
       setCells(cells);
