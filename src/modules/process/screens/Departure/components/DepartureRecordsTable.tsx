@@ -15,6 +15,24 @@ const DepartureRecordsTable: React.FC = () => {
     createTableColumns([
       { accessor: 'departure_order_no', header: t('process:order') },
       { 
+        accessor: 'product_code', 
+        header: t('process:product_code'),
+        cell: (info: any) => {
+          const order = info.row.original;
+          const productCodes = order.products?.map((p: any) => p.product_code).filter(Boolean) || [];
+          return productCodes.length > 0 ? productCodes.join(', ') : '-';
+        }
+      },
+      { 
+        accessor: 'product_name', 
+        header: t('process:product_name'),
+        cell: (info: any) => {
+          const order = info.row.original;
+          const productNames = order.products?.map((p: any) => p.product?.name).filter(Boolean) || [];
+          return productNames.length > 0 ? productNames.join(', ') : '-';
+        }
+      },
+      { 
         accessor: 'total_qty', 
         header: t('process:total_qty'),
         cell: (info: any) => {
@@ -42,21 +60,7 @@ const DepartureRecordsTable: React.FC = () => {
             : '0.00';
         }
       },
-      { 
-        accessor: 'insured_value', 
-        header: t('process:insured_value'),
-        cell: (info: any) => {
-          const order = info.row.original;
-          const totalInsuredValue = order.products?.reduce((sum: number, p: any) => {
-            const value = Number(p.total_value) || 0;
-            return sum + value;
-          }, 0) || 0;
-          
-          return typeof totalInsuredValue === 'number' && !isNaN(totalInsuredValue)
-            ? totalInsuredValue.toFixed(2)
-            : '0.00';
-        }
-      },
+
       { 
         accessor: 'departure_date', 
         header: t('process:departure_date'),
@@ -66,7 +70,14 @@ const DepartureRecordsTable: React.FC = () => {
           return date ? new Date(date).toLocaleDateString() : '-';
         }
       },
-      { accessor: 'departure_transfer_note', header: t('process:departure_transfer_note') },
+      { 
+        accessor: 'destination_point', 
+        header: t('process:destination'),
+        cell: (info: any) => {
+          const order = info.row.original;
+          return order.destination_point || '-';
+        }
+      },
       { 
         accessor: 'presentation', 
         header: t('process:presentation'),
@@ -95,11 +106,11 @@ const DepartureRecordsTable: React.FC = () => {
         }
       },
       { 
-        accessor: 'comments', 
-        header: t('process:comments'),
+        accessor: 'carrier_name', 
+        header: t('process:carrier'),
         cell: (info: any) => {
           const order = info.row.original;
-          return order.observation || '-';
+          return order.carrier_name || '-';
         }
       },
       { 
@@ -134,9 +145,6 @@ const DepartureRecordsTable: React.FC = () => {
       }, 0) || 0,
       calculated_total_volume: order.products?.reduce((sum: number, p: any) => {
         return sum + (Number(p.requested_volume) || 0);
-      }, 0) || 0,
-      calculated_insured_value: order.products?.reduce((sum: number, p: any) => {
-        return sum + (Number(p.total_value) || 0);
       }, 0) || 0,
     }));
   }, [departureOrders]);

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-import { useTranslation } from "react-i18next";
+// import { useTranslation } from "react-i18next";
 // Using emoji icons instead of lucide-react
 
 interface DashboardStats {
@@ -24,7 +24,7 @@ const InventoryLogDashboard: React.FC<InventoryLogDashboardProps> = ({
   stats,
   isLoading = false,
 }) => {
-  const { t } = useTranslation(['inventory', 'common']);
+  // const { t } = useTranslation(['inventory', 'common']);
 
   const StatCard: React.FC<{
     title: string;

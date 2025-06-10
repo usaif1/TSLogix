@@ -12,7 +12,7 @@ interface QualityControlFiltersProps {
   onSearchChange: (term: string) => void;
   totalItems: number;
   filteredItems: number;
-  selectedItems: string[];
+  selectedItemId: string | null;
   onTransitionToStatus: (status: QualityControlStatus) => void;
   selectedStatus: QualityControlStatus | null;
   onRefreshByStatus: (status: QualityControlStatus) => void;
@@ -28,17 +28,14 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
   onSearchChange,
   totalItems,
   filteredItems,
-  selectedItems,
+  selectedItemId,
   onTransitionToStatus,
   selectedStatus,
   onRefreshByStatus,
 }) => {
   const { t } = useTranslation(['inventory', 'common']);
 
-  const warehouseOptions = [
-    { value: "all", label: t('common:all_warehouses') },
-    ...warehouses.map(w => ({ value: w.warehouse_id, label: w.name }))
-  ];
+  const warehouseOptions = warehouses.map(w => ({ value: w.warehouse_id, label: w.name }));
 
   const statusOptions = [
     { value: QualityControlStatus.CUARENTENA, label: t('inventory:quarantine') },
@@ -48,21 +45,24 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
     { value: QualityControlStatus.CONTRAMUESTRAS, label: t('inventory:samples') }
   ];
 
-  const hasSelection = selectedItems.length > 0;
-
   // Find the current selected status option
   const selectedStatusOption = selectedStatus 
     ? statusOptions.find(option => option.value === selectedStatus) 
     : null;
 
   return (
-    <div className="space-y-4">
-      {/* Filter Controls */}
-      <div className="flex flex-col lg:flex-row gap-4">
+    <div className="space-y-6">
+      {/* Filter Controls - Fixed layout with proper z-index */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Status Filter */}
-        <div className="flex-1">
+        <div className="relative">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('inventory:status')}
+            {selectedStatus && (
+              <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                Active
+              </span>
+            )}
           </label>
           <Select
             options={statusOptions}
@@ -75,13 +75,54 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
               }
             }}
             placeholder={t('inventory:filter_by_status')}
-            isClearable={true}
+            isClearable={false}
             className="text-sm"
+            styles={{
+              menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+              menu: (base: any) => ({ ...base, zIndex: 9999 }),
+              control: (base: any, state: any) => ({
+                ...base,
+                borderColor: selectedStatus ? '#3B82F6' : state.isFocused ? '#3B82F6' : '#D1D5DB',
+                boxShadow: state.isFocused ? '0 0 0 1px #3B82F6' : 'none',
+              }),
+            }}
+            menuPortalTarget={document.body}
+          />
+        </div>
+
+        {/* Warehouse Filter */}
+        <div className="relative">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('inventory:warehouse')}
+            {selectedWarehouse && (
+              <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
+                Selected
+              </span>
+            )}
+          </label>
+          <Select
+            options={warehouseOptions}
+            value={selectedWarehouse}
+            onChange={(option: OptionType | null) => onWarehouseChange(option)}
+            placeholder={t('inventory:select_warehouse')}
+            isClearable={false}
+            className="text-sm"
+            styles={{
+              menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+              menu: (base: any) => ({ ...base, zIndex: 9999 }),
+              control: (base: any, state: any) => ({
+                ...base,
+                borderColor: selectedWarehouse ? '#10B981' : state.isFocused ? '#3B82F6' : '#D1D5DB',
+                boxShadow: state.isFocused ? '0 0 0 1px #3B82F6' : 'none',
+              }),
+            }}
+            menuPortalTarget={document.body}
+            isDisabled={warehouseOptions.length === 0}
           />
         </div>
 
         {/* Search */}
-        <div className="flex-1">
+        <div className="relative">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             {t('common:search')}
           </label>
@@ -93,31 +134,41 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
             className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
+      </div>
 
-        {/* Warehouse Filter */}
-        <div className="flex-1">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {t('inventory:warehouse')}
-          </label>
-          <Select
-            options={warehouseOptions}
-            value={selectedWarehouse || { value: "all", label: t('common:all_warehouses') }}
-            onChange={(option: OptionType | null) => 
-              option?.value === "all" ? onWarehouseChange(null) : onWarehouseChange(option)
-            }
-            placeholder={t('inventory:select_warehouse')}
-            isClearable={false}
-            className="text-sm"
-          />
+      {/* Current Filter Summary */}
+      <div className="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-lg">
+        <div className="flex items-center gap-4 text-sm text-gray-600">
+          <span>
+            <strong>{t('inventory:showing')}:</strong> {filteredItems} {t('inventory:of')} {totalItems} {t('inventory:items')}
+          </span>
+          {selectedStatus && (
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+              {statusOptions.find(opt => opt.value === selectedStatus)?.label}
+            </span>
+          )}
+          {selectedWarehouse && (
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+              {selectedWarehouse.label}
+            </span>
+          )}
+          {searchTerm && (
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
+              {t('inventory:search')}: "{searchTerm}"
+            </span>
+          )}
         </div>
       </div>
 
-      {/* Selection Actions */}
-      {hasSelection && (
+      {/* Single Item Actions */}
+      {selectedItemId && (
         <div className="border-t border-gray-200 bg-blue-50 p-4 rounded-lg">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="text-sm font-medium text-blue-900">
-              {selectedItems.length} {t('common:items_selected')}
+              {t('common:item_selected')} - {t('inventory:choose_action')}
             </div>
 
             <div className="flex flex-wrap gap-2">

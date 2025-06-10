@@ -104,7 +104,12 @@ export type ProcessLoaderTypes =
   | "processes/validate-departure-cell"
   | "processes/validate-multiple-departure-cells"
   | "processes/fetch-departure-inventory-summary"
-  | "processes/create-departure-from-entry";
+  | "processes/create-departure-from-entry"
+  | "processes/browse-products-inventory"
+  | "processes/get-fifo-allocation"
+  | "processes/create-fifo-departure"
+  | "processes/validate-fifo-allocation"
+  | "processes/get-product-inventory-summary";
 
 // Legacy single-product fields (kept for backward compatibility if needed)
 export interface LegacyEntryFormData {
@@ -261,6 +266,143 @@ export interface ProductWithInventory {
   location_count: number;
   expiration_date?: string;
   inventory: any[];
+}
+
+// ✅ NEW: FIFO Product with Inventory interface (Enhanced for FIFO flow)
+export interface FifoProductWithInventory {
+  product_id: string;
+  product_code: string;
+  product_name: string;
+  value: string;
+  label: string;
+  option: string;
+  inventory_summary: {
+    total_quantity: number;
+    total_weight: number;
+    locations_count: number;
+    age_span_days: number;
+    oldest_date: string;
+    newest_date: string;
+    suppliers_count: number;
+  };
+  manufacturer?: string;
+  product_line?: string;
+  group_name?: string;
+  temperature_range?: string;
+  storage_conditions?: string;
+  unit_weight?: number;
+  unit_volume?: number;
+}
+
+// ✅ NEW: FIFO Allocation Detail
+export interface FifoAllocationDetail {
+  inventory_id: string;
+  allocated_quantity: number;
+  allocated_weight: number;
+  cell_code: string;
+  cell_id: string;
+  row: string;
+  bay: number;
+  position: number;
+  manufacturing_date: string;
+  expiration_date: string;
+  supplier_name: string;
+  lot_series: string;
+  priority_level: number;
+  priority_color: 'red' | 'yellow' | 'green';
+  priority_icon: string;
+  age_days: number;
+  formatted_date: string;
+  cell_display: string;
+  allocation_summary: string;
+  available_quantity: number;
+  available_weight: number;
+  packaging_type: string;
+  package_quantity: number;
+  guide_number?: string;
+  observations?: string;
+}
+
+// ✅ NEW: FIFO Allocation Response
+export interface FifoAllocation {
+  product_id: string;
+  product_code: string;
+  product_name: string;
+  requested_quantity: number;
+  total_allocated: number;
+  allocations: FifoAllocationDetail[];
+  summary: {
+    total_requested: number;
+    total_allocated: number;
+    remaining_needed: number;
+    locations_used: number;
+    oldest_age_days: number;
+    newest_age_days: number;
+  };
+  fifo_compliance: {
+    is_fully_allocated: boolean;
+    oldest_first: boolean;
+    quality_approved: boolean;
+    warning_messages: string[];
+  };
+}
+
+// ✅ NEW: FIFO Selection for Departure Order
+export interface FifoSelection {
+  product_id: string;
+  product_code: string;
+  product_name: string;
+  requested_quantity: number;
+  requested_weight: number;
+  allocation_details: FifoAllocationDetail[];
+  observations?: string;
+  fifo_compliance_status: 'compliant' | 'partial' | 'non_compliant';
+  total_allocated_quantity: number;
+  total_allocated_weight: number;
+  remaining_quantity: number;
+  remaining_weight: number;
+}
+
+// ✅ NEW: Product Inventory Summary for FIFO Analysis
+export interface ProductInventorySummary {
+  product_id: string;
+  product_code: string;
+  product_name: string;
+  total_quantity: number;
+  total_weight: number;
+  total_volume: number;
+  locations_count: number;
+  suppliers_count: number;
+  oldest_date: string;
+  newest_date: string;
+  oldest_age_days: number;
+  newest_age_days: number;
+  age_span_days: number;
+  age_analysis: {
+    oldest_age_days: number;
+    newest_age_days: number;
+    age_span_days: number;
+    aging_risk_level: 'low' | 'medium' | 'high';
+  };
+  locations_breakdown: Array<{
+    cell_id: string;
+    cell_code: string;
+    row: string;
+    bay: number;
+    position: number;
+    quantity: number;
+    weight: number;
+    volume: number;
+    manufacturing_date: string;
+    expiration_date: string;
+    age_days: number;
+    age_category: 'fresh' | 'caution' | 'urgent';
+    supplier_name: string;
+    lot_series: string;
+    display_name: string;
+  }>;
+  quality_status: string;
+  quarantine_status: string;
 }
 
 // ✅ NEW: Available Cell interface

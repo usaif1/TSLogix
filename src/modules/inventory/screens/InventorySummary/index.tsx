@@ -216,9 +216,9 @@ const InventorySummary: React.FC = () => {
 
     inventorySummary.forEach(item => {
       // Safe numeric conversions
-      const packagingQty = Number(item?.packaging_quantity || 0);
-      const weight = Number(item?.weight || 0);
-      const volume = Number(item?.volume || 0);
+      const packagingQty = Number(item?.current_package_quantity || 0);
+      const weight = Number(item?.current_weight || 0);
+      const volume = Number(item?.current_volume || 0);
       const status = item?.status || "Unknown";
 
       stats.totalPackaging += packagingQty;

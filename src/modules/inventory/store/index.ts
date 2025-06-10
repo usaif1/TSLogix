@@ -37,6 +37,7 @@ export type InventoryLogLoaderTypes =
   | "inventoryLogs/quality-transition"
   | "inventoryLogs/fetch-available-for-departure"
   | "inventoryLogs/fetch-audit-trail"
+  | "inventoryLogs/fetch-cells-by-quality-status"
   | AssignCellLoader;
 
 type InventoryLog = any;
@@ -246,6 +247,8 @@ export interface InventoryLogStore {
   availableInventoryForDeparture: InventorySummary[];
   // ✅ NEW: Audit trail
   auditTrail: SystemAuditLog[];
+  // ✅ NEW: Quality control cells by status
+  qualityControlCells: Record<QualityControlStatus, Cell[]>;
   
   // ✅ NEW: Quarantine Management State
   quarantineFilters: {
@@ -295,6 +298,8 @@ export interface InventoryLogStoreActions {
   setQuarantineInventory: (inventory: QuarantineInventoryItem[]) => void;
   setAvailableInventoryForDeparture: (inventory: InventorySummary[]) => void;
   setAuditTrail: (logs: SystemAuditLog[]) => void;
+  setQualityControlCells: (status: QualityControlStatus, cells: Cell[]) => void;
+  clearQualityControlCells: () => void;
   
   // ✅ NEW: Quarantine Management Actions
   setQuarantineFilters: (filters: Partial<{ selectedWarehouse: { value: string; label: string } | null; searchTerm: string; selectedStatus: QualityControlStatus | null }>) => void;
@@ -325,6 +330,7 @@ const initialLoaders: Record<InventoryLogLoaderTypes, boolean> = {
   "inventoryLogs/quality-transition": false,
   "inventoryLogs/fetch-available-for-departure": false,
   "inventoryLogs/fetch-audit-trail": false,
+  "inventoryLogs/fetch-cells-by-quality-status": false,
 };
 
 const initialState: InventoryLogStore = {
@@ -339,6 +345,13 @@ const initialState: InventoryLogStore = {
   quarantineInventory: [],
   availableInventoryForDeparture: [],
   auditTrail: [],
+  qualityControlCells: {
+    [QualityControlStatus.CUARENTENA]: [],
+    [QualityControlStatus.APROBADO]: [],
+    [QualityControlStatus.DEVOLUCIONES]: [],
+    [QualityControlStatus.CONTRAMUESTRAS]: [],
+    [QualityControlStatus.RECHAZADOS]: [],
+  },
   
   // ✅ NEW: Quarantine Management State
   quarantineFilters: {
@@ -409,6 +422,37 @@ export const useInventoryLogStore = create<
   setQuarantineInventory: (inventory) => set({ quarantineInventory: inventory }),
   setAvailableInventoryForDeparture: (inventory) => set({ availableInventoryForDeparture: inventory }),
   setAuditTrail: (logs) => set({ auditTrail: logs }),
+  setQualityControlCells: (status, cells) => {
+    // ✅ FIXED: Ensure cells is always an array
+    const safeCells = Array.isArray(cells) ? cells : [];
+    
+    console.log("🏪 Store: Setting quality control cells:", {
+      status,
+      cellsRaw: cells,
+      cellsType: typeof cells,
+      isArray: Array.isArray(cells),
+      cellsCount: safeCells.length,
+      firstCell: safeCells.length > 0 ? safeCells[0] : null,
+      cellsData: safeCells.slice(0, 3)
+    });
+    
+    set((state) => ({
+      qualityControlCells: {
+        ...state.qualityControlCells,
+        [status]: safeCells,
+      },
+    }));
+  },
+  clearQualityControlCells: () =>
+    set({
+      qualityControlCells: {
+        [QualityControlStatus.CUARENTENA]: [],
+        [QualityControlStatus.APROBADO]: [],
+        [QualityControlStatus.DEVOLUCIONES]: [],
+        [QualityControlStatus.CONTRAMUESTRAS]: [],
+        [QualityControlStatus.RECHAZADOS]: [],
+      },
+    }),
 
   // ✅ NEW: Quarantine Management Actions
   setQuarantineFilters: (filters) =>

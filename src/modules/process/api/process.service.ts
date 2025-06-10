@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/utils/api/axios.config";
 import ProcessesStore from "@/modules/process/store";
-import { EntryOrder, EntryFormFields, EntryOrderReview, InventorySelection } from "../types";
+import { EntryOrder, EntryFormFields, EntryOrderReview } from "../types";
 
 const entryBaseURL = "/entry";
 const departureBaseURL = "/departure";
-const inventoryBaseURL = "/inventory";
+// const inventoryBaseURL = "/inventory";
 const warehouseBaseURL = "/warehouse";
 
 // Define interfaces for better type safety
@@ -21,15 +21,15 @@ interface AllocationData {
   observations?: string;
 }
 
-interface DepartureFormData {
-  customer_id: string;
-  warehouse_id: string;
-  departure_date: string;
-  document_type_id: string;
-  document_number: string;
-  inventory_selections: InventorySelection[];
-  [key: string]: unknown;
-}
+// interface DepartureFormData {
+//   customer_id: string;
+//   warehouse_id: string;
+//   departure_date: string;
+//   document_type_id: string;
+//   document_number: string;
+//   inventory_selections: InventorySelection[];
+//   [key: string]: unknown;
+// }
 
 interface WarehouseCellFilters {
   available?: boolean;
@@ -1089,49 +1089,196 @@ export const ProcessService = {
     }
   },
 
+  // =====================================
+  // NEW: FIFO DEPARTURE FLOW
+  // =====================================
+
   /**
-   * Create departure order with inventory selections (Traditional departure workflow)
+   * Browse products with inventory using new FIFO-aware endpoint
+   * GET /departure/products-with-inventory
    */
-  createDepartureOrderWithInventorySelections: async (formData: any) => {
-    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
-    startLoader("processes/create-departure-order");
+  browseProductsWithInventory: async (warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/browse-products-inventory");
 
     try {
-      // If no departure order number provided, generate one
-      if (!formData.departure_order_no) {
-        const orderNumber = await ProcessService.getCurrentDepartureOrderNo();
-        formData.departure_order_no = orderNumber;
-      }
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouseId", warehouseId);
 
-      const payload = {
-        ...formData,
-        organisation_id: localStorage.getItem("organisation_id"),
-        created_by: localStorage.getItem("id"),
-      };
-
-      // Validate inventory selections
-      if (!payload.inventory_selections || payload.inventory_selections.length === 0) {
-        throw new Error("At least one inventory selection is required");
-      }
-
-      // Validate each inventory selection
-      for (const [index, selection] of payload.inventory_selections.entries()) {
-        if (!selection.inventory_id) {
-          throw new Error(`Selection ${index + 1}: Inventory ID is required`);
+      const response = await api.get(`${departureBaseURL}/products-with-inventory?${params.toString()}`);
+      const products = response.data.data || response.data;
+      
+      // Transform products for better UI consumption
+      const formattedProducts = products.map((product: any) => ({
+        ...product,
+        value: product.product_id,
+        label: `${product.product_code} - ${product.product_name}`,
+        option: product.product_name,
+        inventory_summary: {
+          total_quantity: product.total_quantity || 0,
+          total_weight: product.total_weight || 0,
+          locations_count: product.locations_count || 0,
+          age_span_days: product.age_span_days || 0,
+          oldest_date: product.oldest_date,
+          newest_date: product.newest_date,
+          suppliers_count: product.suppliers_count || 0,
         }
-        if (!selection.requested_qty || selection.requested_qty <= 0) {
-          throw new Error(`Selection ${index + 1}: Requested quantity must be greater than 0`);
+      }));
+      
+      return formattedProducts;
+    } catch (error) {
+      console.error("Failed to browse products with inventory:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/browse-products-inventory");
+    }
+  },
+
+  /**
+   * Get FIFO allocation for a specific product and requested quantity
+   * GET /departure/products/{id}/fifo-allocation?requestedQuantity=100
+   */
+  getFifoAllocation: async (productId: string, requestedQuantity: number, warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/get-fifo-allocation");
+
+    try {
+      const params = new URLSearchParams();
+      params.append("requestedQuantity", requestedQuantity.toString());
+      if (warehouseId) params.append("warehouseId", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/products/${productId}/fifo-allocation?${params.toString()}`);
+      
+      // Handle the wrapped response format: { success, message, data }
+      if (!response.data || !response.data.success) {
+        throw new Error(response.data?.message || "Failed to get FIFO allocation");
+      }
+
+      // Return the full response for frontend to handle
+      return response.data;
+    } catch (error) {
+      console.error("Failed to get FIFO allocation:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/get-fifo-allocation");
+    }
+  },
+
+  /**
+   * Create departure order with FIFO selections
+   * POST /departure/create-departure-order with FIFO selections
+   */
+  createFifoDepartureOrder: async (formData: {
+    departure_order_no?: string;
+    customer_id: string;
+    warehouse_id: string;
+    departure_date: string;
+    document_type_id: string;
+    document_number: string;
+    document_date: string;
+    fifo_selections: Array<{
+      product_id: string;
+      requested_quantity: number;
+      requested_weight: number;
+      allocation_details: Array<{
+        inventory_id: string;
+        allocated_quantity: number;
+        allocated_weight: number;
+        cell_code: string;
+        manufacturing_date: string;
+        expiration_date: string;
+        supplier_name: string;
+        lot_series: string;
+        priority_level: number;
+      }>;
+      observations?: string;
+    }>;
+    arrival_point?: string;
+    transport_type?: string;
+    observations?: string;
+    uploaded_documents?: File[];
+  }) => {
+    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
+    startLoader("processes/create-fifo-departure");
+
+    try {
+      // Generate departure order number if not provided
+      if (!formData.departure_order_no) {
+        formData.departure_order_no = await ProcessService.getCurrentDepartureOrderNo();
+      }
+
+      // Validate FIFO selections
+      if (!formData.fifo_selections || formData.fifo_selections.length === 0) {
+        throw new Error("At least one FIFO product selection is required");
+      }
+
+      // Validate each FIFO selection
+      for (const [index, selection] of formData.fifo_selections.entries()) {
+        const selectionNum = index + 1;
+        
+        if (!selection.product_id) {
+          throw new Error(`Selection ${selectionNum}: Product ID is required`);
+        }
+        if (!selection.requested_quantity || selection.requested_quantity <= 0) {
+          throw new Error(`Selection ${selectionNum}: Requested quantity must be greater than 0`);
         }
         if (!selection.requested_weight || selection.requested_weight <= 0) {
-          throw new Error(`Selection ${index + 1}: Requested weight must be greater than 0`);
+          throw new Error(`Selection ${selectionNum}: Requested weight must be greater than 0`);
+        }
+        if (!selection.allocation_details || selection.allocation_details.length === 0) {
+          throw new Error(`Selection ${selectionNum}: At least one allocation detail is required`);
+        }
+
+        // Validate allocation details
+        for (const [allocIndex, alloc] of selection.allocation_details.entries()) {
+          const allocNum = allocIndex + 1;
+          
+          if (!alloc.inventory_id) {
+            throw new Error(`Selection ${selectionNum}, Allocation ${allocNum}: Inventory ID is required`);
+          }
+          if (!alloc.allocated_quantity || alloc.allocated_quantity <= 0) {
+            throw new Error(`Selection ${selectionNum}, Allocation ${allocNum}: Allocated quantity must be greater than 0`);
+          }
+          if (!alloc.allocated_weight || alloc.allocated_weight <= 0) {
+            throw new Error(`Selection ${selectionNum}, Allocation ${allocNum}: Allocated weight must be greater than 0`);
+          }
         }
       }
+
+      // Transform FIFO selections to inventory_selections format for backend compatibility
+      const inventorySelections = formData.fifo_selections.flatMap(selection => 
+        selection.allocation_details.map(detail => ({
+          inventory_id: detail.inventory_id,
+          requested_qty: detail.allocated_quantity,
+          requested_weight: detail.allocated_weight,
+          observations: selection.observations || '',
+        }))
+      );
+
+      const payload = {
+        departure_order_no: formData.departure_order_no,
+        customer_id: formData.customer_id,
+        warehouse_id: formData.warehouse_id,
+        departure_date: formData.departure_date,
+        document_type_id: formData.document_type_id,
+        document_number: formData.document_number,
+        document_date: formData.document_date,
+        inventory_selections: inventorySelections, // Use transformed data
+        arrival_point: formData.arrival_point || '',
+        transport_type: formData.transport_type || '',
+        observations: formData.observations || '',
+        organisation_id: localStorage.getItem("organisation_id"),
+        created_by: localStorage.getItem("id"),
+        is_fifo_compliant: true, // Mark as FIFO compliant
+      };
+
+      console.log("Payload being sent to backend:", payload);
 
       const response = await api.post(`${departureBaseURL}/create-departure-order`, payload);
 
       setSubmitStatus({
         success: true,
-        message: "Departure order created successfully",
+        message: "FIFO-compliant departure order created successfully!",
       });
 
       // Refresh departure orders list
@@ -1145,9 +1292,9 @@ export const ProcessService = {
 
       return response.data;
     } catch (error: any) {
-      console.error("Failed to create departure order:", error);
+      console.error("Failed to create FIFO departure order:", error);
       
-      const errorMessage = error.response?.data?.message || error.message || "Failed to create departure order";
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create FIFO departure order";
       setSubmitStatus({
         success: false,
         message: errorMessage,
@@ -1155,7 +1302,71 @@ export const ProcessService = {
       
       throw new Error(errorMessage);
     } finally {
-      stopLoader("processes/create-departure-order");
+      stopLoader("processes/create-fifo-departure");
+    }
+  },
+
+  /**
+   * Validate FIFO allocation before creating departure order
+   */
+  validateFifoAllocation: async (fifoSelections: Array<{
+    product_id: string;
+    requested_quantity: number;
+    allocation_details: Array<{
+      inventory_id: string;
+      allocated_quantity: number;
+    }>;
+  }>) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/validate-fifo-allocation");
+
+    try {
+      const response = await api.post(`${departureBaseURL}/validate-fifo-allocation`, {
+        fifo_selections: fifoSelections,
+      });
+      
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Failed to validate FIFO allocation:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/validate-fifo-allocation");
+    }
+  },
+
+  /**
+   * Get product inventory summary for FIFO analysis
+   */
+  getProductInventorySummary: async (productId: string, warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/get-product-inventory-summary");
+
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouseId", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/products/${productId}/inventory-summary?${params.toString()}`);
+      const summary = response.data.data || response.data;
+      
+      return {
+        ...summary,
+        age_analysis: {
+          oldest_age_days: summary.oldest_age_days || 0,
+          newest_age_days: summary.newest_age_days || 0,
+          age_span_days: summary.age_span_days || 0,
+          aging_risk_level: summary.oldest_age_days > 180 ? 'high' : summary.oldest_age_days > 90 ? 'medium' : 'low',
+        },
+        locations_breakdown: summary.locations?.map((loc: any) => ({
+          ...loc,
+          age_category: loc.age_days > 180 ? 'urgent' : loc.age_days > 90 ? 'caution' : 'fresh',
+          display_name: `${loc.cell_code} (${loc.quantity} units, ${loc.age_days} days old)`,
+        })) || [],
+      };
+    } catch (error) {
+      console.error("Failed to get product inventory summary:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/get-product-inventory-summary");
     }
   },
 
@@ -1243,6 +1454,76 @@ export const ProcessService = {
     } catch (error) {
       console.error("Failed to fetch audit trail:", error);
       throw error;
+    }
+  },
+
+  /**
+   * Create departure order with inventory selections (Traditional departure workflow)
+   */
+  createDepartureOrderWithInventorySelections: async (formData: any) => {
+    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
+    startLoader("processes/create-departure-order");
+
+    try {
+      // If no departure order number provided, generate one
+      if (!formData.departure_order_no) {
+        const orderNumber = await ProcessService.getCurrentDepartureOrderNo();
+        formData.departure_order_no = orderNumber;
+      }
+
+      const payload = {
+        ...formData,
+        organisation_id: localStorage.getItem("organisation_id"),
+        created_by: localStorage.getItem("id"),
+      };
+
+      // Validate inventory selections
+      if (!payload.inventory_selections || payload.inventory_selections.length === 0) {
+        throw new Error("At least one inventory selection is required");
+      }
+
+      // Validate each inventory selection
+      for (const [index, selection] of payload.inventory_selections.entries()) {
+        if (!selection.inventory_id) {
+          throw new Error(`Selection ${index + 1}: Inventory ID is required`);
+        }
+        if (!selection.requested_qty || selection.requested_qty <= 0) {
+          throw new Error(`Selection ${index + 1}: Requested quantity must be greater than 0`);
+        }
+        if (!selection.requested_weight || selection.requested_weight <= 0) {
+          throw new Error(`Selection ${index + 1}: Requested weight must be greater than 0`);
+        }
+      }
+
+      const response = await api.post(`${departureBaseURL}/create-departure-order`, payload);
+
+      setSubmitStatus({
+        success: true,
+        message: "Departure order created successfully",
+      });
+
+      // Refresh departure orders list
+      try {
+        await ProcessService.fetchDepartureOrders({ 
+          organisationId: localStorage.getItem("organisation_id") || undefined 
+        });
+      } catch (refreshError) {
+        console.warn("Failed to refresh departure orders list:", refreshError);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error("Failed to create departure order:", error);
+      
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create departure order";
+      setSubmitStatus({
+        success: false,
+        message: errorMessage,
+      });
+      
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/create-departure-order");
     }
   },
 };

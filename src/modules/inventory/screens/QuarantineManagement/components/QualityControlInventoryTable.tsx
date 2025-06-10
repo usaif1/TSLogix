@@ -10,8 +10,8 @@ import { QuarantineInventoryItem, QualityControlStatus } from '../../../store';
 
 interface QualityControlInventoryTableProps {
   data: QuarantineInventoryItem[];
-  selectedItems: string[];
-  onToggleItemSelection: (itemId: string) => void;
+  selectedItemId: string | null;
+  onItemSelect: (itemId: string | null) => void;
   showPagination?: boolean;
   pageSize?: number;
   emptyMessage?: string;
@@ -50,12 +50,12 @@ const getQualityStatusBadge = (status: QualityControlStatus) => {
   );
 };
 
-const stickyColumns = [0]; // Only checkbox column sticky
+const stickyColumns: number[] = []; // No sticky columns needed
 
 function QualityControlInventoryTable({
   data,
-  selectedItems,
-  onToggleItemSelection,
+  selectedItemId,
+  onItemSelect,
   showPagination = true,
   pageSize = 20,
   emptyMessage = "No items found",
@@ -65,33 +65,6 @@ function QualityControlInventoryTable({
   const [stickyOffsets, setStickyOffsets] = useState<number[]>([]);
 
   const columns: ColumnDef<QuarantineInventoryItem>[] = [
-    {
-      id: 'select',
-      header: ({ table }) => (
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            checked={table.getIsAllPageRowsSelected()}
-            onChange={table.getToggleAllPageRowsSelectedHandler()}
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-        </div>
-      ),
-      cell: ({ row }) => {
-        const isSelected = selectedItems.includes(row.original.allocation_id);
-        return (
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={isSelected}
-              onChange={() => onToggleItemSelection(row.original.allocation_id)}
-              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-          </div>
-        );
-      },
-      size: 50,
-    },
     {
       id: 'product',
       header: 'Product Details',
@@ -165,7 +138,7 @@ function QualityControlInventoryTable({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
             <code className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-sm font-mono font-semibold">
-              {row.original.cell.row}{String(row.original.cell.bay).padStart(2, '0')}.{String(row.original.cell.position).padStart(2, '0')}
+              {row.original.cell.row}.{String(row.original.cell.bay).padStart(2, '0')}.{String(row.original.cell.position).padStart(2, '0')}
             </code>
           </div>
           <div className="text-xs space-y-1">
@@ -264,9 +237,9 @@ function QualityControlInventoryTable({
   }, [columns?.length, data?.length]);
 
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}>
-      {/* Fixed height container for the table */}
-      <div className="overflow-auto" style={{ maxHeight: 'calc(100vh - 400px)' }}>
+    <div className={`flex flex-col h-full bg-white rounded-lg border border-gray-200 shadow-sm ${className}`}>
+      {/* Scrollable table container - takes remaining space minus pagination */}
+      <div className="flex-1 min-h-0 overflow-auto">
         <table ref={tableRef} className="w-full table-auto">
           <thead className="bg-gray-50 sticky top-0 z-10">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -299,13 +272,22 @@ function QualityControlInventoryTable({
           <tbody>
             {table.getRowModel().rows.length > 0 ? (
               table.getRowModel().rows.map((row, rowIndex) => {
-                const isSelected = selectedItems.includes(row.original.allocation_id);
+                const isSelected = selectedItemId === row.original.allocation_id;
                 return (
                   <tr
                     key={row.id}
-                    className={`border-b border-gray-200 ${
-                      isSelected ? 'bg-blue-50' : rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-gray-100 transition-colors`}
+                    className={`border-b border-gray-200 cursor-pointer ${
+                      isSelected 
+                        ? "bg-blue-50 hover:bg-blue-100" 
+                        : rowIndex % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-100"
+                    } transition-colors`}
+                    onClick={() => {
+                      if (isSelected) {
+                        onItemSelect(null); // Deselect if already selected
+                      } else {
+                        onItemSelect(row.original.allocation_id); // Select the item
+                      }
+                    }}
                   >
                     {row.getVisibleCells().map((cell, index) => (
                       <td
@@ -316,7 +298,7 @@ function QualityControlInventoryTable({
                             ? {
                                 position: "sticky",
                                 left: stickyOffsets[stickyColumns.indexOf(index)] ?? 0,
-                                background: isSelected ? '#dbeafe' : rowIndex % 2 === 0 ? "white" : "#F9FAFB",
+                                background: isSelected ? "#dbeafe" : rowIndex % 2 === 0 ? "white" : "#F9FAFB",
                                 zIndex: 10,
                               }
                             : {}),
@@ -353,9 +335,9 @@ function QualityControlInventoryTable({
         </table>
       </div>
 
-      {/* Pagination */}
+      {/* Pagination - Fixed at bottom */}
       {showPagination && data.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
           <div className="text-sm text-gray-700">
             Showing{" "}
             <span className="font-medium">

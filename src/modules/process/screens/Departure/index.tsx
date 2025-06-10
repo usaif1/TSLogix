@@ -27,9 +27,14 @@ const Departure: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <Text size="3xl" weight="font-bold">
-        {t('departure_orders')}
-      </Text>
+      <div className="mb-4">
+        <Text size="3xl" weight="font-bold">
+          {t('departure_orders')}
+        </Text>
+        <Text size="xl" additionalClass="mt-2 text-gray-600">
+          Manage departure orders with automated FIFO allocation ensuring optimal inventory rotation!
+        </Text>
+      </div>
 
       <div className="w-1/2">
         <Searchbar
@@ -45,7 +50,7 @@ const Departure: React.FC = () => {
         className="!w-56 bg-action-nav hover:bg-[#0F2F47] text-white px-2 py-2 rounded-md font-bold flex justify-center cursor-pointer "
       >
         <div className="flex items-center gap-x-2">
-          <Text color="text-white">{t('generate_order')}</Text>
+          <Text color="text-white">{t('generate_fifo_order')}</Text>
           <Plus className="text-white" weight="bold" size={16} />
         </div>
       </Link>

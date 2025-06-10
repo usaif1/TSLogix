@@ -41,7 +41,7 @@ const BasicInformationSection: React.FC<Props> = ({
   const productOptions = useMemo(() => {
     return productsWithInventory.map(product => ({
       value: product.product_id.toString(),
-      label: `${product.product_name} (${product.available_packaging} pkg, ${product.available_weight} kg)`,
+      label: `${product.product_name} (${product.total_packaging} pkg, ${product.total_weight} kg)`,
       option: product.product_name
     }));
   }, [productsWithInventory]);

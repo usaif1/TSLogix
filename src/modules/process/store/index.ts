@@ -12,6 +12,10 @@ import {
   CellValidation,
   ProcessLoaderTypes,
   SubmitStatus,
+  FifoProductWithInventory,
+  FifoAllocation,
+  FifoSelection,
+  ProductInventorySummary,
 } from "@/modules/process/types";
 
 interface ProcessesStore {
@@ -50,6 +54,18 @@ interface ProcessesStore {
 
   // Warehouses
   warehouses: Warehouse[];
+
+  // ✅ NEW: FIFO Departure Flow
+  fifoProductsWithInventory: FifoProductWithInventory[];
+  fifoAllocations: Record<string, FifoAllocation>; // Keyed by product_id
+  fifoSelections: FifoSelection[];
+  productInventorySummaries: Record<string, ProductInventorySummary>; // Keyed by product_id
+  fifoError: string;
+  fifoValidation: {
+    isValid: boolean;
+    warnings: string[];
+    errors: string[];
+  };
 
   // Loading states
   loaders: {
@@ -99,6 +115,23 @@ interface ProcessesStoreActions {
   setSelectedCell: (cell: AvailableCell | null) => void;
   setCellValidation: (validation: CellValidation | null) => void;
   clearCellState: () => void;
+
+  // ✅ NEW: FIFO Departure Flow Actions
+  setFifoProductsWithInventory: (products: FifoProductWithInventory[]) => void;
+  setFifoAllocation: (productId: string, allocation: FifoAllocation) => void;
+  clearFifoAllocation: (productId: string) => void;
+  clearAllFifoAllocations: () => void;
+  addFifoSelection: (selection: FifoSelection) => void;
+  updateFifoSelection: (productId: string, updates: Partial<FifoSelection>) => void;
+  removeFifoSelection: (productId: string) => void;
+  clearFifoSelections: () => void;
+  setProductInventorySummary: (productId: string, summary: ProductInventorySummary) => void;
+  clearProductInventorySummary: (productId: string) => void;
+  setFifoError: (error: string) => void;
+  clearFifoError: () => void;
+  setFifoValidation: (validation: { isValid: boolean; warnings: string[]; errors: string[] }) => void;
+  clearFifoValidation: () => void;
+  clearFifoState: () => void;
 
   // Reset
   resetProcessesStore: () => void;
@@ -157,6 +190,18 @@ const processesInitialState: ProcessesStore = {
   // Warehouses
   warehouses: [],
 
+  // ✅ NEW: FIFO Departure Flow
+  fifoProductsWithInventory: [],
+  fifoAllocations: {},
+  fifoSelections: [],
+  productInventorySummaries: {},
+  fifoError: "",
+  fifoValidation: {
+    isValid: true,
+    warnings: [],
+    errors: [],
+  },
+
   // Loading states
   loaders: {
     "processes/fetch-entry-orders": false,
@@ -185,6 +230,11 @@ const processesInitialState: ProcessesStore = {
     "processes/validate-multiple-departure-cells": false,
     "processes/fetch-departure-inventory-summary": false,
     "processes/create-departure-from-entry": false,
+    "processes/browse-products-inventory": false,
+    "processes/get-fifo-allocation": false,
+    "processes/create-fifo-departure": false,
+    "processes/validate-fifo-allocation": false,
+    "processes/get-product-inventory-summary": false,
   },
 };
 
@@ -265,6 +315,39 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>((set, get)
       selectedCell: null,
       cellValidation: null,
       inventoryError: "",
+    }),
+
+  // ✅ NEW: FIFO Departure Flow Actions
+  setFifoProductsWithInventory: (products) => set({ fifoProductsWithInventory: products }),
+  setFifoAllocation: (productId, allocation) => set({ fifoAllocations: { ...get().fifoAllocations, [productId]: allocation } }),
+  clearFifoAllocation: (productId) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [productId]: _, ...rest } = get().fifoAllocations;
+    set({ fifoAllocations: rest });
+  },
+  clearAllFifoAllocations: () => set({ fifoAllocations: {} }),
+  addFifoSelection: (selection) => set({ fifoSelections: [...get().fifoSelections, selection] }),
+  updateFifoSelection: (productId, updates) => set({ fifoSelections: get().fifoSelections.map((s) => s.product_id === productId ? { ...s, ...updates } : s) }),
+  removeFifoSelection: (productId) => set({ fifoSelections: get().fifoSelections.filter((s) => s.product_id !== productId) }),
+  clearFifoSelections: () => set({ fifoSelections: [] }),
+  setProductInventorySummary: (productId, summary) => set({ productInventorySummaries: { ...get().productInventorySummaries, [productId]: summary } }),
+  clearProductInventorySummary: (productId) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [productId]: _, ...rest } = get().productInventorySummaries;
+    set({ productInventorySummaries: rest });
+  },
+  setFifoError: (error) => set({ fifoError: error }),
+  clearFifoError: () => set({ fifoError: "" }),
+  setFifoValidation: (validation) => set({ fifoValidation: validation }),
+  clearFifoValidation: () => set({ fifoValidation: { isValid: true, warnings: [], errors: [] } }),
+  clearFifoState: () =>
+    set({
+      fifoProductsWithInventory: [],
+      fifoAllocations: {},
+      fifoSelections: [],
+      productInventorySummaries: {},
+      fifoError: "",
+      fifoValidation: { isValid: true, warnings: [], errors: [] },
     }),
 
   // Reset

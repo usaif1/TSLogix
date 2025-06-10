@@ -2,6 +2,7 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, Divider } from '@/components';
 import { useQuarantineManagement } from '../../hooks/useQuarantineManagement';
+import { QualityControlStatus } from '../../store';
 import { 
   QualityControlFilters, 
   QualityControlInventoryTable, 
@@ -20,11 +21,20 @@ const QuarantineManagement: React.FC = () => {
     selection,
     transition,
     handlers,
+    isFetchingCells,
   } = useQuarantineManagement();
 
-  if (isLoading) {
+  // ✅ FIXED: Pre-load cells only when transitioning (removed automatic cell loading)
+  // This prevents unnecessary API calls when just changing warehouse filters
+  // Cells will be loaded only when needed (when opening transition modal)
+
+  // Show loading when initially fetching data (no warehouses loaded yet)
+  if (isLoading && warehouses.length === 0) {
     return (
       <div className="flex flex-col h-full">
+        <Text size="3xl" weight="font-bold">
+          {t('inventory:quality_control')}
+        </Text>
         <Divider height="lg" />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -36,16 +46,60 @@ const QuarantineManagement: React.FC = () => {
     );
   }
 
-  return (
-    <div className="flex flex-col h-full">
-      {/* Simple Header */}
-      <Text size="3xl" weight="font-bold">
-        {t('inventory:quality_control')}
-      </Text>
-      <Divider height="lg" />
+  // ✅ NEW: Quality Control System Status Indicator
+  const getQualityControlInfo = () => {
+    const statusInfo = {
+      [QualityControlStatus.CUARENTENA]: { 
+        cells: 'A-Q rows (Standard warehouse)', 
+        description: 'Initial quarantine state' 
+      },
+      [QualityControlStatus.APROBADO]: { 
+        cells: 'A-Q rows (Standard warehouse)', 
+        description: 'Ready for departure' 
+      },
+      [QualityControlStatus.DEVOLUCIONES]: { 
+        cells: 'V row (Returns area)', 
+        description: 'Customer returns' 
+      },
+      [QualityControlStatus.CONTRAMUESTRAS]: { 
+        cells: 'T row (Samples area)', 
+        description: 'Quality samples' 
+      },
+      [QualityControlStatus.RECHAZADOS]: { 
+        cells: 'R row (Rejected area)', 
+        description: 'Failed quality control' 
+      },
+    };
+    return statusInfo[filters.selectedStatus || QualityControlStatus.CUARENTENA];
+  };
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+  
+
+  return (
+    <div className="flex flex-col overflow-hidden pb-4" style={{ height: 'calc(100vh - 100px)' }}>
+      {/* Header - Fixed height */}
+      <div className="flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <Text size="3xl" weight="font-bold">
+            {t('inventory:quality_control')}
+          </Text>
+          {/* Quality Control System Status */}
+          {filters.selectedStatus && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
+              <Text size="sm" weight="font-medium" additionalClass="text-blue-900">
+                {filters.selectedStatus} System
+              </Text>
+              <Text size="xs" additionalClass="text-blue-700">
+                {getQualityControlInfo().cells} • {getQualityControlInfo().description}
+              </Text>
+            </div>
+          )}
+        </div>
+        <Divider height="lg" />
+      </div>
+
+      {/* Filters - Fixed height container */}
+      <div className="flex-shrink-0 relative z-20 bg-white rounded-lg border border-gray-200 p-4 mb-6 shadow-sm">
         <QualityControlFilters
           warehouses={warehouses}
           selectedWarehouse={filters.selectedWarehouse}
@@ -54,16 +108,17 @@ const QuarantineManagement: React.FC = () => {
           onSearchChange={handlers.onSearchChange}
           totalItems={inventory.length}
           filteredItems={filteredInventory.length}
-          selectedItems={selection.selectedItems}
+          selectedItemId={selection.selectedItems.length > 0 ? selection.selectedItems[0] : null}
           onTransitionToStatus={handlers.onTransitionToStatus}
           selectedStatus={filters.selectedStatus}
           onRefreshByStatus={handlers.onRefreshByStatus}
         />
       </div>
 
-      {/* Main Table - Focus Area */}
-      <div className="flex-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200">
+      {/* Main Table - Takes remaining height */}
+      <div className="flex-1 min-h-0 relative z-10 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
+        {/* Table Header - Fixed */}
+        <div className="flex-shrink-0 p-4 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div>
               <Text size="lg" weight="font-semibold">
@@ -81,14 +136,22 @@ const QuarantineManagement: React.FC = () => {
                 </Text>
               </div>
             )}
+
           </div>
         </div>
 
-        <div className="flex-1 overflow-auto">
+        {/* Table Content - Properly sized container to ensure pagination visibility */}
+        <div className="flex-1 min-h-0 flex flex-col">
           <QualityControlInventoryTable
             data={filteredInventory}
-            selectedItems={selection.selectedItems}
-            onToggleItemSelection={handlers.onToggleItemSelection}
+            selectedItemId={selection.selectedItems.length > 0 ? selection.selectedItems[0] : null}
+            onItemSelect={(itemId) => {
+              if (itemId) {
+                handlers.onToggleItemSelection(itemId);
+              } else {
+                handlers.onClearSelection();
+              }
+            }}
             pageSize={50}
             emptyMessage={
               inventory.length === 0
@@ -120,6 +183,11 @@ const QuarantineManagement: React.FC = () => {
         onVolumeToMoveChange={handlers.onVolumeToMoveChange}
         onConfirm={handlers.onConfirmTransition}
         isLoading={isTransitioning}
+        availableCells={transition.availableCells}
+        selectedCellId={transition.selectedCellId}
+        onCellSelect={handlers.onCellSelect}
+        isFetchingCells={isFetchingCells}
+        onFetchCells={handlers.onFetchCellsForStatus}
       />
     </div>
   );

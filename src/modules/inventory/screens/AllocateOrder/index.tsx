@@ -176,14 +176,40 @@ const AssignProduct: React.FC = () => {
       defaultProductStatus = presentationMap[product.presentation] || "30-PAL-NORMAL";
     }
     
+    // ✅ Calculate remaining package quantity properly
+    // If remaining_packaging_qty is available, use it; otherwise calculate proportionally
+    const remainingPackageQty = product?.remaining_packaging_qty || 
+                                (product?.package_quantity && product?.remaining_quantity && product?.inventory_quantity ? 
+                                  Math.floor((product.package_quantity / product.inventory_quantity) * product.remaining_quantity) : 
+                                  product?.remaining_quantity || 0);
+    
+    // ✅ Calculate remaining weight properly
+    // If remaining_weight is available, use it; otherwise calculate proportionally
+    const remainingWeight = product?.remaining_weight || 
+                           (product?.weight_kg && product?.remaining_quantity && product?.inventory_quantity ? 
+                             (parseFloat(product.weight_kg.toString()) / product.inventory_quantity) * product.remaining_quantity : 
+                             product?.remaining_quantity || 0);
+
+    console.log("Product selection debug:", {
+      product_code: product?.product?.product_code,
+      original_inventory: product?.inventory_quantity,
+      original_package: product?.package_quantity,
+      original_weight: product?.weight_kg,
+      remaining_quantity: product?.remaining_quantity,
+      remaining_packaging_qty: product?.remaining_packaging_qty,
+      remaining_weight: product?.remaining_weight,
+      calculated_package_qty: remainingPackageQty,
+      calculated_weight: remainingWeight
+    });
+
     setFormData(prev => ({
       ...prev,
       selected_product: product,
-      inventory_quantity: product?.remaining_quantity?.toString() || product?.inventory_quantity?.toString() || "",
-      package_quantity: product?.package_quantity?.toString() || "",
+      inventory_quantity: product?.remaining_quantity?.toString() || "",
+      package_quantity: remainingPackageQty.toString(),
       quantity_pallets: "",
       presentation: product?.presentation || "PALETA",
-      weight_kg: product?.weight_kg?.toString() || "",
+      weight_kg: remainingWeight.toString(),
       guide_number: product?.guide_number || "",
       product_status: defaultProductStatus, // ✅ Use calculated default
       observations: "",
@@ -325,9 +351,33 @@ const AssignProduct: React.FC = () => {
       return;
     }
 
+    // ✅ Validate against remaining quantities
     const maxQuantity = formData.selected_product.remaining_quantity || formData.selected_product.inventory_quantity;
+    
+    // Calculate remaining package quantity for validation
+    const maxPackageQty = formData.selected_product.remaining_packaging_qty || 
+                          (formData.selected_product.package_quantity && formData.selected_product.remaining_quantity && formData.selected_product.inventory_quantity ? 
+                            Math.floor((formData.selected_product.package_quantity / formData.selected_product.inventory_quantity) * formData.selected_product.remaining_quantity) : 
+                            formData.selected_product.remaining_quantity || 0);
+    
+    // Calculate remaining weight for validation
+    const maxWeight = formData.selected_product.remaining_weight || 
+                      (formData.selected_product.weight_kg && formData.selected_product.remaining_quantity && formData.selected_product.inventory_quantity ? 
+                        (parseFloat(formData.selected_product.weight_kg.toString()) / formData.selected_product.inventory_quantity) * formData.selected_product.remaining_quantity : 
+                        formData.selected_product.remaining_quantity || 0);
+
     if (inventoryQty > maxQuantity) {
       setError(t('inventory:cannot_assign_more_than', { max: maxQuantity }));
+      return;
+    }
+
+    if (packageQty > maxPackageQty) {
+      setError(`Cannot assign more than ${maxPackageQty} packages (remaining available)`);
+      return;
+    }
+
+    if (weight > maxWeight) {
+      setError(`Cannot assign more than ${maxWeight} kg (remaining available)`);
       return;
     }
 
@@ -378,26 +428,10 @@ const AssignProduct: React.FC = () => {
         await fetchEntryOrderProducts(formData.selected_entry_order.entry_order_id);
       }
 
-      // ✅ Reset form but keep the entry order and product selected for additional assignments
-      // Use the current product's remaining quantity after assignment
-      const updatedProduct = selectedOrderProducts.find(p => 
-        p.entry_order_product_id === formData.selected_product?.entry_order_product_id
-      );
-      
-      setFormData(prev => ({
-        ...prev,
-        warehouse_id: null,
-        cell_id: "",
-        inventory_quantity: updatedProduct?.remaining_quantity?.toString() || 
-                           formData.selected_product?.remaining_quantity?.toString() || "",
-        package_quantity: updatedProduct?.package_quantity?.toString() || 
-                         formData.selected_product?.package_quantity?.toString() || "",
-        quantity_pallets: "",
-        guide_number: "",
-        observations: "",
-        uploaded_documents: null,
-      }));
-      setSelectedCell(null);
+      // ✅ Brief delay to show success message, then redirect to inventory page
+      setTimeout(() => {
+        navigate("/inventory");
+      }, 1500);
 
     } catch (err: any) {
       console.error("Assignment error:", err);
@@ -495,7 +529,10 @@ const AssignProduct: React.FC = () => {
                 <label htmlFor="entry_order">{t('process:entry_order')} *</label>
                 <Select
                   options={entryOrderOptions}
-                  styles={reactSelectStyle}
+                  styles={{
+                    ...reactSelectStyle,
+                    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+                  }}
                   inputId="entry_order"
                   name="entry_order"
                   value={formData.selected_entry_order ? {
@@ -506,6 +543,7 @@ const AssignProduct: React.FC = () => {
                   placeholder={t('inventory:select_entry_order')}
                   isClearable
                   isSearchable
+                  menuPortalTarget={document.body}
                 />
                 <Text size="xs" additionalClass="text-gray-500 mt-1">
                   {t('inventory:approved_orders_available', { count: approvedEntryOrders.length })}
@@ -517,7 +555,10 @@ const AssignProduct: React.FC = () => {
                 <label htmlFor="product">{t('process:product')} *</label>
                 <Select
                   options={productOptions}
-                  styles={reactSelectStyle}
+                  styles={{
+                    ...reactSelectStyle,
+                    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+                  }}
                   inputId="product"
                   name="product"
                   value={formData.selected_product ? {
@@ -529,6 +570,7 @@ const AssignProduct: React.FC = () => {
                   isClearable
                   isSearchable
                   isDisabled={!formData.selected_entry_order}
+                  menuPortalTarget={document.body}
                 />
                 <Text size="xs" additionalClass="text-gray-500 mt-1">
                   {t('inventory:products_available', { count: selectedOrderProducts.length })}
@@ -544,7 +586,7 @@ const AssignProduct: React.FC = () => {
                   <Text weight="font-medium" additionalClass="mb-2 text-gray-800">
                     {t('inventory:product_details')}
                   </Text>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
                     <div>
                       <Text size="xs" additionalClass="text-gray-500">{t('process:serial_number')}</Text>
                       <Text weight="font-medium">{formData.selected_product.serial_number}</Text>
@@ -556,7 +598,19 @@ const AssignProduct: React.FC = () => {
                     <div>
                       <Text size="xs" additionalClass="text-gray-500">{t('inventory:remaining_quantity')}</Text>
                       <Text weight="font-medium" additionalClass="text-orange-600">
-                        {formData.selected_product.remaining_quantity} {t('inventory:units')}
+                        {formData.selected_product.remaining_quantity} / {formData.selected_product.inventory_quantity} {t('inventory:units')}
+                      </Text>
+                    </div>
+                    <div>
+                      <Text size="xs" additionalClass="text-gray-500">{t('inventory:remaining_packages')}</Text>
+                      <Text weight="font-medium" additionalClass="text-orange-600">
+                        {formData.selected_product.remaining_packaging_qty || Math.floor((formData.selected_product.package_quantity / formData.selected_product.inventory_quantity) * formData.selected_product.remaining_quantity)} / {formData.selected_product.package_quantity}
+                      </Text>
+                    </div>
+                    <div>
+                      <Text size="xs" additionalClass="text-gray-500">{t('inventory:remaining_weight')}</Text>
+                      <Text weight="font-medium" additionalClass="text-orange-600">
+                        {(formData.selected_product.remaining_weight || (formData.selected_product.weight_kg * formData.selected_product.remaining_quantity / formData.selected_product.inventory_quantity)).toFixed(2)} / {formData.selected_product.weight_kg} kg
                       </Text>
                     </div>
                     <div>
@@ -571,7 +625,7 @@ const AssignProduct: React.FC = () => {
 
           {/* ✅ Warehouse & Cell Selection - consistent styling */}
           {formData.selected_product && (
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 relative z-0">
               <Text size="lg" weight="font-semibold" additionalClass="mb-4 text-gray-800">
                 {t('inventory:location_selection')}
               </Text>
@@ -582,13 +636,17 @@ const AssignProduct: React.FC = () => {
                   <label htmlFor="warehouse">{t('inventory:warehouse')} *</label>
                   <Select
                     options={warehouseOptions}
-                    styles={reactSelectStyle}
+                    styles={{
+                      ...reactSelectStyle,
+                      menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+                    }}
                     inputId="warehouse"
                     name="warehouse"
                     value={formData.warehouse_id}
                     onChange={handleWarehouseChange}
                     placeholder={t('inventory:select_warehouse')}
                     isClearable
+                    menuPortalTarget={document.body}
                   />
                 </div>
 
@@ -608,11 +666,11 @@ const AssignProduct: React.FC = () => {
                 )}
               </div>
 
-              {/* Cell Grid */}
+                            {/* Cell Grid */}
               {formData.warehouse_id && (
                 <>
                   <Divider height="sm" />
-                  <div>
+                  <div className="relative z-0">
                     <Text weight="font-medium" additionalClass="mb-2">
                       {t('inventory:available_cells_in', { warehouse: formData.warehouse_id.label })}
                     </Text>
@@ -628,7 +686,7 @@ const AssignProduct: React.FC = () => {
                         </Text>
                       </div>
                     ) : (
-                      <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-lg bg-white">
+                      <div className="max-h-80 overflow-y-auto border border-gray-200 rounded-lg bg-white relative">
                         <CellGrid
                           cells={cells}
                           onSelect={handleCellSelect}
@@ -676,10 +734,14 @@ const AssignProduct: React.FC = () => {
                     name="package_quantity"
                     value={formData.package_quantity}
                     onChange={handleInputChange}
+                    max={formData.selected_product.remaining_packaging_qty || formData.selected_product.package_quantity}
                     min="1"
                     className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
                     required
                   />
+                  <Text size="xs" additionalClass="text-gray-500 mt-1">
+                    {t('inventory:max')}: {formData.selected_product.remaining_packaging_qty || Math.floor((formData.selected_product.package_quantity / formData.selected_product.inventory_quantity) * formData.selected_product.remaining_quantity)}
+                  </Text>
                 </div>
 
                 <div className="w-full flex flex-col">
@@ -724,10 +786,14 @@ const AssignProduct: React.FC = () => {
                     name="weight_kg"
                     value={formData.weight_kg}
                     onChange={handleInputChange}
+                    max={formData.selected_product.remaining_weight || formData.selected_product.weight_kg}
                     min="0.01"
                     className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
                     required
                   />
+                  <Text size="xs" additionalClass="text-gray-500 mt-1">
+                    {t('inventory:max')}: {(formData.selected_product.remaining_weight || (formData.selected_product.weight_kg * formData.selected_product.remaining_quantity / formData.selected_product.inventory_quantity)).toFixed(2)} kg
+                  </Text>
                 </div>
 
                 <div className="w-full flex flex-col">

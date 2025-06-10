@@ -888,7 +888,7 @@ const Review: React.FC = () => {
     },
     { label: t('process:order_status'), value: entry.order_status },
     { label: t('process:document_type'), value: entry.documentType?.name },
-    { label: t('process:supplier'), value: getMainSupplier(entry.products) },
+    { label: t('process:supplier'), value: getMainSupplier(entry.products || []) },
     { label: t('process:origin'), value: entry.origin?.name },
     { label: t('process:review_status'), value: getReviewStatusText(entry.review_status) },
     { label: t('process:reviewed_by'), value: entry.reviewer_name || t('process:not_reviewed') },

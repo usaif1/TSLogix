@@ -166,9 +166,7 @@ export const InventoryLogService = {
         status: c.status,
         cellKind: c.kind,
         cellRole: c.cell_role,
-        cellReference: `${c.row}.${String(c.bay).padStart(2, "0")}.${String(
-          c.position
-        ).padStart(2, "0")}`,
+        cellReference: `${c.row}.${String(c.bay).padStart(2, "0")}.${String(c.position).padStart(2, "0")}`,
       }));
 
       setCells(cells);
@@ -385,7 +383,7 @@ export const InventoryLogService = {
               last_modified_at: item.allocation.last_modified_at,
               entry_order_no: item.allocation.entry_order?.entry_order_no,
             }
-          : null,
+          : undefined,
       }));
 
       setInventorySummary(mappedData);
@@ -433,7 +431,92 @@ export const InventoryLogService = {
     }
   },
 
-  // ✅ NEW: Transition inventory quality status
+  // ✅ NEW: Get cells by quality status for proper role mapping
+  fetchCellsByQualityStatus: async (qualityStatus: QualityControlStatus, warehouseId: string) => {
+    try {
+      startLoader("inventoryLogs/fetch-cells-by-quality-status");
+      
+      console.log("🔄 Fetching cells by quality status:", { qualityStatus, warehouseId });
+      
+      // For APROBADO status, fetch general available cells instead of special purpose cells
+      const apiEndpoint = qualityStatus === QualityControlStatus.APROBADO 
+        ? `${warehouseURL}/${warehouseId}/available-cells`
+        : `${baseURL}/cells-by-quality-status`;
+      
+      const apiParams = qualityStatus === QualityControlStatus.APROBADO
+        ? {} // No specific quality status filter for general cells
+        : {
+            quality_status: qualityStatus,
+            warehouse_id: warehouseId
+          };
+
+      const response = await api.get(apiEndpoint, {
+        params: apiParams
+      });
+      
+      const responseData = response.data.data || response.data;
+      
+      // ✅ FIXED: Extract cells array from the response data structure
+      // For APROBADO (general cells), the response is directly an array
+      // For special purpose cells, the response has a cells property
+      const cells = qualityStatus === QualityControlStatus.APROBADO 
+        ? responseData 
+        : (responseData.cells || responseData);
+      
+      // ✅ FIXED: Ensure we always return an array
+      const rawCells = Array.isArray(cells) ? cells : [];
+      
+      // ✅ FIXED: Transform backend cell format to match CellGrid component expectations
+      const transformedCells: Cell[] = rawCells.map((c: any) => ({
+        cell_id: c.id,
+        warehouse_id: c.warehouse?.warehouse_id || c.warehouse_id || warehouseId,
+        row: c.row,
+        bay: c.bay,
+        position: c.position,
+        cellReference: `${c.row}.${String(c.bay).padStart(2, "0")}.${String(c.position).padStart(2, "0")}`,
+        capacity: Number(c.capacity || 0),
+        currentUsage: Number(c.currentUsage || 0),
+        status: c.status as "AVAILABLE" | "OCCUPIED" | "DAMAGED" | "EXPIRED",
+        cell_role: c.cell_role,
+        cellKind: c.kind,
+      }));
+      
+      console.log("✅ Cells by quality status response:", {
+        qualityStatus,
+        warehouseId,
+        responseStructure: responseData,
+        rawCellsCount: rawCells.length,
+        transformedCellsCount: transformedCells.length,
+        firstFewRawCells: rawCells.slice(0, 3).map(c => ({
+          id: c.id,
+          row: c.row,
+          bay: c.bay,
+          position: c.position,
+          cell_reference: c.cell_reference,
+          cell_role: c.cell_role,
+          status: c.status
+        })),
+        firstFewTransformedCells: transformedCells.slice(0, 3).map(c => ({
+          cell_id: c.cell_id,
+          row: c.row,
+          bay: c.bay,
+          position: c.position,
+          cellReference: c.cellReference,
+          cell_role: c.cell_role,
+          status: c.status
+        }))
+      });
+      
+      return transformedCells;
+    } catch (error) {
+      console.error("❌ Fetch cells by quality status error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/fetch-cells-by-quality-status");
+    }
+  },
+
+  // ✅ ENHANCED: Transition inventory quality status with cell role validation
   transitionQualityStatus: async (transitionData: {
     allocation_id: string;
     to_status: QualityControlStatus;
@@ -443,6 +526,7 @@ export const InventoryLogService = {
     volume_to_move: number;
     reason: string;
     notes?: string;
+    new_cell_id?: string; // Required for transitions to special purpose cells (V, T, R rows)
   }) => {
     try {
       startLoader("inventoryLogs/quality-transition");
@@ -452,14 +536,21 @@ export const InventoryLogService = {
         throw new Error("User not authenticated. Please log in again.");
       }
 
+      // ✅ Enhanced payload with cell transition support
       const payload = {
         ...transitionData,
         performed_by: userId,
       };
 
-      console.log("=== QUALITY TRANSITION ===");
+      console.log("=== ENHANCED QUALITY TRANSITION ===");
       console.log("URL:", `${baseURL}/quality-transition`);
       console.log("Payload:", JSON.stringify(payload, null, 2));
+      console.log("Quality Status Mapping:", {
+        from: "Current cell",
+        to: transitionData.to_status,
+        requiresCellMove: ["DEVOLUCIONES", "CONTRAMUESTRAS", "RECHAZADOS"].includes(transitionData.to_status),
+        newCellId: transitionData.new_cell_id
+      });
 
       const response = await api.post(`${baseURL}/quality-transition`, payload, {
         headers: {
@@ -467,12 +558,12 @@ export const InventoryLogService = {
         },
       });
 
-      console.log("✅ Quality transition successful:", response.data);
+      console.log("✅ Enhanced quality transition successful:", response.data);
 
       const data = response.data.data || response.data;
       return data;
     } catch (error: any) {
-      console.error("❌ Quality transition failed:", error);
+      console.error("❌ Enhanced quality transition failed:", error);
       throw error;
     } finally {
       stopLoader("inventoryLogs/quality-transition");
