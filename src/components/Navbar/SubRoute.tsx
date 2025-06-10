@@ -18,6 +18,7 @@ const SubRoute: React.FC<LinkProps> = ({ item }) => {
     <NavLink
       to={item.route}
       className={`subroute ${isActive ? "subroute_active" : ""}`}
+      onClick={(e) => e.stopPropagation()}
     >
       {item.title}
     </NavLink>

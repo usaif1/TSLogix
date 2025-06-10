@@ -1,8 +1,11 @@
 // dependencies
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 const DepartureCounter: React.FC = () => {
-  return <div>DepartureCounter</div>;
+  const { t } = useTranslation(['process', 'common']);
+  
+  return <div>{t('departure_counter')}</div>;
 };
 
 export default DepartureCounter;

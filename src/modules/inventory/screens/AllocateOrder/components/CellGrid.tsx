@@ -13,6 +13,7 @@ export type Cell = {
   currentUsage: number;
   status: "AVAILABLE" | "OCCUPIED" | "DAMAGED" | "EXPIRED";
   cell_role?: string;
+  cellKind?: string;
 };
 
 const STATUS_CLASSES: Record<string, { bg: string; hover: string; border: string }> = {
@@ -50,9 +51,19 @@ interface CellGridProps {
   cells: Cell[];
   onSelect: (cell: Cell) => void;
   selectedId?: string;
+  showSpecialRows?: boolean;
+  specialRowsOnly?: boolean;
+  allowedRows?: string[];
 }
 
-const CellGrid: React.FC<CellGridProps> = ({ cells = [], onSelect, selectedId }) => {
+const CellGrid: React.FC<CellGridProps> = ({ 
+  cells = [], 
+  onSelect, 
+  selectedId, 
+  showSpecialRows = false,
+  specialRowsOnly = false,
+  allowedRows
+}) => {
   const { t } = useTranslation(['inventory', 'warehouse']);
   const cellsArray = Array.isArray(cells) ? cells : [];
 
@@ -61,7 +72,25 @@ const CellGrid: React.FC<CellGridProps> = ({ cells = [], onSelect, selectedId })
     let maxBay = 0;
     let maxPosition = 0;
 
-    cellsArray.forEach((c) => {
+    const filteredCells = cellsArray.filter((c) => {
+      if (!c.row) return false;
+      
+      if (allowedRows && allowedRows.length > 0) {
+        return allowedRows.includes(c.row);
+      }
+      
+      if (specialRowsOnly) {
+        return ['V', 'T', 'R'].includes(c.row);
+      }
+      
+      if (showSpecialRows) {
+        return true;
+      }
+      
+      return c.row <= 'Q' && !['V', 'T', 'R'].includes(c.row);
+    });
+
+    filteredCells.forEach((c) => {
       if (!c.row || c.bay == null || c.position == null) return;
       map[c.row] = map[c.row] || {};
       map[c.row][c.bay] = map[c.row][c.bay] || {};
@@ -73,13 +102,36 @@ const CellGrid: React.FC<CellGridProps> = ({ cells = [], onSelect, selectedId })
       maxPosition = Math.max(maxPosition, c.position);
     });
 
+    const allRows = Object.keys(map);
+    const sortedRows = allRows.sort((a, b) => {
+      const specialRows = ['V', 'T', 'R'];
+      const aIsSpecial = specialRows.includes(a);
+      const bIsSpecial = specialRows.includes(b);
+      
+      if (aIsSpecial && !bIsSpecial) return 1;
+      if (!aIsSpecial && bIsSpecial) return -1;
+      if (aIsSpecial && bIsSpecial) {
+        return specialRows.indexOf(a) - specialRows.indexOf(b);
+      }
+      
+      return a.localeCompare(b);
+    });
+    
+    console.log('CellGrid filtered rows:', sortedRows, {
+      showSpecialRows,
+      specialRowsOnly,
+      allowedRows,
+      originalCellsCount: cellsArray.length,
+      filteredCellsCount: filteredCells.length
+    });
+
     return {
       map,
-      rows: Object.keys(map).sort(),
+      rows: sortedRows,
       maxBay,
       maxPosition,
     };
-  }, [cellsArray]);
+  }, [cellsArray, showSpecialRows, specialRowsOnly, allowedRows]);
 
   if (rows.length === 0) {
     return (
@@ -92,30 +144,59 @@ const CellGrid: React.FC<CellGridProps> = ({ cells = [], onSelect, selectedId })
               </svg>
             </div>
             <p className="text-sm text-gray-500">{t('inventory:no_cells_available')}</p>
-            <p className="text-xs text-gray-400">{t('inventory:select_warehouse_first')}</p>
+            <p className="text-xs text-gray-400">
+              {specialRowsOnly || allowedRows 
+                ? t('inventory:no_special_cells_available')
+                : t('inventory:select_warehouse_first')
+              }
+            </p>
           </div>
         </div>
       </div>
     );
   }
 
-  const availableCellsCount = cellsArray.filter(c => c.status === 'AVAILABLE').length;
+  const availableCellsCount = cellsArray.filter(c => {
+    const passesRowFilter = (() => {
+      if (!c.row) return false;
+      if (allowedRows && allowedRows.length > 0) return allowedRows.includes(c.row);
+      if (specialRowsOnly) return ['V', 'T', 'R'].includes(c.row);
+      if (showSpecialRows) return true;
+      return c.row <= 'Q' && !['V', 'T', 'R'].includes(c.row);
+    })();
+    return passesRowFilter && c.status === 'AVAILABLE';
+  }).length;
+
+  const getGridTitle = () => {
+    if (specialRowsOnly) return t('inventory:special_purpose_cells');
+    if (allowedRows && allowedRows.length > 0) return t('inventory:designated_cells');
+    if (showSpecialRows) return t('inventory:all_available_cells');
+    return t('inventory:cell_selection');
+  };
+
+  const getGridDescription = () => {
+    if (specialRowsOnly) return t('inventory:special_rows_only');
+    if (allowedRows && allowedRows.length > 0) return `(${allowedRows.join(', ')} ${t('inventory:rows')})`;
+    if (showSpecialRows) return t('inventory:all_rows_available');
+    return `(${t('inventory:rows_a_through_q')})`;
+  };
 
   return (
     <div className="w-full border border-gray-200 rounded-lg bg-white shadow-sm">
-      {/* Header with info and legend */}
       <div className="bg-gray-50 px-3 sm:px-4 py-3 border-b border-gray-200 rounded-t-lg">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
           <h3 className="text-sm font-semibold text-gray-800">
-            {t('inventory:cell_selection')}
+            {getGridTitle()}
           </h3>
-          <span className="text-xs text-gray-600">
-            {availableCellsCount} {t('inventory:available_cells')}
-          </span>
+          <div className="text-xs text-gray-600 space-x-4">
+            <span>{availableCellsCount} {t('inventory:available_cells')}</span>
+            <span className="text-gray-500">
+              {getGridDescription()}
+            </span>
+          </div>
         </div>
         
-        {/* Legend - Responsive grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
           <LegendItem 
             color="bg-emerald-100 border-emerald-300" 
             label={t('warehouse:available')} 
@@ -135,14 +216,12 @@ const CellGrid: React.FC<CellGridProps> = ({ cells = [], onSelect, selectedId })
         </div>
       </div>
 
-      {/* Grid container with fixed height and scrolling */}
       <div className="relative">
-        {/* Reduced height with both vertical and horizontal scrolling */}
         <div className="h-80 overflow-auto border-b border-gray-200">
           <table className="border-collapse table-fixed" style={{ width: 'auto' }}>
-            <thead className="sticky top-0 bg-white z-20 shadow-sm">
+            <thead className="sticky top-0 bg-white z-10 shadow-sm">
               <tr>
-                <th className="sticky left-0 z-30 bg-gray-50 border-b border-r border-gray-200 p-1 text-left w-12">
+                <th className="sticky left-0 z-10 bg-gray-50 border-b border-r border-gray-200 p-1 text-left w-12">
                   <span className="text-[10px] font-medium text-gray-600">
                     {t('inventory:position')}
                   </span>
@@ -167,16 +246,21 @@ const CellGrid: React.FC<CellGridProps> = ({ cells = [], onSelect, selectedId })
               {rows.map((rowLetter) =>
                 Array.from({ length: maxPosition }, (_, pi) => {
                   const position = pi + 1;
+                  
                   return (
-                    <tr key={`${rowLetter}-${position}`} className="hover:bg-gray-50">
-                      {/* Row header - sticky */}
-                      <td className="sticky left-0 z-10 bg-white border-r border-gray-200 p-1 w-12">
-                        <span className="text-[10px] font-semibold text-gray-700 whitespace-nowrap">
+                    <tr key={`${rowLetter}-${position}`} className={clsx(
+                      "hover:bg-gray-50"
+                    )}>
+                      <td className={clsx(
+                        "sticky left-0 z-10 bg-white border-r border-gray-200 p-1 w-12"
+                      )}>
+                        <span className={clsx(
+                          "text-[10px] font-semibold whitespace-nowrap text-gray-700"
+                        )}>
                           {`${rowLetter}.${String(position).padStart(2, "0")}`}
                         </span>
                       </td>
 
-                      {/* Cells */}
                       {Array.from({ length: maxBay }, (_, bi) => {
                         const bay = bi + 1;
                         const cell = map[rowLetter]?.[bay]?.[position];
@@ -187,7 +271,9 @@ const CellGrid: React.FC<CellGridProps> = ({ cells = [], onSelect, selectedId })
                           return (
                             <td
                               key={`${rowLetter}-${bay}-${position}`}
-                              className="h-8 w-6 border border-gray-100 bg-gray-50"
+                              className={clsx(
+                                "h-8 w-6 border border-gray-100 bg-gray-50"
+                              )}
                               style={{ width: '24px', minWidth: '24px', maxWidth: '24px' }}
                             >
                               <div className="flex items-center justify-center h-full">
@@ -220,11 +306,9 @@ const CellGrid: React.FC<CellGridProps> = ({ cells = [], onSelect, selectedId })
                                 "text-[7px] font-medium text-center leading-none",
                                 isSelected ? "text-white" : "text-gray-800"
                               )}>
-                                {/* Show only the position number to save space */}
                                 {`${rowLetter}.${String(bay).padStart(2, "0")}.${String(position).padStart(2, "0")}`}
                               </span>
                               
-                              {/* Status indicator */}
                               <div className="flex items-center mt-0.5">
                                 {isSelected && (
                                   <svg className="w-1.5 h-1.5 text-white" fill="currentColor" viewBox="0 0 20 20">

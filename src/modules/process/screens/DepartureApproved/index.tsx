@@ -9,7 +9,7 @@ import DepartureApprovedForm from "./components/DepartureApprovedForm";
 import { ProcessService } from "@/modules/process/api/process.service";
 
 const DepartureApproved: React.FC = () => {
-  const { t } = useTranslation(['process']);
+  const { t } = useTranslation("process");
 
   useEffect(() => {
     // Fetch both departure form fields and warehouses
@@ -29,9 +29,14 @@ const DepartureApproved: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <Text size="3xl" weight="font-bold">
-        {t('process:new_departure')}
-      </Text>
+      <div className="mb-4">
+        <Text size="3xl" weight="font-bold">
+          {t("new_departure_order")}
+        </Text>
+        <Text size="xl" additionalClass="mt-2 text-gray-600">
+          {t("departure_order_description")}
+        </Text>
+      </div>
       <Divider height="lg" />
       <DepartureApprovedForm />
     </div>

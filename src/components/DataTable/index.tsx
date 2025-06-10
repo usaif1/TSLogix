@@ -9,7 +9,7 @@ import {
 
 interface DataTableProps<T extends object> {
   data: T[];
-  columns: ColumnDef<T, any>[];
+  columns: ColumnDef<T, unknown>[];
   showPagination?: boolean;
   pageSize?: number;
   emptyMessage?: string;

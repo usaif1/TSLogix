@@ -10,17 +10,13 @@ import { ProcessService } from "@/modules/process/api/process.service";
 import { useDebounce } from "@/hooks/useDebounce";
 
 const Departure: React.FC = () => {
-  const { t } = useTranslation(['process']);
+  const { t } = useTranslation(['process', 'common']);
   const [searchQuery, setSearchQuery] = useState("");
   
   // Debounce the search query with 500ms delay
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  useEffect(() => {
-    ProcessService.fetchAllDepartureOrders();
-  }, []);
-
-  // Effect for debounced search
+  // Single effect that handles both initial load and search
   useEffect(() => {
     ProcessService.fetchAllDepartureOrders(debouncedSearchQuery);
   }, [debouncedSearchQuery]);
@@ -31,15 +27,20 @@ const Departure: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
-      <Text size="3xl" weight="font-bold">
-        {t('process:departure_orders')}
-      </Text>
+      <div className="mb-4">
+        <Text size="3xl" weight="font-bold">
+          {t('departure_orders')}
+        </Text>
+        <Text size="xl" additionalClass="mt-2 text-gray-600">
+          Manage departure orders with automated FIFO allocation ensuring optimal inventory rotation!
+        </Text>
+      </div>
 
       <div className="w-1/2">
         <Searchbar
           iconHidden={true}
           searchButton={true}
-          placeholder={t('process:search_order_placeholder')}
+          placeholder={t('search_order_placeholder')}
           onSearch={handleSearch}
         />
       </div>
@@ -49,7 +50,7 @@ const Departure: React.FC = () => {
         className="!w-56 bg-action-nav hover:bg-[#0F2F47] text-white px-2 py-2 rounded-md font-bold flex justify-center cursor-pointer "
       >
         <div className="flex items-center gap-x-2">
-          <Text color="text-white">{t('process:generate_order')}</Text>
+          <Text color="text-white">{t('generate_fifo_order')}</Text>
           <Plus className="text-white" weight="bold" size={16} />
         </div>
       </Link>

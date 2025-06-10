@@ -9,10 +9,9 @@ import { useTranslation } from "react-i18next";
 import { Button, Divider, Text } from "@/components";
 import FileUpload from "@/components/FileUpload";
 import { ProcessesStore } from "@/globalStore";
-import { EntryFormData } from "@/modules/process/types";
 import { ProcessService } from "@/modules/process/api/process.service";
 import { supabase } from "@/lib/supabase/supabaseClient";
-import useFormComplete from "@/hooks/useFormComplete";
+import ProductEntryCard from "./ProductEntryCard";
 
 const reactSelectStyle = {
   container: (style: CSSObjectWithLabel) => ({
@@ -21,37 +20,101 @@ const reactSelectStyle = {
   }),
 };
 
-const NewEntryOrderForm: React.FC = () => {
-  const { t } = useTranslation(['process', 'common']);
+// ✅ Updated ProductData interface to include product_code
+export interface ProductData {
+  id: string;
+  product_id: string;
+  product_code: string; // ✅ Added product_code field
+  supplier_id: string;
+  serial_number: string;
+  lot_series: string;
+  guide_number: string;
+
+  // Updated field names to match new backend schema
+  inventory_quantity: string;
+  package_quantity: string;
+  weight_kg: string;
+  volume_m3: string;
+  quantity_pallets: string;
+  presentation: string;
+  product_description: string;
+  insured_value: string;
+  technical_specification: string;
+  manufacturing_date: Date;
+  expiration_date: Date;
+  temperature_range: string;
+  humidity: string;
+  health_registration: string;
+}
+
+interface EntryFormData {
+  // Entry Order Level Data
+  origin: { option: string; value: string; label: string };
+  entry_order_no: string;
+  document_type_id: { option: string; value: string; label: string };
+  registration_date: Date;
+  document_date: Date;
+  admission_date_time: Date;
+  entry_date: Date;
+  entry_transfer_note: string;
+  personnel_incharge_id: { option: string; value: string; label: string };
+  document_status: { option: string; value: string; label: string };
+  order_status: { option: string; value: string; label: string };
+  observation: string;
+  cif_value: string;
+  supplier: { option: string; value: string; label: string };
+  certificate_protocol_analysis: string;
+  lot_series: string;
+  type: string;
+
+  // Products Array
+  products: ProductData[];
+}
+
+interface NewEntryOrderFormProps {
+  submitButtonText?: string;
+}
+
+const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
+  const { t } = useTranslation(["process", "common"]);
   const navigate = useNavigate();
+
   const {
-    documentTypes,
-    origins,
-    users,
-    products,
-    suppliers,
+    entryFormFields: {
+      documentTypes,
+      origins,
+      users,
+      products,
+      suppliers,
+      temperatureRanges,
+      orderStatusOptions: entryOrderStatus,
+      presentationOptions,
+    },
     currentEntryOrderNo,
-    entryOrderStatus,
   } = ProcessesStore();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const dropdownOptions = useMemo(() => {
+    return {
+      origins: origins || [],
+      documentTypes: documentTypes || [],
+      users: users || [],
+      products: products || [],
+      suppliers: suppliers || [],
+      temperatureRanges: temperatureRanges || [],
+      orderStatus: entryOrderStatus || [],
+      presentationOptions: presentationOptions || [],
+    };
+  }, [origins, documentTypes, users, products, suppliers, temperatureRanges, entryOrderStatus, presentationOptions]);
+
+  const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     success?: boolean;
     message?: string;
   }>({});
 
-  useEffect(() => {
-    setFormData((prev) => ({
-      ...prev,
-      entry_order_no: currentEntryOrderNo || "",
-    }));
-  }, [currentEntryOrderNo]);
-
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "", label: "" },
-    palettes: "",
-    product_description: "",
-    insured_value: "",
-    entry_order_no: currentEntryOrderNo || "",
+    entry_order_no: "",
     document_type_id: { option: "", value: "", label: "" },
     registration_date: new Date(),
     document_date: new Date(),
@@ -61,43 +124,49 @@ const NewEntryOrderForm: React.FC = () => {
     personnel_incharge_id: { option: "", value: "", label: "" },
     document_status: {
       option: "Registered",
-      value: "REGISTERED",
+      value: "REGISTERED", 
       label: "REGISTERED",
     },
     order_status: { option: "", value: "", label: "" },
     observation: "",
-    total_volume: "",
-    total_weight: "",
     cif_value: "",
     supplier: { option: "", value: "", label: "" },
-    product: { option: "", value: "", label: "" },
     certificate_protocol_analysis: "",
-    mfd_date_time: new Date(),
-    expiration_date: new Date(),
     lot_series: "",
-    quantity_packaging: "",
-    presentation: "",
-    total_qty: "",
-    technical_specification: "",
-    max_temperature: "",
-    min_temperature: "",
-    humidity: "",
     type: "",
+    products: [],
   });
 
   const [certificateFile, setCertificateFile] = useState<File | null>(null);
-  const [techSpecFile, setTechSpecFile] = useState<File | null>(null);
+
+  // ✅ Load initial data and entry order number
+  useEffect(() => {
+    ProcessService.getCurrentEntryOrderNo();
+  }, []);
+
+  // ✅ Update entry order number when it's loaded from store
+  useEffect(() => {
+    if (currentEntryOrderNo && currentEntryOrderNo !== formData.entry_order_no) {
+      setFormData(prev => ({
+        ...prev,
+        entry_order_no: currentEntryOrderNo
+      }));
+    }
+  }, [currentEntryOrderNo, formData.entry_order_no]);
 
   const isReturnOrigin = useMemo(() => {
     return (
-      formData.origin?.label === "Return" || formData.origin?.label === "RETURN"
+      formData.origin?.label === "Devolución" ||
+      formData.origin?.label === "Return" ||
+      formData.origin?.label === "RETURN"
     );
   }, [formData.origin]);
 
   const isReconditionedOrigin = useMemo(() => {
     return (
+      formData.origin?.label === "Acondicionado" ||
       formData.origin?.label === "Reconditioned" ||
-      formData.origin?.label === "Reconditioned"
+      formData.origin?.label === "RECONDITIONED"
     );
   }, [formData.origin]);
 
@@ -105,61 +174,96 @@ const NewEntryOrderForm: React.FC = () => {
     return isReturnOrigin || isReconditionedOrigin;
   }, [isReturnOrigin, isReconditionedOrigin]);
 
-  useEffect(() => {
-    if (shouldDisableFields) {
-      setCertificateFile(null);
-      setTechSpecFile(null);
-      setFormData((prev) => ({
-        ...prev,
-        max_temperature: "",
-        min_temperature: "",
-        humidity: "",
-        technical_specification: "",
-        certificate_protocol_analysis: "",
-        ...(isReconditionedOrigin
-          ? { supplier: { option: "", value: "", label: "" } }
-          : {}),
-      }));
-    }
-  }, [shouldDisableFields, isReconditionedOrigin]);
+  // ✅ Add product with product_code field
+  const addProduct = () => {
+    const newProduct: ProductData = {
+      id: Date.now().toString(),
+      product_id: "",
+      product_code: "", 
+      supplier_id: "",
+      serial_number: "",
+      lot_series: "",
+      guide_number: "",
+      inventory_quantity: "",
+      package_quantity: "",
+      weight_kg: "",
+      volume_m3: "",
+      quantity_pallets: "",
+      presentation: "CAJA",
+      product_description: "",
+      insured_value: "",
+      technical_specification: "",
+      manufacturing_date: new Date(),
+      expiration_date: new Date(),
+      temperature_range: "AMBIENTE",
+      humidity: "",
+      health_registration: "",
+    };
 
-  const fieldsToSkipValidation = useMemo(() => {
-    //  these fields are optional for all origins (need to remove entry_order_no)
-    const baseSkipFields = [
-      "technical_specification",
-      "certificate_protocol_analysis",
-    ];
+    setFormData((prev) => ({
+      ...prev,
+      products: [...prev.products, newProduct],
+    }));
+  };
 
-    // For Return or Reconditioned origins, these fields should be skipped
-    if (isReturnOrigin || isReconditionedOrigin) {
-      const additionalSkipFields = [
-        "max_temperature",
-        "min_temperature",
-        "humidity",
-      ];
+  // Remove product
+  const removeProduct = (productId: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      products: prev.products.filter((p) => p.id !== productId),
+    }));
+  };
 
-      // For Reconditioned origin only, supplier is not required
-      const originSpecificSkipFields = isReconditionedOrigin
-        ? ["supplier"]
-        : [];
-
-      return [
-        ...baseSkipFields,
-        ...additionalSkipFields,
-        ...originSpecificSkipFields,
-      ];
-    }
-
-    return baseSkipFields;
-  }, [isReturnOrigin, isReconditionedOrigin]);
-
-  const isFormComplete = useFormComplete(formData, fieldsToSkipValidation);
-
-  useEffect(() => {
-    if (submitStatus.success) {
-      navigate("/processes/entry");
-    }
-  }, [submitStatus.success, navigate]);
+  // ✅ Fixed updateProduct to properly handle product_code auto-population
+  const updateProduct = (
+    productId: string,
+    updatedProduct: Partial<ProductData>
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      products: prev.products.map((p) => {
+        if (p.id === productId) {
+          const updated = { ...p, ...updatedProduct };
+          
+          // ✅ Auto-populate product_code when product_id changes
+          if (updatedProduct.product_id && updatedProduct.product_id !== p.product_id) {
+            console.log("Looking for product with ID:", updatedProduct.product_id);
+            console.log("Available products:", dropdownOptions.products);
+            
+            // ✅ Check multiple possible property names for product selection
+            const selectedProduct = dropdownOptions.products.find(
+              (product: any) => {
+                return (
+                  product.value === updatedProduct.product_id || 
+                  product.product_id === updatedProduct.product_id ||
+                  product.id === updatedProduct.product_id
+                );
+              }
+            );
+            
+            console.log("Found selected product:", selectedProduct);
+            
+            if (selectedProduct) {
+              // ✅ Check multiple possible property names for product_code
+              const productCode = selectedProduct.product_code || 
+                                 selectedProduct.code || 
+                                 selectedProduct.productCode || 
+                                 "";
+              
+              console.log("Setting product_code to:", productCode);
+              updated.product_code = productCode;
+            } else {
+              console.log("No product found, clearing product_code");
+              updated.product_code = "";
+            }
+          }
+          
+          return updated;
+        }
+        return p;
+      }),
+    }));
+  };
 
   const handleEntryOrderNoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -179,7 +283,6 @@ const NewEntryOrderForm: React.FC = () => {
       | React.ChangeEvent<HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-
     setFormData((prevState) => ({
       ...prevState,
       [name]: value,
@@ -187,31 +290,95 @@ const NewEntryOrderForm: React.FC = () => {
   };
 
   const handleSelectChange = (name: string, selectedOption: any) => {
-    // Add console log to track document_type_id selection
-    if (name === "document_type_id") {
-      console.log("Document type selected:", selectedOption);
-    }
-    
     setFormData((prevState) => ({
       ...prevState,
       [name]: selectedOption,
     }));
   };
 
-  function cleanFileName(name: string) {
-    return name.replace(/[\s.]/g, "");
-  }
-
-  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Form submission logic
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setIsSubmitting(true);
+    if (formData.products.length === 0) {
+      setSubmitStatus({
+        success: false,
+        message: "Please add at least one product",
+      });
+      return;
+    }
+
+    // Validate required fields for new backend schema
+    for (let i = 0; i < formData.products.length; i++) {
+      const product = formData.products[i];
+      if (!product.product_id) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Please select a product`,
+        });
+        return;
+      }
+      if (!product.supplier_id) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Please select a supplier`,
+        });
+        return;
+      }
+      if (!product.serial_number) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Serial number is required`,
+        });
+        return;
+      }
+      if (!product.lot_series) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Lot series is required`,
+        });
+        return;
+      }
+      if (!product.guide_number) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Guide number is required`,
+        });
+        return;
+      }
+      if (!product.inventory_quantity || parseInt(product.inventory_quantity) <= 0) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Inventory quantity must be greater than 0`,
+        });
+        return;
+      }
+      if (!product.package_quantity || parseInt(product.package_quantity) <= 0) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Package quantity must be greater than 0`,
+        });
+        return;
+      }
+      if (!product.weight_kg || parseFloat(product.weight_kg) <= 0) {
+        setSubmitStatus({
+          success: false,
+          message: `Product ${i + 1}: Weight must be greater than 0`,
+        });
+        return;
+      }
+    }
+
+    setLoading(true);
     setSubmitStatus({});
 
     try {
       let certificateUrl = "";
       if (certificateFile && !isReturnOrigin) {
-        const fileName = `${Date.now()}_${cleanFileName(certificateFile.name)}`;
+        const fileName = `${Date.now()}_${certificateFile.name.replace(
+          /[\s.]/g,
+          ""
+        )}`;
         const { error } = await supabase.storage
           .from("order")
           .upload(fileName, certificateFile);
@@ -222,674 +389,409 @@ const NewEntryOrderForm: React.FC = () => {
         certificateUrl = urlData.publicUrl;
       }
 
-      let techSpecUrl = "";
-      if (techSpecFile && !isReturnOrigin) {
-        const fileName = `${Date.now()}_${cleanFileName(techSpecFile.name)}`;
-        const { error } = await supabase.storage
-          .from("order")
-          .upload(fileName, techSpecFile);
-        if (error) throw error;
-        const { data: urlData } = supabase.storage
-          .from("order")
-          .getPublicUrl(fileName);
-        techSpecUrl = urlData.publicUrl;
-      }
-
-      const submissionData = { ...formData };
-
-      const apiSubmissionData = {
-        ...submissionData,
-        document_status: formData.document_status?.value || "REGISTERED",
-        origin: formData.origin?.value || "",
+      // Updated payload to match new backend schema
+      const submissionData = {
+        // Entry order level data
+        entry_order_no: formData.entry_order_no,
+        origin_id: formData.origin?.value || "",
         document_type_id: formData.document_type_id?.value || "",
-        personnel_incharge_id: formData.personnel_incharge_id?.value || "",
-        supplier: formData.supplier?.value || "",
-        certificate_protocol_analysis: certificateUrl,
-        product: formData.product?.value || "",
-        technical_specification: techSpecUrl,
-        status: formData.order_status?.value || "",
-        order_type: "ENTRY",
+        registration_date: formData.registration_date,
+        document_date: formData.document_date,
+        entry_date_time: formData.admission_date_time,
+        created_by: localStorage.getItem("id"),
+        organisation_id: localStorage.getItem("organisation_id"),
+        order_status: formData.order_status?.value || "REVISION",
+        total_volume: formData.products.reduce((sum, p) => sum + parseFloat(p.volume_m3 || "0"), 0),
+        total_weight: formData.products.reduce((sum, p) => sum + parseFloat(p.weight_kg || "0"), 0),
+        cif_value: parseFloat(formData.cif_value) || null,
+        total_pallets: formData.products.reduce((sum, p) => sum + parseInt(p.quantity_pallets || "0"), 0),
+        observation: formData.observation,
+        uploaded_documents: certificateUrl || null,
+
+        // ✅ Products array with product_code included
+        products: formData.products.map((product) => ({
+          serial_number: product.serial_number,
+          supplier_id: product.supplier_id,
+          product_code: product.product_code, // ✅ Include product_code in submission
+          product_id: product.product_id,
+          lot_series: product.lot_series,
+          manufacturing_date: product.manufacturing_date,
+          expiration_date: product.expiration_date,
+          inventory_quantity: parseInt(product.inventory_quantity),
+          package_quantity: parseInt(product.package_quantity),
+          quantity_pallets: parseInt(product.quantity_pallets) || null,
+          presentation: product.presentation || "CAJA",
+          guide_number: product.guide_number,
+          weight_kg: parseFloat(product.weight_kg),
+          volume_m3: parseFloat(product.volume_m3) || null,
+          insured_value: parseFloat(product.insured_value) || null,
+          temperature_range: product.temperature_range || "AMBIENTE",
+          humidity: product.humidity,
+          health_registration: product.health_registration,
+        })),
       };
 
-
-      await ProcessService.createNewEntryOrder(apiSubmissionData);
-
-      const initialFormData = {
-        origin: { option: "", value: "", label: "" },
-        palettes: "",
-        product_description: "",
-        insured_value: "",
-        entry_order_no: currentEntryOrderNo || "",
-        document_type_id: { option: "", value: "", label: "" },
-        registration_date: new Date(),
-        document_date: new Date(),
-        admission_date_time: new Date(),
-        entry_date: new Date(),
-        entry_transfer_note: "",
-        personnel_incharge_id: { option: "", value: "", label: "" },
-        document_status: {
-          option: "Registered",
-          value: "REGISTERED",
-          label: "Registered",
-        },
-        order_status: { option: "", value: "", label: "" },
-        observation: "",
-        total_volume: "",
-        total_weight: "",
-        cif_value: "",
-        supplier: { option: "", value: "", label: "" },
-        product: { option: "", value: "", label: "" },
-        certificate_protocol_analysis: "",
-        mfd_date_time: new Date(),
-        expiration_date: new Date(),
-        lot_series: "",
-        quantity_packaging: "",
-        presentation: "",
-        total_qty: "",
-        technical_specification: "",
-        max_temperature: "",
-        min_temperature: "",
-        humidity: "",
-        type: "",
-      };
-
-      setFormData(initialFormData);
-      setCertificateFile(null);
-      setTechSpecFile(null);
+      // ✅ Always create new entry order
+      await ProcessService.createNewEntryOrder(submissionData);
 
       setSubmitStatus({
         success: true,
-        message: "Entry order created successfully",
+        message: "Entry order created successfully and sent for admin review",
       });
+
+      // Show success message briefly, then redirect
+      setTimeout(() => {
+        navigate("/processes/entry");
+      }, 1500);
     } catch (error) {
       console.error("Error creating entry order:", error);
       setSubmitStatus({
         success: false,
-        message: "Failed to create entry order. Please try again.",
+        message: error instanceof Error ? error.message : "Failed to create entry order. Please try again.",
       });
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  const documentStatusOptions = useMemo(() => {
-    return [{ value: "REGISTERED", label: "Registered" }];
-  }, []);
-
   return (
-    <form className="order_entry_form" onSubmit={onSubmit}>
-      <div className="w-full flex items-center gap-x-6">
-        {/* origin */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="origin">{t('process:origin')}</label>
-          <Select
-            options={origins}
-            styles={reactSelectStyle}
-            inputId="origin"
-            name="origin"
-            value={formData.origin}
-            onChange={(selectedOption) =>
-              handleSelectChange("origin", selectedOption)
-            }
-          />
-        </div>
+    <form className="order_entry_form" onSubmit={handleFormSubmit}>
+      {/* Entry Order Header Information */}
+      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+        <Text
+          size="lg"
+          weight="font-semibold"
+          additionalClass="mb-4 text-gray-800"
+        >
+          {t("process:entry_order_information")}
+        </Text>
 
-        {/* entry order no */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">{t('process:entry_order_no')}</label>
-          <input
-            type="text"
-            autoCapitalize="on"
-            id="entry_order_no"
-            name="entry_order_no"
-            value={formData.entry_order_no}
-            onChange={handleEntryOrderNoChange}
-            readOnly
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* document */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="document">{t('process:document')}</label>
-          <Select
-            options={documentTypes}
-            styles={reactSelectStyle}
-            inputId="document_type_id"
-            name="document_type_id"
-            value={formData.document_type_id}
-            onChange={(selectedOption) =>
-              handleSelectChange("document_type_id", selectedOption)
-            }
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* registration date */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="registration_date">{t('process:registration_date')}</label>
-          <DatePicker
-            showTimeSelect
-            dateFormat="Pp"
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="registration_date"
-            name="registration_date"
-            selected={formData.registration_date}
-            disabled
-            onChange={(date) =>
-              setFormData({ ...formData, registration_date: date as Date })
-            }
-          />
-        </div>
-
-        {/* document date */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="document_date">{t('process:document_date')}</label>
-          <DatePicker
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="document_date"
-            name="document_date"
-            selected={formData.document_date}
-            onChange={(date) =>
-              setFormData({ ...formData, document_date: date as Date })
-            }
-            showYearDropdown
-            scrollableYearDropdown
-            yearDropdownItemNumber={20}
-            dateFormat="MM/dd/yyyy"
-          />
-        </div>
-
-        {/* admission date and time */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="admission_date_and_time">
-            {t('process:admission_date_and_time')}
-          </label>
-          <DatePicker
-            showTimeSelect
-            dateFormat="Pp"
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="admission_date_and_time"
-            name="admission_date_and_time"
-            selected={formData.admission_date_time}
-            onChange={(date) =>
-              setFormData({
-                ...formData,
-                admission_date_time: date as Date,
-              })
-            }
-          />
-        </div>
-      </div>
-
-      <Divider />
-
-      <div className="w-full flex items-center gap-x-6">
-        {/* personnel in charge */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="personnel_in_charge">{t('process:personnel_in_charge')}</label>
-          <Select
-            options={users}
-            styles={reactSelectStyle}
-            inputId="personnel_incharge_id"
-            name="personnel_incharge_id"
-            value={formData.personnel_incharge_id}
-            onChange={(selectedOption) =>
-              handleSelectChange("personnel_incharge_id", selectedOption)
-            }
-          />
-        </div>
-
-        {/* document status */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="document_status">{t('process:document_status')}</label>
-          <Select
-            options={documentStatusOptions}
-            styles={reactSelectStyle}
-            inputId="document_status"
-            name="document_status"
-            value={documentStatusOptions[0]}
-            onChange={(selectedOption) =>
-              handleSelectChange("document_status", selectedOption)
-            }
-            isDisabled
-          />
-        </div>
-        <div className="w-full flex flex-col">
-          <label htmlFor="order_status">{t('process:order_status')}</label>
-          <Select
-            options={entryOrderStatus}
-            styles={reactSelectStyle}
-            inputId="order_status"
-            name="order_status"
-            value={formData.order_status}
-            onChange={(selectedOption) =>
-              handleSelectChange("order_status", selectedOption)
-            }
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        <div className="w-full flex flex-col">
-          <label htmlFor="observation">{t('process:observation')}</label>
-          <textarea
-            id="observation"
-            name="observation"
-            value={formData.observation}
-            onChange={handleChange}
-            className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* total volume */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="total_volume">{t('process:total_volume')}</label>
-          <div className="w-full flex items-end gap-x-2">
-            <input
-              type="number"
-              id="total_volume"
-              name="total_volume"
-              value={formData.total_volume}
-              onChange={handleChange}
-              className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+        <div className="w-full flex items-center gap-x-6">
+          {/* origin */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="origin">{t("process:origin")} *</label>
+            <Select
+              options={dropdownOptions.origins}
+              styles={reactSelectStyle}
+              inputId="origin"
+              name="origin"
+              value={formData.origin.value ? formData.origin : null}
+              onChange={(selectedOption) =>
+                handleSelectChange("origin", selectedOption)
+              }
+              placeholder={t("process:select_origin")}
+              isClearable
             />
-            <Text>
-              M<sup>3</sup>
-            </Text>
+          </div>
+
+          {/* entry order no */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="entry_order_no">
+              {t("process:entry_order_no")} *
+            </label>
+            <input
+              type="text"
+              autoCapitalize="on"
+              id="entry_order_no"
+              name="entry_order_no"
+              value={formData.entry_order_no}
+              onChange={handleEntryOrderNoChange}
+              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-gray-100"
+              placeholder={t("process:loading_order_number")}
+            />
+          </div>
+
+          {/* document */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="document">{t("process:document")} *</label>
+            <Select
+              options={dropdownOptions.documentTypes}
+              styles={reactSelectStyle}
+              inputId="document_type_id"
+              name="document_type_id"
+              value={formData.document_type_id.value ? formData.document_type_id : null}
+              onChange={(selectedOption) =>
+                handleSelectChange("document_type_id", selectedOption)
+              }
+              placeholder={t("process:select_document_type")}
+              isClearable
+            />
           </div>
         </div>
 
-        {/* total weight */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="total_weight">{t('process:total_weight')}</label>
-          <div className="w-full flex items-end gap-x-2">
-            <input
-              type="number"
-              id="total_weight"
-              name="total_weight"
-              value={formData.total_weight}
-              onChange={handleChange}
-              className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+        <Divider />
+
+        <div className="w-full flex items-center gap-x-6">
+          {/* registration date */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="registration_date">
+              {t("process:registration_date")} *
+            </label>
+            <DatePicker
+              showTimeSelect
+              dateFormat="Pp"
+              className="w-full border border-slate-400 h-10 rounded-md pl-4"
+              id="registration_date"
+              name="registration_date"
+              selected={formData.registration_date}
+              disabled
+              onChange={(date) =>
+                setFormData({ ...formData, registration_date: date as Date })
+              }
             />
-            <Text>Kg</Text>
+          </div>
+
+          {/* document date */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="document_date">
+              {t("process:document_date")} *
+            </label>
+            <DatePicker
+              className="w-full border border-slate-400 h-10 rounded-md pl-4"
+              id="document_date"
+              name="document_date"
+              selected={formData.document_date}
+              onChange={(date) =>
+                setFormData({ ...formData, document_date: date as Date })
+              }
+              showYearDropdown
+              scrollableYearDropdown
+              yearDropdownItemNumber={20}
+              dateFormat="MM/dd/yyyy"
+            />
+          </div>
+
+          {/* admission date and time */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="admission_date_and_time">
+              {t("process:admission_date_and_time")} *
+            </label>
+            <DatePicker
+              showTimeSelect
+              dateFormat="Pp"
+              className="w-full border border-slate-400 h-10 rounded-md pl-4"
+              id="admission_date_and_time"
+              name="admission_date_and_time"
+              selected={formData.admission_date_time}
+              onChange={(date) =>
+                setFormData({
+                  ...formData,
+                  admission_date_time: date as Date,
+                })
+              }
+            />
           </div>
         </div>
 
-        {/* CIF value/ Purchase Value */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="cif_value">
-            <span>$</span>
-            {t('process:cif_value')}
-          </label>
+        <Divider />
 
-          <div className="w-full flex items-end gap-x-2">
+        <div className="w-full flex items-center gap-x-6">
+          {/* personnel in charge */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="personnel_in_charge">
+              {t("process:personnel_in_charge")} *
+            </label>
+            <Select
+              options={dropdownOptions.users}
+              styles={reactSelectStyle}
+              inputId="personnel_incharge_id"
+              name="personnel_incharge_id"
+              value={formData.personnel_incharge_id.value ? formData.personnel_incharge_id : null}
+              onChange={(selectedOption) =>
+                handleSelectChange("personnel_incharge_id", selectedOption)
+              }
+              placeholder={t("process:select_personnel")}
+              isClearable
+            />
+          </div>
+
+          {/* supplier */}
+          <div className="w-full flex flex-col">
+            <label
+              htmlFor="supplier"
+              className={isReconditionedOrigin ? "text-gray-400" : ""}
+            >
+              {t("process:supplier")} {!isReconditionedOrigin && "*"}
+            </label>
+            <Select
+              options={dropdownOptions.suppliers}
+              styles={reactSelectStyle}
+              inputId="supplier"
+              name="supplier"
+              value={formData.supplier.value ? formData.supplier : null}
+              onChange={(selectedOption) =>
+                handleSelectChange("supplier", selectedOption)
+              }
+              isDisabled={isReconditionedOrigin}
+              className={
+                isReconditionedOrigin ? "react-select--is-disabled" : ""
+              }
+              placeholder={t("process:select_supplier")}
+              isClearable
+            />
+            {isReconditionedOrigin && (
+              <p className="text-xs text-amber-600 mt-1">
+                {t("process:not_applicable")}
+              </p>
+            )}
+          </div>
+
+          {/* order status */}
+          <div className="w-full flex flex-col">
+            <label htmlFor="order_status">{t("process:order_status")} *</label>
+            <Select
+              options={dropdownOptions.orderStatus.map((item: any) => ({
+                option: item.label,
+                value: item.value,
+                label: item.label,
+              }))}
+              styles={reactSelectStyle}
+              inputId="order_status"
+              name="order_status"
+              value={formData.order_status.value ? formData.order_status : null}
+              onChange={(selectedOption) =>
+                handleSelectChange("order_status", selectedOption)
+              }
+              placeholder={t("process:select_status")}
+              isClearable
+            />
+          </div>
+        </div>
+
+        <Divider />
+
+        {/* General information */}
+        <div className="w-full flex items-center gap-x-6">
+          <div className="w-full flex flex-col">
+            <label htmlFor="observation">{t("process:observation")}</label>
+            <textarea
+              id="observation"
+              name="observation"
+              value={formData.observation}
+              onChange={handleChange}
+              className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500"
+            />
+          </div>
+
+          <div className="w-full flex flex-col">
+            <label htmlFor="cif_value">
+              <span>$</span>
+              {t("process:cif_value")} *
+            </label>
             <input
               type="number"
               id="cif_value"
               name="cif_value"
               value={formData.cif_value}
               onChange={handleChange}
-              className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
+            />
+          </div>
+
+          <div className="w-full flex flex-col">
+            <label htmlFor="lot_series">{t("process:lot_series")} *</label>
+            <input
+              type="text"
+              id="lot_series"
+              name="lot_series"
+              value={formData.lot_series}
+              onChange={handleChange}
+              className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
             />
           </div>
         </div>
-      </div>
 
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* supplier */}
-        <div className="w-full flex flex-col">
-          <label
-            htmlFor="supplier"
-            className={isReconditionedOrigin ? "text-gray-400" : ""}
-          >
-            {t('process:supplier')}
-          </label>
-          <Select
-            options={suppliers}
-            styles={reactSelectStyle}
-            inputId="supplier"
-            name="supplier"
-            value={formData.supplier}
-            onChange={(selectedOption) =>
-              handleSelectChange("supplier", selectedOption)
-            }
-            isDisabled={isReconditionedOrigin}
-            className={isReconditionedOrigin ? "react-select--is-disabled" : ""}
-          />
-          {isReconditionedOrigin && (
-            <p className="text-xs text-amber-600 mt-1">
-              {t('process:not_applicable')}
-            </p>
-          )}
-        </div>
-
-        {/* product */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="product">{t('process:product')}</label>
-          <Select
-            options={products}
-            styles={reactSelectStyle}
-            inputId="product"
-            name="product"
-            value={formData.product}
-            onChange={(selectedOption) =>
-              handleSelectChange("product", selectedOption)
-            }
-          />
-        </div>
-
-        {/* protocol/ analysis certificate - hide when Return is selected */}
+        {/* Certificate upload for non-return origins */}
         {!shouldDisableFields && (
-          <div className="w-full flex flex-col">
+          <div className="mt-4">
             <FileUpload
               id="certificate_protocol_analysis"
-              label={t('process:protocol_analysis_certificate')}
+              label={t("process:protocol_analysis_certificate")}
               onFileSelected={(file: File) => setCertificateFile(file)}
             />
           </div>
         )}
-        {/* Placeholder div to maintain grid layout when hiding file upload */}
-        {shouldDisableFields && <div className="w-full" />}
       </div>
 
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        <div className="w-full flex flex-col">
-          <label htmlFor="product_description">{t('process:product_description')}</label>
-          <textarea
-            id="product_description"
-            name="product_description"
-            value={formData.product_description}
-            onChange={handleChange}
-            className="border border-slate-400 rounded-md px-4 pt-2 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* manufacturing date */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="manufacturing_date">{t('process:manufacturing_date')}</label>
-          <DatePicker
-            showYearDropdown
-            scrollableYearDropdown
-            yearDropdownItemNumber={20}
-            dateFormat="MM/dd/yyyy"
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="manufacturing_date"
-            name="manufacturing_date"
-            selected={formData.mfd_date_time}
-            onChange={(date) =>
-              setFormData({ ...formData, mfd_date_time: date as Date })
-            }
-          />
+      {/* Products Section */}
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-6">
+        <div className="flex justify-between items-center mb-4">
+          <Text
+            size="lg"
+            weight="font-semibold"
+            additionalClass="text-gray-800"
+          >
+            {t("process:products")} ({formData.products.length})
+          </Text>
+          <Button
+            type="button"
+            variant="action"
+            onClick={addProduct}
+            additionalClass="px-4 py-2"
+          >
+            + {t("process:add_product")}
+          </Button>
         </div>
 
-        {/* expiration date */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="expiration_date">{t('process:expiration_date')}</label>
-          <DatePicker
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="expiration_date"
-            name="expiration_date"
-            selected={formData.expiration_date}
-            onChange={(date) =>
-              setFormData({ ...formData, expiration_date: date as Date })
-            }
-          />
-        </div>
-
-        {/* lot/ series */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="lot_series">{t('process:lot_series')}</label>
-          <input
-            type="text"
-            id="lot_series"
-            name="lot_series"
-            value={formData.lot_series}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* palettes */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="palettes">{t('process:palettes')}</label>
-          <input
-            type="text"
-            id="palettes"
-            name="palettes"
-            value={formData.palettes}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* insured value */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="insured_value">{t('process:insured_value')}</label>
-          <input
-            type="text"
-            id="insured_value"
-            name="insured_value"
-            value={formData.insured_value}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* technical specification - hide when Return is selected */}
-        {!shouldDisableFields && (
-          <div className="w-full flex flex-col">
-            <FileUpload
-              id="technical_specification"
-              label={t('process:technical_specification')}
-              onFileSelected={(file: File) => {
-                console.log("Tech spec file selected:", file.name);
-                setTechSpecFile(file);
-              }}
-            />
+        {formData.products.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            <Text>{t("process:no_products_added")}</Text>
+            <Text additionalClass="text-sm mt-1">
+              {t("process:click_add_product_to_start")}
+            </Text>
           </div>
         )}
-        {/* Placeholder div to maintain grid layout when hiding file upload */}
-        {shouldDisableFields && <div className="w-full" />}
-      </div>
 
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* entry date */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="entry_date">{t('process:entry_date')}</label>
-          <DatePicker
-            className="w-full border border-slate-400 h-10 rounded-md pl-4"
-            id="entry_date"
-            name="entry_date"
-            selected={formData.entry_date}
-            onChange={(date) =>
-              setFormData({ ...formData, entry_date: date as Date })
+        {formData.products.map((product, index) => (
+          <ProductEntryCard
+            key={product.id}
+            product={product}
+            index={index}
+            products={dropdownOptions.products}
+            suppliers={dropdownOptions.suppliers}
+            temperatureRanges={dropdownOptions.temperatureRanges}
+            shouldDisableFields={shouldDisableFields}
+            onUpdate={(updatedProduct) =>
+              updateProduct(product.id, updatedProduct)
             }
+            onRemove={() => removeProduct(product.id)}
           />
-        </div>
-
-        {/* entry transfer note */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="entry_transfer_note">{t('process:entry_transfer_note')}</label>
-          <input
-            type="text"
-            id="entry_transfer_note"
-            name="entry_transfer_note"
-            value={formData.entry_transfer_note}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* type */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="type">{t('process:type')}</label>
-          <input
-            type="text"
-            id="type"
-            name="type"
-            value={formData.type}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
+        ))}
       </div>
 
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* quantity packaging */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="quantity_packaging">{t('process:quantity_packaging')}</label>
-          <input
-            type="number"
-            id="quantity_packaging"
-            name="quantity_packaging"
-            value={formData.quantity_packaging}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* presentation */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="presentation">{t('process:presentation')}</label>
-          <input
-            type="text"
-            id="presentation"
-            name="presentation"
-            value={formData.presentation}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-
-        {/* total qty */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="total_qty">{t('process:total_qty')}</label>
-          <input
-            type="number"
-            id="total_qty"
-            name="total_qty"
-            value={formData.total_qty}
-            onChange={handleChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-          />
-        </div>
-      </div>
-
-      <Divider />
-      <div className="w-full flex items-center gap-x-6">
-        {/* temperature and humidity section - disable when Return is selected */}
-        <div className="w-full flex flex-col">
-          <label
-            htmlFor="max_temperature"
-            className={shouldDisableFields ? "text-gray-400" : ""}
-          >
-            {t('process:max_temperature')}
-          </label>
-          <input
-            type="number"
-            id="max_temperature"
-            name="max_temperature"
-            value={formData.max_temperature}
-            onChange={handleChange}
-            disabled={shouldDisableFields}
-            className={`h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 ${
-              shouldDisableFields ? "bg-gray-100 text-gray-500" : ""
-            }`}
-          />
-        </div>
-
-        <div className="w-full flex flex-col">
-          <label
-            htmlFor="min_temperature"
-            className={shouldDisableFields ? "text-gray-400" : ""}
-          >
-            {t('process:min_temperature')}
-          </label>
-          <input
-            type="number"
-            id="min_temperature"
-            name="min_temperature"
-            value={formData.min_temperature}
-            onChange={handleChange}
-            disabled={shouldDisableFields}
-            className={`h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 ${
-              shouldDisableFields ? "bg-gray-100 text-gray-500" : ""
-            }`}
-          />
-        </div>
-
-        {/* humidity */}
-        <div className="w-full flex flex-col">
-          <label
-            htmlFor="humidity"
-            className={shouldDisableFields ? "text-gray-400" : ""}
-          >
-            {t('process:humidity')}
-          </label>
-          <input
-            type="number"
-            id="humidity"
-            name="humidity"
-            value={formData.humidity}
-            onChange={handleChange}
-            disabled={shouldDisableFields}
-            className={`h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 ${
-              shouldDisableFields ? "bg-gray-100 text-gray-500" : ""
-            }`}
-          />
-        </div>
-      </div>
-
-      {shouldDisableFields && (
-        <div className="mt-4 p-3 rounded-md bg-blue-50 text-blue-800 border border-blue-200">
-          <p className="text-sm">
-            <strong>{t('process:note')}:</strong> {t('process:note_message')}
-          </p>
-        </div>
-      )}
-
-      {/* Submission status message */}
+      {/* Submit Section */}
       {submitStatus.message && (
         <div
-          className={`mt-4 p-3 rounded-md ${
+          className={`mb-4 p-3 rounded-md ${
             submitStatus.success
               ? "bg-green-100 text-green-800"
               : "bg-red-100 text-red-800"
           }`}
         >
-          {submitStatus.success 
-            ? t('process:entry_success')
-            : (submitStatus.message || t('process:entry_failure'))}
+          {submitStatus.success
+            ? t("process:entry_order_created_successfully")
+            : submitStatus.message || t("process:failed_to_create_entry_order")}
         </div>
       )}
 
-      <Divider height="2xl" />
-
-      <div>
+      <div className="flex justify-end space-x-4">
         <Button
-          disabled={!isFormComplete || isSubmitting}
-          variant="action"
+          type="button"
+          variant="cancel"
+          onClick={() => navigate(-1)}
           additionalClass="w-40"
-          type="submit"
+          disabled={loading}
         >
-          {isSubmitting ? t('process:submitting') : t('process:register')}
+          {t("common:cancel")}
+        </Button>
+        
+        <Button
+          type="submit"
+          disabled={loading}
+          variant="action"
+          additionalClass="w-48"
+        >
+          {loading ? t("process:creating") : t("process:create_entry_order")}
         </Button>
       </div>
     </form>

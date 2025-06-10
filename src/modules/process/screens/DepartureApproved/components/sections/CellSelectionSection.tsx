@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Text } from "@/components";
 import Spinner from "@/components/Spinner";
 import { ProcessesStore } from "@/globalStore";
-import { ProcessService } from "@/modules/process/api/process.service";
 import { DepartureFormData } from "@/modules/process/types";
 
 interface Props {
@@ -13,7 +12,6 @@ interface Props {
 const CellSelectionSection: React.FC<Props> = ({ formData }) => {
   const { t } = useTranslation(['process']);
   const { 
-    productsWithInventory,
     availableCells,
     selectedCell,
     cellValidation,
@@ -25,52 +23,23 @@ const CellSelectionSection: React.FC<Props> = ({ formData }) => {
   const isLoadingCells = loaders["processes/load-cells"];
   const isValidatingCell = loaders["processes/validate-cell"];
 
-  // Load products with inventory when warehouse is selected
+  // Clear cell state when warehouse changes
   useEffect(() => {
-    if (formData.warehouse?.value) {
-      ProcessService.loadProductsWithInventory(formData.warehouse.value);
-    } else {
+    if (!formData.warehouse?.value) {
       clearCellState();
     }
   }, [formData.warehouse?.value, clearCellState]);
 
-  // Load available cells when product is selected
+  // Clear cell selection when product changes
   useEffect(() => {
-    if (formData.product?.value && formData.warehouse?.value) {
-      ProcessService.loadAvailableCells(formData.product.value, formData.warehouse.value);
-    } else {
+    if (!formData.product?.value) {
       ProcessesStore.setState({
         availableCells: [],
         selectedCell: null,
         cellValidation: null,
       });
     }
-  }, [formData.product?.value, formData.warehouse?.value]);
-
-  // Validate cell when quantities change or cell is selected
-  useEffect(() => {
-    if (selectedCell && formData.total_qty && formData.total_weight) {
-      ProcessService.validateCellSelection({
-        inventory_id: selectedCell.inventory_id,
-        requested_qty: parseInt(formData.total_qty),
-        requested_weight: parseFloat(formData.total_weight),
-      });
-    } else {
-      ProcessesStore.setState({ cellValidation: null });
-    }
-  }, [selectedCell, formData.total_qty, formData.total_weight]);
-
-  // Reset product selection if not available in selected warehouse
-  useEffect(() => {
-    if (formData.product?.value && productsWithInventory.length > 0) {
-      const isProductAvailable = productsWithInventory.some(
-        (p) => p.product_id.toString() === formData.product.value
-      );
-      if (!isProductAvailable) {
-        console.log("Product not available in selected warehouse");
-      }
-    }
-  }, [productsWithInventory, formData.product?.value]);
+  }, [formData.product?.value]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleCellSelect = (cell: any) => {
@@ -83,7 +52,7 @@ const CellSelectionSection: React.FC<Props> = ({ formData }) => {
       {inventoryError && (
         <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
           <div className="flex items-center">
-            <span className="text-red-600 mr-2">⚠️</span>
+            <span className="text-red-600 mr-2">!</span>
             <Text additionalClass="text-red-800 text-sm">{inventoryError}</Text>
           </div>
         </div>
@@ -106,14 +75,14 @@ const CellSelectionSection: React.FC<Props> = ({ formData }) => {
             </div>
           )}
 
-          {/* Compact Cell Grid */}
+          {/* Simplified Cell Grid */}
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-64 overflow-y-auto">
             {availableCells.map((cell) => (
               <div
-                key={cell.inventory_id}
+                key={cell.id}
                 className={`
                   relative border rounded-lg p-2 cursor-pointer transition-all hover:shadow-sm
-                  ${selectedCell?.inventory_id === cell.inventory_id
+                  ${selectedCell?.id === cell.id
                     ? 'border-blue-500 bg-blue-50' 
                     : 'border-gray-200 hover:border-gray-300 bg-white'
                   }
@@ -121,7 +90,7 @@ const CellSelectionSection: React.FC<Props> = ({ formData }) => {
                 onClick={() => handleCellSelect(cell)}
               >
                 {/* Selection Indicator */}
-                {selectedCell?.inventory_id === cell.inventory_id && (
+                {selectedCell?.id === cell.id && (
                   <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
                     <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
                   </div>
@@ -130,36 +99,18 @@ const CellSelectionSection: React.FC<Props> = ({ formData }) => {
                 {/* Cell Content */}
                 <div className="text-xs space-y-1">
                   <Text weight="font-bold" additionalClass="text-gray-800 text-sm">
-                    {cell.cell_reference}
+                    {cell.row}.{String(cell.bay).padStart(2, '0')}.{String(cell.position).padStart(2, '0')}
                   </Text>
                   
                   <div className="space-y-0.5">
                     <div className="flex justify-between">
-                      <span className="text-gray-500">{t('process:packages_short')}:</span>
-                      <span className="font-medium">{cell.available_packaging}</span>
+                      <span className="text-gray-500">Status:</span>
+                      <span className="font-medium text-xs">{cell.status}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">{t('process:weight_short')}:</span>
-                      <span className="font-medium">{cell.available_weight}kg</span>
-                    </div>
-                    {cell.available_volume && (
+                    {cell.capacity && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">{t('process:volume_short')}:</span>
-                        <span className="font-medium">{cell.available_volume}m³</span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="pt-1 border-t border-gray-100 space-y-0.5">
-                    <div className="text-blue-600 font-medium truncate" title={cell.entry_order_no}>
-                      #{cell.entry_order_no?.slice(-6)}
-                    </div>
-                    {cell.expiration_date && (
-                      <div className="text-orange-600 text-xs">
-                        {t('process:exp_short')}: {new Date(cell.expiration_date).toLocaleDateString('en-US', { 
-                          month: 'short', 
-                          day: 'numeric'
-                        })}
+                        <span className="text-gray-500">Capacity:</span>
+                        <span className="font-medium text-xs">{cell.capacity}</span>
                       </div>
                     )}
                   </div>
@@ -170,61 +121,20 @@ const CellSelectionSection: React.FC<Props> = ({ formData }) => {
         </div>
       )}
 
-      {/* Compact Validation Display */}
+      {/* Simplified Validation Display */}
       {cellValidation && (
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center">
               <span className="text-green-600 mr-2">✓</span>
               <Text weight="font-semibold" additionalClass="text-gray-800">
-                {t('process:cell_selected', { cell: cellValidation.cell_reference })}
+                {t('process:cell_selected', { cell: selectedCell?.row + '.' + selectedCell?.bay + '.' + selectedCell?.position })}
               </Text>
             </div>
-            {cellValidation.will_be_empty && (
-              <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded text-xs font-medium">
-                {t('process:will_empty')}
-              </span>
-            )}
           </div>
           
-          {/* Single Row Layout */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            <div className="text-center p-2 bg-white rounded border">
-              <Text additionalClass="text-gray-500 text-xs">{t('process:order')}</Text>
-              <Text weight="font-medium" additionalClass="text-gray-800 truncate" title={cellValidation.entry_order_no}>
-                #{cellValidation.entry_order_no?.slice(-8)}
-              </Text>
-            </div>
-            
-            <div className="text-center p-2 bg-white rounded border">
-              <Text additionalClass="text-gray-500 text-xs">{t('process:departing')}</Text>
-              <Text weight="font-bold" additionalClass="text-red-600">
-                {cellValidation.requested_qty}{t('process:pkg_unit')}
-              </Text>
-              <Text additionalClass="text-red-500 text-xs">
-                {cellValidation.requested_weight}kg
-              </Text>
-            </div>
-            
-            <div className="text-center p-2 bg-white rounded border">
-              <Text additionalClass="text-gray-500 text-xs">{t('process:remaining')}</Text>
-              <Text weight="font-bold" additionalClass="text-green-600">
-                {cellValidation.remaining_qty}{t('process:pkg_unit')}
-              </Text>
-              <Text additionalClass="text-green-500 text-xs">
-                {cellValidation.remaining_weight}kg
-              </Text>
-            </div>
-
-            <div className="text-center p-2 bg-white rounded border">
-              <Text additionalClass="text-gray-500 text-xs">{t('process:status')}</Text>
-              <div className="flex items-center justify-center">
-                <span className="text-green-600 font-medium text-sm">{t('process:ready')}</span>
-                {cellValidation.will_be_empty && (
-                  <span className="ml-1 text-amber-600">⚠️</span>
-                )}
-              </div>
-            </div>
+          <div className="text-sm">
+            <Text additionalClass="text-gray-600">{cellValidation.message}</Text>
           </div>
         </div>
       )}
@@ -234,6 +144,13 @@ const CellSelectionSection: React.FC<Props> = ({ formData }) => {
         <div className="flex items-center justify-center py-3 bg-blue-50 rounded border border-blue-200">
           <Spinner />
           <Text additionalClass="ml-2 text-sm text-blue-700">{t('process:validating_cell')}</Text>
+        </div>
+      )}
+
+      {/* No cells available message */}
+      {formData.product?.value && !isLoadingCells && availableCells.length === 0 && (
+        <div className="text-center py-8 bg-gray-50 rounded-lg">
+          <Text additionalClass="text-gray-500">{t('process:no_approved_inventory')}</Text>
         </div>
       )}
     </div>

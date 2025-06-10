@@ -1,5 +1,6 @@
 // dependencies
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import Select, { CSSObjectWithLabel } from "react-select";
 import DatePicker from "react-datepicker";
 
@@ -20,6 +21,7 @@ const reactSelectStyle = {
 };
 
 const NewMassEntryOrderForm: React.FC = () => {
+  const { t } = useTranslation(['process', 'common']);
   const [startDate, setStartDate] = useState(new Date());
 
   return (
@@ -27,7 +29,7 @@ const NewMassEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* origin */}
         <div className="w-full flex flex-col">
-          <label htmlFor="origin">Origin</label>
+          <label htmlFor="origin">{t('origin')}</label>
           <Select
             options={originOptions}
             styles={reactSelectStyle}
@@ -38,7 +40,7 @@ const NewMassEntryOrderForm: React.FC = () => {
 
         {/* entry order no */}
         <div className="w-full flex flex-col">
-          <label htmlFor="entry_order_no">Entry Order No</label>
+          <label htmlFor="entry_order_no">{t('entry_order_no')}</label>
           <input
             type="text"
             disabled
@@ -50,7 +52,7 @@ const NewMassEntryOrderForm: React.FC = () => {
 
         {/* document */}
         <div className="w-full flex flex-col">
-          <label htmlFor="document">Document</label>
+          <label htmlFor="document">{t('document')}</label>
           <Select
             options={originOptions}
             styles={reactSelectStyle}
@@ -64,7 +66,7 @@ const NewMassEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* registration date */}
         <div className="w-full flex flex-col">
-          <label htmlFor="registration_date">Registration Date</label>
+          <label htmlFor="registration_date">{t('registration_date')}</label>
           <DatePicker
             showTimeSelect
             dateFormat="Pp"
@@ -78,7 +80,7 @@ const NewMassEntryOrderForm: React.FC = () => {
 
         {/* document date */}
         <div className="w-full flex flex-col">
-          <label htmlFor="document_date">Document Date</label>
+          <label htmlFor="document_date">{t('document_date')}</label>
           <DatePicker
             className="w-full border border-slate-400 h-10 rounded-md pl-4"
             id="document_date"
@@ -91,7 +93,7 @@ const NewMassEntryOrderForm: React.FC = () => {
         {/* admission date and time */}
         <div className="w-full flex flex-col">
           <label htmlFor="admission_date_and_time">
-            Admission Date and Time
+            {t('admission_date_and_time')}
           </label>
           <DatePicker
             showTimeSelect
@@ -109,7 +111,7 @@ const NewMassEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* personnel in charge */}
         <div className="w-full flex flex-col">
-          <label htmlFor="personnel_in_charge">Personnel In Charge</label>
+          <label htmlFor="personnel_in_charge">{t('personnel_in_charge')}</label>
           <Select
             options={originOptions}
             styles={reactSelectStyle}
@@ -120,7 +122,7 @@ const NewMassEntryOrderForm: React.FC = () => {
 
         {/* document status */}
         <div className="w-full flex flex-col">
-          <label htmlFor="document_status">Document Status</label>
+          <label htmlFor="document_status">{t('document_status')}</label>
           <Select
             options={originOptions}
             isDisabled
@@ -141,7 +143,7 @@ const NewMassEntryOrderForm: React.FC = () => {
               name="order_status"
               value="order_in_process"
             />
-            <label htmlFor="order_in_process"> Order in Process</label>
+            <label htmlFor="order_in_process"> {t('order_in_process')}</label>
           </div>
           <div>
             <input
@@ -150,7 +152,7 @@ const NewMassEntryOrderForm: React.FC = () => {
               name="order_status"
               value="send_order"
             />
-            <label htmlFor="send_order"> Send Order</label>
+            <label htmlFor="send_order"> {t('send_order')}</label>
           </div>
         </div>
       </div>
@@ -158,7 +160,7 @@ const NewMassEntryOrderForm: React.FC = () => {
       <Divider />
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
-          <label htmlFor="observation">Observation</label>
+          <label htmlFor="observation">{t('observation')}</label>
           <textarea
             id="observation"
             name="observation"
@@ -171,7 +173,7 @@ const NewMassEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* total volume */}
         <div className="w-full flex flex-col">
-          <label htmlFor="total_volume">Total Volume</label>
+          <label htmlFor="total_volume">{t('total_volume')}</label>
           <div className="w-full flex items-end gap-x-2">
             <input
               type="text"
@@ -180,13 +182,13 @@ const NewMassEntryOrderForm: React.FC = () => {
               name="total_volume"
               className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
             />
-            <Text>M3</Text>
+            <Text>{t('m3')}</Text>
           </div>
         </div>
 
         {/* total weight */}
         <div className="w-full flex flex-col">
-          <label htmlFor="total_weight">Total Weight</label>
+          <label htmlFor="total_weight">{t('total_weight')}</label>
           <div className="w-full flex items-end gap-x-2">
             <input
               type="text"
@@ -195,14 +197,14 @@ const NewMassEntryOrderForm: React.FC = () => {
               name="total_weight"
               className="w-full h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
             />
-            <Text>Kg</Text>
+            <Text>{t('kg')}</Text>
           </div>
         </div>
 
         {/* CIF value/ Purchase Value */}
         <div className="w-full flex flex-col">
           <label htmlFor="cif_value_purchase_value">
-            CIF Value/ Purchase Value
+            {t('cif_value_purchase_value')}
           </label>
           <input
             type="text"
@@ -218,7 +220,7 @@ const NewMassEntryOrderForm: React.FC = () => {
       <div className="w-full flex items-center gap-x-6">
         {/* supplier */}
         <div className="w-full flex flex-col">
-          <label htmlFor="supplier">Archive</label>
+          <label htmlFor="supplier">{t('archive')}</label>
           <input
             type="text"
             disabled
@@ -232,7 +234,7 @@ const NewMassEntryOrderForm: React.FC = () => {
       <Divider />
       <div>
         <Button variant="action" additionalClass="w-40">
-          Register
+          {t('common:register')}
         </Button>
       </div>
     </form>

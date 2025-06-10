@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Divider, Text } from "@/components";
 import ProductRegisterComponent from "./components/product";
 // import OrderBtnGroup from "../../../process/components/OrderBtnGroup";
@@ -7,6 +8,7 @@ import { ProductService } from "../../api/maintenance.service";
 import { MaintenanceStore } from "@/globalStore";
 
 const Product: React.FC = () => {
+  const { t } = useTranslation(['maintenance', 'common']);
   const { productLineOptions, groupOptions, products } = MaintenanceStore();
 
   // const buttonGroup = useMemo(
@@ -52,7 +54,7 @@ const Product: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        Product Registry
+        {t('product_registry')}
       </Text>
       <Divider />
       <ProductRegisterComponent
