@@ -1,7 +1,6 @@
 // dependencies
 import React, { useState } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
-import { useTranslation } from "react-i18next";
 
 // components
 import { Button, Text } from "@/components";
@@ -10,7 +9,6 @@ import { Button, Text } from "@/components";
 import { AuthService } from "@/globalService";
 
 const LoginForm: React.FC = () => {
-  const { t } = useTranslation(['auth', 'common']);
   const [formData, setFormData] = useState({
     userId: "",
     loginPassword: "",
@@ -39,19 +37,19 @@ const LoginForm: React.FC = () => {
   return (
     <form className="login_form" onSubmit={onSubmit}>
       <div className="login_form_block">
-        <label htmlFor="userId">{t('user_id')}</label>
+        <label htmlFor="userId">ID de Usuario</label>
         <input
           type="text"
           onChange={onChange}
           value={formData.userId}
           className="login_input mt-1.5"
-          placeholder={t('user_id_placeholder')}
+          placeholder="Ingrese su ID de usuario"
           autoComplete="off"
           name="userId"
         />
       </div>
       <div className="login_form_block">
-        <label htmlFor="loginPassword">{t('password')}</label>
+        <label htmlFor="loginPassword">Contraseña</label>
         <input
           type="password"
           value={formData.loginPassword}
@@ -64,7 +62,7 @@ const LoginForm: React.FC = () => {
       <Button type="submit">
         <div className="flex gap-x-2 items-center">
           <Text color="text-white" weight="font-normal">
-            {t('login')}
+            Iniciar Sesión
           </Text>
           <ArrowRight weight="bold" />
         </div>
