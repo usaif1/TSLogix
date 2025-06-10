@@ -207,5 +207,7 @@
   "departure_order": "Orden de Salida",
   "product": "Producto",
   "warehouse_report": "Reporte de Almacén",
-  "logo_alt_text": "Logo TSLogix"
+  "logo_alt_text": "Logo TSLogix",
+  "select_file": "Seleccionar Archivo",
+  "no_file_selected": "Ningún archivo seleccionado"
 }

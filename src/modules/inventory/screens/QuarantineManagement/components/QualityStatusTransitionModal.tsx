@@ -26,12 +26,12 @@ interface QualityStatusTransitionModalProps {
   isLoading: boolean;
   availableCells: Cell[];
   selectedCellId: string | null;
-  onCellSelect: (cell: Cell) => void;
+  onCellSelect: (cell: Cell | null) => void;
   isFetchingCells: boolean;
   onFetchCells: (status: QualityControlStatus) => void;
 }
 
-const getStatusLabel = (status: QualityControlStatus, t: any) => {
+const getStatusLabel = (status: QualityControlStatus, t: (key: string) => string) => {
   switch (status) {
     case QualityControlStatus.CUARENTENA:
       return t('inventory:quarantine');
@@ -192,7 +192,7 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
                     <Button
                       type="button"
                       variant="cancel"
-                      onClick={() => onCellSelect(null as any)}
+                      onClick={() => onCellSelect(null)}
                       additionalClass="text-xs py-1 px-2"
                     >
                       {t('change')}
@@ -397,7 +397,7 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
   );
 };
 
-const getStatusSpecificMessage = (status: QualityControlStatus, t: any): string => {
+const getStatusSpecificMessage = (status: QualityControlStatus, t: (key: string) => string): string => {
   switch (status) {
     case QualityControlStatus.DEVOLUCIONES:
       return t('devoluciones_cell_help');

@@ -181,6 +181,71 @@ const CellGrid: React.FC<CellGridProps> = ({
     return `(${t('inventory:rows_a_through_q')})`;
   };
 
+  const getLegendItems = () => {
+    const legends = [
+      { 
+        color: "bg-emerald-100 border-emerald-300", 
+        label: t('warehouse:available') 
+      },
+      { 
+        color: "bg-gray-200 border-gray-400", 
+        label: t('warehouse:occupied') 
+      }
+    ];
+
+    // Add specific cell type legends based on what's being shown
+    if (allowedRows && allowedRows.length > 0) {
+      allowedRows.forEach(row => {
+        if (row === 'V') {
+          legends.push({
+            color: "bg-blue-100 border-blue-300",
+            label: t('inventory:devoluciones')
+          });
+        } else if (row === 'T') {
+          legends.push({
+            color: "bg-purple-100 border-purple-300", 
+            label: t('inventory:contramuestras')
+          });
+        } else if (row === 'R') {
+          legends.push({
+            color: "bg-red-100 border-red-300",
+            label: t('inventory:rechazados')
+          });
+        }
+      });
+    } else if (specialRowsOnly) {
+      // Show all special row types when specialRowsOnly is true
+      legends.push(
+        {
+          color: "bg-blue-100 border-blue-300",
+          label: t('inventory:devoluciones')
+        },
+        {
+          color: "bg-purple-100 border-purple-300",
+          label: t('inventory:contramuestras')
+        },
+        {
+          color: "bg-red-100 border-red-300", 
+          label: t('inventory:rechazados')
+        }
+      );
+    } else {
+      // For normal cells, show the original damaged/expired sections
+      legends.push(
+        {
+          color: "bg-red-100 border-red-300",
+          label: t('warehouse:damaged_section')
+        },
+        {
+          color: "bg-yellow-100 border-yellow-300",
+          label: t('warehouse:expired_section')
+        }
+      );
+    }
+
+    return legends;
+  };
+
   return (
     <div className="w-full border border-gray-200 rounded-lg bg-white shadow-sm">
       <div className="bg-gray-50 px-3 sm:px-4 py-3 border-b border-gray-200 rounded-t-lg">
@@ -197,22 +262,13 @@ const CellGrid: React.FC<CellGridProps> = ({
         </div>
         
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-          <LegendItem 
-            color="bg-emerald-100 border-emerald-300" 
-            label={t('warehouse:available')} 
-          />
-          <LegendItem 
-            color="bg-gray-200 border-gray-400" 
-            label={t('warehouse:occupied')} 
-          />
-          <LegendItem 
-            color="bg-red-100 border-red-300" 
-            label={t('warehouse:damaged_section')} 
-          />
-          <LegendItem 
-            color="bg-yellow-100 border-yellow-300" 
-            label={t('warehouse:expired_section')} 
-          />
+          {getLegendItems().map((legend, index) => (
+            <LegendItem 
+              key={index}
+              color={legend.color} 
+              label={legend.label} 
+            />
+          ))}
         </div>
       </div>
 

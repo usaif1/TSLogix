@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components";
 
 interface FileUploadProps {
@@ -14,6 +15,7 @@ const FileUpload = ({
   onFileSelected,
   accept = ".pdf,.xls,.xlsx,.csv,.jpg,.jpeg,.png,.gif",
 }: FileUploadProps) => {
+  const { t } = useTranslation(['common']);
   const [fileName, setFileName] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -32,7 +34,7 @@ const FileUpload = ({
           type="text"
           className="w-[60%] h-10 border border-slate-400 rounded-md px-4"
           readOnly
-          value={fileName || "No file selected"}
+          value={fileName || t("common:no_file_selected")}
         />
         <input
           type="file"
@@ -45,7 +47,7 @@ const FileUpload = ({
           type="button"
           onClick={() => document.getElementById(id)?.click()}
         >
-          Select File
+          {t("common:select_file")}
         </Button>
       </div>
     </div>
