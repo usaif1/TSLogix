@@ -203,5 +203,22 @@
   "devoluciones_cell_help": "Items will be moved to the returns area (V row).",
   "contramuestras_cell_help": "Items will be moved to the samples area (T row).",
   "rechazados_cell_help": "Items will be moved to the rejected area (R row).",
-  "select_destination_cell_and_provide_reason": "Please select a destination cell and provide a reason for this transition."
+  "select_destination_cell_and_provide_reason": "Please select a destination cell and provide a reason for this transition.",
+  "product_details": "Product Details",
+  "inventory_details": "Inventory Details",
+  "location_allocation": "Location & Allocation",
+  "quality_status": "Quality Status",
+  "timeline": "Timeline",
+  "units": "units",
+  "pkg": "pkg",
+  "kg": "kg",
+  "since": "Since:",
+  "days": "days",
+  "no_items_found": "No items found",
+  "showing": "Showing",
+  "of": "of",
+  "items": "items",
+  "page": "Page",
+  "previous": "Previous",
+  "next": "Next"
 }

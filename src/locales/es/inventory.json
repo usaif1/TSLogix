@@ -227,5 +227,22 @@
   "devoluciones_cell_help": "Los elementos se trasladarán al área de devoluciones (fila V).",
   "contramuestras_cell_help": "Los elementos se trasladarán al área de muestras (fila T).",
   "rechazados_cell_help": "Los elementos se trasladarán al área de rechazados (fila R).",
-  "select_destination_cell_and_provide_reason": "Por favor seleccione una celda de destino y proporcione una razón para esta transición."
+  "select_destination_cell_and_provide_reason": "Por favor seleccione una celda de destino y proporcione una razón para esta transición.",
+  "product_details": "Detalles del Producto",
+  "inventory_details": "Detalles del Inventario",
+  "location_allocation": "Ubicación y Asignación",
+  "quality_status": "Estado de Calidad",
+  "timeline": "Cronología",
+  "units": "unidades",
+  "pkg": "paq",
+  "kg": "kg",
+  "since": "Desde:",
+  "days": "días",
+  "no_items_found": "No se encontraron elementos",
+  "showing": "Mostrando",
+  "of": "de",
+  "items": "elementos",
+  "page": "Página",
+  "previous": "Anterior",
+  "next": "Siguiente"
 }

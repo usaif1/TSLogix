@@ -6,6 +6,7 @@ import {
   ColumnDef,
 } from "@tanstack/react-table";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { QuarantineInventoryItem, QualityControlStatus } from '../../../store';
 
 interface QualityControlInventoryTableProps {
@@ -18,26 +19,26 @@ interface QualityControlInventoryTableProps {
   className?: string;
 }
 
-const getQualityStatusBadge = (status: QualityControlStatus) => {
+const getQualityStatusBadge = (status: QualityControlStatus, t: (key: string) => string) => {
   const statusConfig = {
     [QualityControlStatus.CUARENTENA]: {
-      label: 'Quarantine',
+      label: t('inventory:quarantine'),
       className: 'bg-yellow-100 text-yellow-800 border border-yellow-200',
     },
     [QualityControlStatus.APROBADO]: {
-      label: 'Approved',
+      label: t('inventory:approved'),
       className: 'bg-green-100 text-green-800 border border-green-200',
     },
     [QualityControlStatus.DEVOLUCIONES]: {
-      label: 'Returns',
+      label: t('inventory:returns'),
       className: 'bg-blue-100 text-blue-800 border border-blue-200',
     },
     [QualityControlStatus.CONTRAMUESTRAS]: {
-      label: 'Samples',
+      label: t('inventory:samples'),
       className: 'bg-purple-100 text-purple-800 border border-purple-200',
     },
     [QualityControlStatus.RECHAZADOS]: {
-      label: 'Rejected',
+      label: t('inventory:rejected'),
       className: 'bg-red-100 text-red-800 border border-red-200',
     },
   };
@@ -61,13 +62,14 @@ function QualityControlInventoryTable({
   emptyMessage = "No items found",
   className = "",
 }: QualityControlInventoryTableProps) {
+  const { t } = useTranslation(['inventory', 'common']);
   const tableRef = useRef<HTMLTableElement>(null);
   const [stickyOffsets, setStickyOffsets] = useState<number[]>([]);
 
   const columns: ColumnDef<QuarantineInventoryItem>[] = [
     {
       id: 'product',
-      header: 'Product Details',
+      header: t('inventory:product_details'),
       cell: ({ row }) => (
         <div className="min-w-0 space-y-1">
           <div className="font-semibold text-gray-900 text-sm truncate max-w-xs" title={row.original.entry_order_product.product.name}>
@@ -92,27 +94,27 @@ function QualityControlInventoryTable({
     },
     {
       id: 'inventory',
-      header: 'Inventory Details',
+      header: t('inventory:inventory_details'),
       cell: ({ row }) => (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-            <span className="font-bold text-yellow-700 text-sm">
-              {Number(row.original.inventory_quantity).toLocaleString()} units
-            </span>
+                          <span className="font-bold text-yellow-700 text-sm">
+                {Number(row.original.inventory_quantity).toLocaleString()} {t('inventory:units')}
+              </span>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="flex items-center gap-1">
               <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
               </svg>
-              <span className="text-gray-600">{Number(row.original.package_quantity).toLocaleString()} pkg</span>
+              <span className="text-gray-600">{Number(row.original.package_quantity).toLocaleString()} {t('inventory:pkg')}</span>
             </div>
             <div className="flex items-center gap-1">
               <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16l-3-9m3 9l3-9" />
               </svg>
-              <span className="text-gray-600">{Number(row.original.weight_kg).toFixed(2)} kg</span>
+              <span className="text-gray-600">{Number(row.original.weight_kg).toFixed(2)} {t('inventory:kg')}</span>
             </div>
           </div>
           {row.original.volume_m3 && Number(row.original.volume_m3) > 0 && (
@@ -129,7 +131,7 @@ function QualityControlInventoryTable({
     },
     {
       id: 'location',
-      header: 'Location & Allocation',
+      header: t('inventory:location_allocation'),
       cell: ({ row }) => (
         <div className="space-y-2">
           <div className="flex items-center gap-2">
@@ -163,20 +165,20 @@ function QualityControlInventoryTable({
     },
     {
       id: 'status',
-      header: 'Quality Status',
+      header: t('inventory:quality_status'),
       cell: ({ row }) => (
         <div className="flex flex-col gap-2">
-          {getQualityStatusBadge(row.original.quality_status)}
-          <div className="text-xs text-gray-500">
-            Since: {new Date(row.original.allocated_at).toLocaleDateString()}
-          </div>
+          {getQualityStatusBadge(row.original.quality_status, t)}
+                      <div className="text-xs text-gray-500">
+              {t('inventory:since')} {new Date(row.original.allocated_at).toLocaleDateString()}
+            </div>
         </div>
       ),
       size: 120,
     },
     {
       id: 'timeline',
-      header: 'Timeline',
+      header: t('inventory:timeline'),
       cell: ({ row }) => {
         const allocatedDate = new Date(row.original.allocated_at);
         const daysInStatus = Math.floor(
@@ -194,7 +196,7 @@ function QualityControlInventoryTable({
           <div className="space-y-2">
             <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${urgencyColors[urgencyLevel]}`}>
               <div className={`w-1.5 h-1.5 rounded-full ${urgencyLevel === 'high' ? 'bg-red-500' : urgencyLevel === 'medium' ? 'bg-yellow-500' : 'bg-green-500'}`}></div>
-              {daysInStatus} days
+              {daysInStatus} {t('inventory:days')}
             </div>
             <div className="text-xs text-gray-500">
               {allocatedDate.toLocaleDateString('en-US', { 
@@ -323,7 +325,7 @@ function QualityControlInventoryTable({
                     <div className="w-16 h-16 mb-4 bg-gray-200 rounded-lg flex items-center justify-center">
                       <div className="w-8 h-8 bg-gray-400 rounded"></div>
                     </div>
-                    <div className="text-lg font-medium mb-2">No items found</div>
+                    <div className="text-lg font-medium mb-2">{t('inventory:no_items_found')}</div>
                     <div className="text-sm text-center max-w-md">
                       {emptyMessage}
                     </div>
@@ -339,7 +341,7 @@ function QualityControlInventoryTable({
       {showPagination && data.length > 0 && (
         <div className="flex-shrink-0 flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200">
           <div className="text-sm text-gray-700">
-            Showing{" "}
+            {t('inventory:showing')}{" "}
             <span className="font-medium">
               {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}
             </span>{" "}
@@ -350,26 +352,26 @@ function QualityControlInventoryTable({
                 data.length
               )}
             </span>{" "}
-            of <span className="font-medium">{data.length}</span> items
+            {t('inventory:of')} <span className="font-medium">{data.length}</span> {t('inventory:items')}
           </div>
           <div className="flex items-center gap-2">
-            <button
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition-colors"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              Previous
-            </button>
-            <span className="text-sm text-gray-700">
-              Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-            </span>
-            <button
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition-colors"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              Next
-            </button>
+                          <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition-colors"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                {t('inventory:previous')}
+              </button>
+              <span className="text-sm text-gray-700">
+                {t('inventory:page')} {table.getState().pagination.pageIndex + 1} {t('inventory:of')} {table.getPageCount()}
+              </span>
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 transition-colors"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                {t('inventory:next')}
+              </button>
           </div>
         </div>
       )}
