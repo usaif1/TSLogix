@@ -79,6 +79,8 @@
   "products_available": "{{count}} products available",
   "loading_warehouses": "Loading warehouses...",
   "files_selected": "{{count}} file(s) selected",
+  "no_files_selected": "No files selected",
+  "choose_files": "Choose Files",
   "failed_to_load_entry_orders": "Failed to load approved entry orders",
   "failed_to_load_products": "Failed to load entry order products",
   "please_select_product": "Please select a product",

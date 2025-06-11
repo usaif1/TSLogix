@@ -834,19 +834,32 @@ const AssignProduct: React.FC = () => {
 
                 <div className="w-full flex flex-col">
                   <label htmlFor="uploaded_documents">{t('inventory:document_upload')}</label>
-                  <input
-                    type="file"
-                    id="uploaded_documents"
-                    multiple
-                    onChange={handleFileUpload}
-                    className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
-                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                  />
-                  {formData.uploaded_documents && formData.uploaded_documents.length > 0 && (
-                    <Text size="xs" additionalClass="text-green-600 mt-1">
-                      {t('inventory:files_selected', { count: formData.uploaded_documents.length })}
-                    </Text>
-                  )}
+                  <div className="flex items-center gap-x-2">
+                    <input
+                      type="text"
+                      className="w-[60%] h-10 border border-slate-400 rounded-md px-4"
+                      readOnly
+                      value={
+                        formData.uploaded_documents && formData.uploaded_documents.length > 0
+                          ? t('inventory:files_selected', { count: formData.uploaded_documents.length })
+                          : t('inventory:no_files_selected')
+                      }
+                    />
+                    <input
+                      type="file"
+                      id="uploaded_documents"
+                      className="hidden"
+                      multiple
+                      onChange={handleFileUpload}
+                      accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                    />
+                    <Button
+                      type="button"
+                      onClick={() => document.getElementById('uploaded_documents')?.click()}
+                    >
+                      {t('inventory:choose_files')}
+                    </Button>
+                  </div>
                 </div>
               </div>
 

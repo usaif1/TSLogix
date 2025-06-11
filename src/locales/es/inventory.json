@@ -37,6 +37,8 @@
   "enter_observations": "Ingrese observaciones...",
   "document_upload": "Carga de Documentos",
   "files_selected": "{{count}} archivo(s) seleccionado(s)",
+  "no_files_selected": "Ningún archivo seleccionado",
+  "choose_files": "Elegir Archivos",
   "assigning": "Asignando...",
   "assignment_successful": "Asignación exitosa",
   "assignment_failed": "Error al asignar producto a la celda",

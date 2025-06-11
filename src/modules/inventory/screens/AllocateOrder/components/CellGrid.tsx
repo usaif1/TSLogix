@@ -229,20 +229,7 @@ const CellGrid: React.FC<CellGridProps> = ({
           label: t('inventory:rechazados')
         }
       );
-    } else {
-      // For normal cells, show the original damaged/expired sections
-      legends.push(
-        {
-          color: "bg-red-100 border-red-300",
-          label: t('warehouse:damaged_section')
-        },
-        {
-          color: "bg-yellow-100 border-yellow-300",
-          label: t('warehouse:expired_section')
-        }
-      );
     }
-
     return legends;
   };
 
