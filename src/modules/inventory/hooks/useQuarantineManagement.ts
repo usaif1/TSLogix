@@ -303,7 +303,7 @@ export const useQuarantineManagement = () => {
   }, []);
 
   // ✅ NEW: Cell selection handlers
-  const handleCellSelect = useCallback((cell: Cell) => {
+  const handleCellSelect = useCallback((cell: Cell | null) => {
     setSelectedCellId(cell ? cell.cell_id : null);
   }, []);
 
