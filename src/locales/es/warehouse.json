@@ -94,5 +94,8 @@
   "select_warehouse_prompt": "Por Favor Seleccione un Almacén",
   "select_warehouse_to_view_grid": "Elija un almacén del menú desplegable para ver su cuadrícula de celdas",
   "no_cells_for_warehouse": "No hay celdas disponibles para este almacén",
-  "warehouse_coordinator": "Coordinador de Almacén"
+  "warehouse_coordinator": "Coordinador de Almacén",
+  "devoluciones": "Devoluciones",
+  "contramuestras": "Contramuestras",
+  "rechazados": "Rechazados"
 }

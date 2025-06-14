@@ -93,5 +93,8 @@
   "recent_activities": "Recent Activities",
   "no_activities": "No activities",
   "color_codes": "Color Codes",
-  "warehouse_coordinator": "Warehouse Coordinator"
+  "warehouse_coordinator": "Warehouse Coordinator",
+  "devoluciones": "Returns",
+  "contramuestras": "Samples",
+  "rechazados": "Rejected"
 }

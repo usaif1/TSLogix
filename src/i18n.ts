@@ -16,6 +16,8 @@ import maintenanceEn from './locales/en/maintenance.json';
 import maintenanceEs from './locales/es/maintenance.json';
 import componentsEn from './locales/en/components.json';
 import componentsEs from './locales/es/components.json';
+import clientEn from './locales/en/client.json';
+import clientEs from './locales/es/client.json';
 
 const resources = {
   en: {
@@ -26,6 +28,7 @@ const resources = {
     process: processEn,
     maintenance: maintenanceEn,
     components: componentsEn,
+    client: clientEn,
   },
   es: {
     common: commonEs,
@@ -35,6 +38,7 @@ const resources = {
     process: processEs,
     maintenance: maintenanceEs,
     components: componentsEs,
+    client: clientEs,
   },
 };
 

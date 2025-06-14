@@ -1,0 +1,138 @@
+{
+  "navigation": {
+    "clients": "Clients",
+    "new_client": "New Client",
+    "back_to_clients": "Back to Clients"
+  },
+  "screens": {
+    "main_description": "Manage client information and cell assignments",
+    "new_client_description": "Create a new commercial or individual client"
+  },
+  "forms": {
+    "new_client": "Create New Client",
+    "new_client_description": "Fill in the information below to create a new client account. Select the client type first to show the appropriate form fields."
+  },
+  "sections": {
+    "commercial_information": "Commercial Information",
+    "personal_information": "Personal Information",
+    "contact_information": "Contact Information"
+  },
+  "fields": {
+    "client_type": "Client Type",
+    "company_name": "Company Name",
+    "company_type": "Company Type",
+    "establishment_type": "Establishment Type",
+    "ruc": "RUC",
+    "first_names": "First Names",
+    "last_name": "Last Name",
+    "mothers_last_name": "Mother's Last Name",
+    "individual_id": "Individual ID",
+    "date_of_birth": "Date of Birth",
+    "email": "Email",
+    "address": "Address",
+    "phone": "Phone",
+    "cell_phone": "Cell Phone"
+  },
+  "placeholders": {
+    "select_client_type": "Select client type",
+    "company_name": "Enter company name",
+    "ruc": "11-digit RUC number",
+    "establishment_type": "Select establishment type",
+    "company_type": "Select company type",
+    "first_names": "Enter first names",
+    "last_name": "Enter last name",
+    "mothers_last_name": "Enter mother's last name",
+    "individual_id": "8-digit DNI or ID",
+    "email": "Enter email address",
+    "address": "Enter full address",
+    "phone": "Enter phone number",
+    "cell_phone": "Enter cell phone number"
+  },
+  "types": {
+    "commercial": "Commercial",
+    "individual": "Individual"
+  },
+  "buttons": {
+    "create_client": "Create Client",
+    "new_client": "New Client",
+    "save_client": "Save Client",
+    "cancel": "Cancel"
+  },
+  "validation": {
+    "client_type_required": "Client type is required",
+    "company_name_required": "Company name is required",
+    "ruc_required": "RUC is required",
+    "ruc_invalid": "RUC must be 11 digits",
+    "establishment_type_required": "Establishment type is required",
+    "company_type_required": "Company type is required",
+    "first_names_required": "First names are required",
+    "last_name_required": "Last name is required",
+    "individual_id_required": "Individual ID is required",
+    "individual_id_invalid": "Individual ID must be 8 digits",
+    "date_of_birth_required": "Date of birth is required",
+    "email_required": "Email is required",
+    "email_invalid": "Please enter a valid email address",
+    "address_required": "Address is required",
+    "phone_required": "Phone is required",
+    "form_has_errors": "Please fix the form errors before submitting"
+  },
+  "messages": {
+    "client_created_successfully": "Client created successfully",
+    "client_creation_failed": "Failed to create client",
+    "loading_form_fields": "Loading form options...",
+    "loading_clients": "Loading clients..."
+  },
+  "list": {
+    "title": "Client List",
+    "description": "Manage and view all clients",
+    "showing": "Showing",
+    "of": "of",
+    "results": "results",
+    "no_clients": "No clients found",
+    "no_clients_description": "Create your first client to get started",
+    "page": "Page",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "filters": {
+    "search": "Search",
+    "search_placeholder": "Search by name, RUC, or email...",
+    "client_type": "Client Type",
+    "all_types": "All Types",
+    "clear": "Clear Filters"
+  },
+  "table": {
+    "name": "Name",
+    "type": "Type",
+    "contact": "Contact",
+    "cells": "Cells",
+    "orders": "Orders",
+    "created": "Created",
+    "status": "Status",
+    "cells_assigned": "assigned",
+    "orders_count": "orders"
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "cell_assignment": {
+    "title": "Cell Assignment (Optional)",
+    "description": "Select a warehouse and assign cells to this client. This step is optional and can be done later.",
+    "warehouse_label": "Select Warehouse",
+    "warehouse_placeholder": "Choose a warehouse...",
+    "available_cells": "Available Cells",
+    "selected_cells": "Selected Cells",
+    "select_all": "Select All",
+    "clear_selection": "Clear Selection",
+    "assignment_notes": "Assignment Notes (Optional)",
+    "notes_placeholder": "Add any notes about this cell assignment...",
+    "no_cells_available": "No available cells in this warehouse",
+    "legend": {
+      "available": "Available",
+      "selected": "Selected",
+      "occupied": "Occupied",
+      "damaged": "Damaged"
+    }
+  }
+} 

@@ -39,6 +39,12 @@ import {
 
 import { WareHouse } from "@/modules/warehouse/screens";
 
+import {
+  // client
+  Client,
+  NewClient,
+} from "@/modules/client/screens";
+
 const ProtectedRoutes: React.FC = () => {
   return (
     <Routes>
@@ -78,6 +84,10 @@ const ProtectedRoutes: React.FC = () => {
           <Route path="allocate" element={<AllocateOrder />} />
           <Route path="summary" element={<InventorySummary />} />
           <Route path="quarantine" element={<QuarantineManagement />} />
+        </Route>
+        <Route path="client">
+          <Route index element={<Client />} />
+          <Route path="new" element={<NewClient />} />
         </Route>
       </Route>
     </Routes>
