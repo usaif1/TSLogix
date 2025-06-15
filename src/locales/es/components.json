@@ -1,4 +1,6 @@
 {
+  "system_logs": "Registros del Sistema",
+  "event_logs": "Registros de Eventos",
   "search": "Buscar",
   "cancel": "Cancelar",
   "save": "Guardar",

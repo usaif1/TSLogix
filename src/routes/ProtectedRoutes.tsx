@@ -45,6 +45,11 @@ import {
   NewClient,
 } from "@/modules/client/screens";
 
+import {
+  // event logs
+  EventLogsPage,
+} from "@/modules/eventLogs/screens";
+
 const ProtectedRoutes: React.FC = () => {
   return (
     <Routes>
@@ -88,6 +93,9 @@ const ProtectedRoutes: React.FC = () => {
         <Route path="client">
           <Route index element={<Client />} />
           <Route path="new" element={<NewClient />} />
+        </Route>
+        <Route path="system-logs">
+          <Route path="events" element={<EventLogsPage />} />
         </Route>
       </Route>
     </Routes>

@@ -97,7 +97,6 @@ const ClientList: React.FC = () => {
       return `${client.first_names || ""} ${client.last_name || ""}`.trim() || "Unknown Individual";
     }
   };
-
   const getClientTypeDisplay = (clientType: string): string => {
     return clientType === "COMMERCIAL" ? t('client:types.commercial') : t('client:types.individual');
   };

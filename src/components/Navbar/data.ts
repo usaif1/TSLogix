@@ -1,5 +1,5 @@
 // dependencies
-import {  House, Gear, FolderSimple, FileText, ChartBar, Users  } from "@phosphor-icons/react";
+import {  House, Gear, FolderSimple, FileText, ChartBar, Users, ClockCounterClockwise  } from "@phosphor-icons/react";
 import { TFunction } from "i18next";
 
 export const getHomeData = (t: TFunction) => ({
@@ -49,6 +49,12 @@ export const getLinksData = (t: TFunction) => [
       route: "/inventory",
       icon: ChartBar,
       subroutes: []
+    },
+    {
+      title: t('event_logs'),
+      route: "/system-logs/events",
+      icon: ClockCounterClockwise,
+      subroutes: [],
     }
   ];
 
