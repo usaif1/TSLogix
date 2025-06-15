@@ -469,6 +469,21 @@ export const EventLogService = {
     
     return changes.length > 0 ? changes.join(', ') : 'No changes recorded';
   },
+
+  // ✅ Translate action name
+  translateAction: (action: string, t: (key: string) => string): string => {
+    // Try to get translation from actions namespace first
+    const actionKey = `actions.${action}`;
+    const translated = t(actionKey);
+    
+    // If translation exists and is different from the key, return it
+    if (translated && translated !== actionKey) {
+      return translated;
+    }
+    
+    // Fallback to formatted action name
+    return action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+  },
 };
 
 export default EventLogService; 

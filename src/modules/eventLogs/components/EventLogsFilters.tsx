@@ -172,7 +172,7 @@ const EventLogsFilters: React.FC<EventLogsFiltersProps> = ({
   // Convert filter arrays to dropdown options
   const actionOptions: FilterOption[] = filters?.actions.map(action => ({
     value: action,
-    label: action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase())
+    label: EventLogService.translateAction(action, t)
   })) || [];
 
   const userOptions: FilterOption[] = filters?.users.map(user => ({
