@@ -135,9 +135,11 @@ const AssignProduct: React.FC = () => {
   // Load cells when warehouse is selected
   useEffect(() => {
     if (formData.warehouse_id?.value) {
-      InventoryLogService.fetchAvailableCells(formData.warehouse_id.value);
+      // Pass the entry_order_id if available
+      const entryOrderId = formData.selected_entry_order?.entry_order_id;
+      InventoryLogService.fetchAvailableCells(formData.warehouse_id.value, entryOrderId);
     }
-  }, [formData.warehouse_id?.value]);
+  }, [formData.warehouse_id?.value, formData.selected_entry_order?.entry_order_id]);
 
   const handleEntryOrderSelect = async (selectedOption: any) => {
     const order = selectedOption?.value ? approvedEntryOrders.find(o => o.entry_order_id === selectedOption.value) : null;

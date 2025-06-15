@@ -82,6 +82,8 @@
   "warehouse": "Almacén",
   "admin": "Administración",
   "reports": "Reportes",
+  "clients": "Lista de Clientes",
+  "new_client": "Nuevo Cliente",
   "date_format": "DD/MM/YYYY",
   "no_data_to_export": "No hay datos para exportar",
   "copyright": "© 2025 TSLogix. Todos los derechos reservados.",

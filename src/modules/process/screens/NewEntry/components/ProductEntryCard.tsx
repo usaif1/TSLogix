@@ -129,7 +129,7 @@ const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
 
         <div className="flex flex-col">
           <label className="text-sm font-medium text-gray-700 mb-1">
-            Product Code
+            {t("process:product_code")}
           </label>
           <input
             type="text"

@@ -144,13 +144,24 @@ export const InventoryLogService = {
     }
   },
 
-  // ✅ UPDATED: Fetch available cells for specific warehouse
-  fetchAvailableCells: async (warehouseId: string) => {
+  // ✅ UPDATED: Fetch available cells for specific warehouse with optional entry_order_id
+  fetchAvailableCells: async (warehouseId: string, entryOrderId?: string) => {
     try {
       startLoader("inventoryLogs/fetch-cells");
-      const res = await api.get(
-        `${warehouseURL}/${warehouseId}/available-cells`
-      );
+      
+      // Build the URL with query parameters
+      let url = `${warehouseURL}/${warehouseId}/available-cells`;
+      const params = new URLSearchParams();
+      
+      if (entryOrderId) {
+        params.append('entry_order_id', entryOrderId);
+      }
+      
+      if (params.toString()) {
+        url += `?${params.toString()}`;
+      }
+      
+      const res = await api.get(url);
       const raw: any[] = res.data.data || res.data;
 
       const cells: Cell[] = raw.map((c) => ({

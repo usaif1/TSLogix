@@ -1,0 +1,138 @@
+{
+  "navigation": {
+    "clients": "Clientes",
+    "new_client": "Nuevo Cliente",
+    "back_to_clients": "Volver a Clientes"
+  },
+  "screens": {
+    "main_description": "Gestiona información de clientes y asignación de celdas",
+    "new_client_description": "Crear un nuevo cliente comercial o individual"
+  },
+  "forms": {
+    "new_client": "Crear Nuevo Cliente",
+    "new_client_description": "Complete la información a continuación para crear una nueva cuenta de cliente. Seleccione primero el tipo de cliente para mostrar los campos apropiados del formulario."
+  },
+  "sections": {
+    "commercial_information": "Información Comercial",
+    "personal_information": "Información Personal",
+    "contact_information": "Información de Contacto"
+  },
+  "fields": {
+    "client_type": "Tipo de Cliente",
+    "company_name": "Nombre de la Empresa",
+    "company_type": "Tipo de Empresa",
+    "establishment_type": "Tipo de Establecimiento",
+    "ruc": "RUC",
+    "first_names": "Nombres",
+    "last_name": "Apellido Paterno",
+    "mothers_last_name": "Apellido Materno",
+    "individual_id": "DNI",
+    "date_of_birth": "Fecha de Nacimiento",
+    "email": "Correo Electrónico",
+    "address": "Dirección",
+    "phone": "Teléfono",
+    "cell_phone": "Celular"
+  },
+  "placeholders": {
+    "select_client_type": "Seleccione tipo de cliente",
+    "company_name": "Ingrese nombre de la empresa",
+    "ruc": "Número RUC de 11 dígitos",
+    "establishment_type": "Seleccione tipo de establecimiento",
+    "company_type": "Seleccione tipo de empresa",
+    "first_names": "Ingrese nombres",
+    "last_name": "Ingrese apellido paterno",
+    "mothers_last_name": "Ingrese apellido materno",
+    "individual_id": "DNI de 8 dígitos",
+    "email": "Ingrese correo electrónico",
+    "address": "Ingrese dirección completa",
+    "phone": "Ingrese número de teléfono",
+    "cell_phone": "Ingrese número de celular"
+  },
+  "types": {
+    "commercial": "Comercial",
+    "individual": "Individual"
+  },
+  "buttons": {
+    "create_client": "Crear Cliente",
+    "new_client": "Nuevo Cliente",
+    "save_client": "Guardar Cliente",
+    "cancel": "Cancelar"
+  },
+  "validation": {
+    "client_type_required": "El tipo de cliente es requerido",
+    "company_name_required": "El nombre de la empresa es requerido",
+    "ruc_required": "El RUC es requerido",
+    "ruc_invalid": "El RUC debe tener 11 dígitos",
+    "establishment_type_required": "El tipo de establecimiento es requerido",
+    "company_type_required": "El tipo de empresa es requerido",
+    "first_names_required": "Los nombres son requeridos",
+    "last_name_required": "El apellido paterno es requerido",
+    "individual_id_required": "El DNI es requerido",
+    "individual_id_invalid": "El DNI debe tener 8 dígitos",
+    "date_of_birth_required": "La fecha de nacimiento es requerida",
+    "email_required": "El correo electrónico es requerido",
+    "email_invalid": "Por favor ingrese un correo electrónico válido",
+    "address_required": "La dirección es requerida",
+    "phone_required": "El teléfono es requerido",
+    "form_has_errors": "Por favor corrija los errores del formulario antes de enviar"
+  },
+  "messages": {
+    "client_created_successfully": "Cliente creado exitosamente",
+    "client_creation_failed": "Error al crear el cliente",
+    "loading_form_fields": "Cargando opciones del formulario...",
+    "loading_clients": "Cargando clientes..."
+  },
+  "list": {
+    "title": "Lista de Clientes",
+    "description": "Gestiona y visualiza todos los clientes",
+    "showing": "Mostrando",
+    "of": "de",
+    "results": "resultados",
+    "no_clients": "No se encontraron clientes",
+    "no_clients_description": "Crea tu primer cliente para comenzar",
+    "page": "Página",
+    "previous": "Anterior",
+    "next": "Siguiente"
+  },
+  "filters": {
+    "search": "Buscar",
+    "search_placeholder": "Buscar por nombre, RUC o correo...",
+    "client_type": "Tipo de Cliente",
+    "all_types": "Todos los Tipos",
+    "clear": "Limpiar Filtros"
+  },
+  "table": {
+    "name": "Nombre",
+    "type": "Tipo",
+    "contact": "Contacto",
+    "cells": "Celdas",
+    "orders": "Órdenes",
+    "created": "Creado",
+    "status": "Estado",
+    "cells_assigned": "asignadas",
+    "orders_count": "órdenes"
+  },
+  "status": {
+    "active": "Activo",
+    "inactive": "Inactivo"
+  },
+  "cell_assignment": {
+    "title": "Asignación de Celdas (Opcional)",
+    "description": "Seleccione un almacén y asigne celdas a este cliente. Este paso es opcional y se puede hacer más tarde.",
+    "warehouse_label": "Seleccionar Almacén",
+    "warehouse_placeholder": "Elige un almacén...",
+    "available_cells": "Celdas Disponibles",
+    "selected_cells": "Celdas Seleccionadas",
+    "select_all": "Seleccionar Todo",
+    "clear_selection": "Limpiar Selección",
+    "assignment_notes": "Notas de Asignación (Opcional)",
+    "notes_placeholder": "Agregar notas sobre esta asignación de celda...",
+    "no_cells_available": "No hay celdas disponibles en este almacén",
+    "legend": {
+      "available": "Disponible",
+      "selected": "Seleccionado",
+      "occupied": "Ocupado",
+      "damaged": "Dañado"
+    }
+  }
+} 

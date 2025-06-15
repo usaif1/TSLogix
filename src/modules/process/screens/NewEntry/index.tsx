@@ -1,5 +1,6 @@
 // dependencies
 import React, { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 // components
 import { Divider, Text } from "@/components";
@@ -9,6 +10,8 @@ import { NewEntryOrderForm } from "./components";
 import { ProcessService } from "@/globalService";
 
 const NewEntry: React.FC = () => {
+  const { t } = useTranslation(['process']);
+
   useEffect(() => {
     // ✅ Fix: Use the correct function names from ProcessService
     ProcessService.fetchEntryFormFields();  // Changed from fetchEntryOrderFormFields
@@ -18,7 +21,7 @@ const NewEntry: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        New Entry
+        {t('process:new_entry')}
       </Text>
       <Divider height="lg" />
       <NewEntryOrderForm />

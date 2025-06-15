@@ -1,4 +1,6 @@
 {
+  "system_logs": "System Logs",
+  "event_logs": "Event Logs",
   "search": "Search",
   "cancel": "Cancel",
   "save": "Save",

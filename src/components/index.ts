@@ -18,4 +18,7 @@ export {Card} from "./Cards";
 export {CardContent} from "./Cards";
 export {default as Spinner} from "./Spinner";
 export {default as LanguageSwitcher} from "./LanguageSwitcher";
+export {default as Dropdown} from "./Dropdown";
+export {default as BreadCrumbs} from "./BreadCrumbs";
+export {default as DataTable} from "./DataTable";
 
