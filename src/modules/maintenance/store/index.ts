@@ -14,7 +14,10 @@ type LoaderTypes =
   | "products/create-product"
   | "products/update-product"
   | "products/delete-product"
-  | "products/fetch-form-fields";
+  | "products/fetch-form-fields"
+  | "products/fetch-categories"
+  | "products/fetch-subcategories1"
+  | "products/fetch-subcategories2";
 
 type MaintenanceStore = {
   // Raw data
@@ -28,6 +31,14 @@ type MaintenanceStore = {
   groupOptions: any[];
   temperatureRangeOptions: any[];
   countries: any[];
+  
+  // Category options for products
+  categoryOptions: any[];
+  subcategory1Options: any[];
+  subcategory2Options: any[];
+  
+  // Category options for suppliers
+  supplierCategoryOptions: any[];
   
   // Current selections
   currentSupplier: any | null;
@@ -48,7 +59,13 @@ type MaintenanceStoreActions = {
   setProductLineOptions: (data: any[]) => void;
   setGroupOptions: (data: any[]) => void;
   setTemperatureRangeOptions: (data: any[]) => void;
-  setCountries: (data: any[]) => void;  
+  setCountries: (data: any[]) => void;
+  
+  // Category setters
+  setCategoryOptions: (data: any[]) => void;
+  setSubcategory1Options: (data: any[]) => void;
+  setSubcategory2Options: (data: any[]) => void;
+  setSupplierCategoryOptions: (data: any[]) => void;
   
   // Current item handlers
   setCurrentSupplier: (supplier: any | null) => void;
@@ -83,6 +100,9 @@ const initialLoaders: Record<LoaderTypes, boolean> = {
   "products/update-product": false,
   "products/delete-product": false,
   "products/fetch-form-fields": false,
+  "products/fetch-categories": false,
+  "products/fetch-subcategories1": false,
+  "products/fetch-subcategories2": false,
 };
 
 const initialState: MaintenanceStore = {
@@ -94,6 +114,10 @@ const initialState: MaintenanceStore = {
   groupOptions: [],
   temperatureRangeOptions: [],
   countries: [],
+  categoryOptions: [],
+  subcategory1Options: [],
+  subcategory2Options: [],
+  supplierCategoryOptions: [],
   currentSupplier: null,
   currentProduct: null,
   loaders: initialLoaders,
@@ -113,6 +137,12 @@ const MaintenanceStore = create<MaintenanceStore & MaintenanceStoreActions>((set
   setGroupOptions: (data) => set({ groupOptions: data }),
   setTemperatureRangeOptions: (data) => set({ temperatureRangeOptions: data }),
   setCountries: (data) => set({ countries: data }),
+
+  // Category setters
+  setCategoryOptions: (data) => set({ categoryOptions: data }),
+  setSubcategory1Options: (data) => set({ subcategory1Options: data }),
+  setSubcategory2Options: (data) => set({ subcategory2Options: data }),
+  setSupplierCategoryOptions: (data) => set({ supplierCategoryOptions: data }),
 
   // Current item handlers
   setCurrentSupplier: (supplier) => set({ currentSupplier: supplier }),

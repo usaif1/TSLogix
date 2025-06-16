@@ -294,7 +294,7 @@ const EventLogsTable: React.FC<EventLogsTableProps> = ({
                     {/* Action */}
                     <td className="px-6 py-4 whitespace-nowrap">
                       <Text weight="font-medium" additionalClass="text-gray-900">
-                        {event.action}
+                        {EventLogService.translateAction(event.action, t)}
                       </Text>
                     </td>
 

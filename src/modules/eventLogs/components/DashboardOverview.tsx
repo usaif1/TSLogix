@@ -266,7 +266,7 @@ const DashboardOverview: React.FC = () => {
                     index === 2 ? 'bg-orange-500' :
                     index === 3 ? 'bg-purple-500' : 'bg-gray-400'
                   }`} />
-                  <Text additionalClass="text-gray-900">{action.action}</Text>
+                  <Text additionalClass="text-gray-900">{EventLogService.translateAction(action.action, t)}</Text>
                 </div>
                 <Text weight="font-medium" additionalClass="text-gray-600">
                   {formatNumber(action.count)}

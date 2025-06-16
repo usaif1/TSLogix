@@ -120,10 +120,10 @@ export const useQuarantineManagement = () => {
     }
   }, []); // ✅ No dependencies needed
 
-  const fetchQualityControlCells = useCallback(async (qualityStatus: QualityControlStatus, warehouseId: string) => {
+  const fetchQualityControlCells = useCallback(async (qualityStatus: QualityControlStatus, warehouseId: string, entryOrderId?: string) => {
     try {
       startLoader('inventoryLogs/fetch-cells-by-quality-status');
-      const response = await InventoryLogService.fetchCellsByQualityStatus(qualityStatus, warehouseId);
+      const response = await InventoryLogService.fetchCellsByQualityStatus(qualityStatus, warehouseId, entryOrderId);
       setQualityControlCells(qualityStatus, response);
       return response;
     } catch (error) {
@@ -314,13 +314,59 @@ export const useQuarantineManagement = () => {
     }
 
     try {
-      const cells = await fetchQualityControlCells(status, selectedWarehouse.value);
+      // Get entry_order_id from the selected item or any available quarantine item
+      // Note: entry_order_id might not be in the interface, so we need to check for it carefully
+      let entryOrderId = (selectedItem?.entry_order_product?.entry_order as any)?.entry_order_id || 
+                        (selectedItems.length > 0 ? 
+                          (quarantineInventory.find(item => item.allocation_id === selectedItems[0])?.entry_order_product?.entry_order as any)?.entry_order_id 
+                          : undefined);
+      
+      // If still no entry_order_id, try alternative approaches
+      if (!entryOrderId && quarantineInventory.length > 0) {
+        const firstItem = quarantineInventory[0];
+        
+        // Try to find entry_order_id in the nested structure
+        entryOrderId = (firstItem.entry_order_product?.entry_order as any)?.entry_order_id || 
+                      (firstItem as any)?.entry_order_product?.entry_order_id ||
+                      (firstItem as any)?.entry_order_id;
+                      
+        // If still no entry_order_id, try using entry_order_no as fallback
+        if (!entryOrderId) {
+          const entryOrderNo = firstItem.entry_order_product?.entry_order?.entry_order_no;
+          if (entryOrderNo) {
+            console.warn('🔄 No entry_order_id found, using entry_order_no as fallback:', entryOrderNo);
+            entryOrderId = entryOrderNo; // Use entry_order_no as fallback
+          }
+        }
+      }
+      
+      // If still no entry_order_id, pass empty string to satisfy API requirement
+      if (!entryOrderId) {
+        console.warn('⚠️ No entry_order_id or entry_order_no found, using empty string');
+        entryOrderId = '';
+      }
+      
+      console.log('🔄 Fetching cells for status with entry_order_id:', { 
+        status, 
+        warehouseId: selectedWarehouse.value, 
+        entryOrderId,
+        selectedItem: selectedItem?.allocation_id,
+        selectedItems,
+        quarantineInventoryCount: quarantineInventory.length,
+        firstItemData: quarantineInventory.length > 0 ? {
+          allocation_id: quarantineInventory[0].allocation_id,
+          entry_order_no: quarantineInventory[0].entry_order_product?.entry_order?.entry_order_no,
+          full_entry_order: quarantineInventory[0].entry_order_product?.entry_order
+        } : null
+      });
+      
+      const cells = await fetchQualityControlCells(status, selectedWarehouse.value, entryOrderId);
       console.log(`Fetched ${cells.length} cells for ${status}:`, cells);
     } catch (error) {
       console.error('Error fetching cells for status:', error);
       toast.error(`Failed to load cells for ${status.toLowerCase()}`);
     }
-  }, [selectedWarehouse, fetchQualityControlCells]);
+  }, [selectedWarehouse, selectedItem, selectedItems, quarantineInventory, fetchQualityControlCells]);
 
   const handleConfirmTransition = useCallback(async () => {
     if (!transitionStatus || selectedItems.length === 0 || !reason.trim()) {

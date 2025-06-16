@@ -43,33 +43,65 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
   const columns = useMemo(
     () =>
       createTableColumns([
-        { accessor: "name", header: t('product_name') },
-        { accessor: "manufacturer", header: t('manufacturer') },
-        {
-          accessor: "product_line.name",
-          header: t('product_line'),
+        { 
+          accessor: "product_code", 
+          header: t('product_code'),
+          cell: (info) => info.getValue() || "N/A",
+        },
+        { 
+          accessor: "name", 
+          header: t('product_name'),
+          cell: (info) => info.getValue() || "N/A",
+        },
+        { 
+          accessor: "manufacturer", 
+          header: t('manufacturer'),
           cell: (info) => info.getValue() || "N/A",
         },
         {
-          accessor: "group.name",
-          header: t('group'),
+          accessor: "category.name",
+          header: t('category'),
           cell: (info) => info.getValue() || "N/A",
         },
-        { accessor: "humidity", header: t('humidity') },
         {
-          accessor: "min_temperature",
-          header: t('min_temp'),
+          accessor: "subcategory1.name",
+          header: t('subcategory_1'),
+          cell: (info) => info.getValue() || "N/A",
+        },
+        {
+          accessor: "subcategory2.name",
+          header: t('subcategory_2'),
+          cell: (info) => info.getValue() || "N/A",
+        },
+        {
+          accessor: "temperature_range.range",
+          header: t('temperature_range'),
           cell: (info) => {
-            const value = info.getValue();
-            return value !== undefined && value !== null ? `${value}°C` : "N/A";
+            const range = info.getValue();
+            if (range) {
+              return range;
+            }
+            // Fallback to min/max if range name not available
+            const row = info.row.original;
+            const minTemp = row.temperature_range?.min_celsius;
+            const maxTemp = row.temperature_range?.max_celsius;
+            if (minTemp !== undefined && maxTemp !== undefined) {
+              return `${minTemp}°C to ${maxTemp}°C`;
+            }
+            return "N/A";
           },
         },
+        { 
+          accessor: "humidity", 
+          header: t('humidity'),
+          cell: (info) => info.getValue() || "N/A",
+        },
         {
-          accessor: "max_temperature",
-          header: t('max_temp'),
+          accessor: "created_at",
+          header: t('common:created_at'),
           cell: (info) => {
-            const value = info.getValue();
-            return value !== undefined && value !== null ? `${value}°C` : "N/A";
+            const date = info.getValue();
+            return date ? new Date(date).toLocaleDateString() : "N/A";
           },
         },
       ]),
@@ -79,7 +111,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
   const buttonGroup = useMemo(
     () => [
       {
-        title: t('common:add'),
+        title: t('add_new_product'),
         icon: Plus,
         route: "/maintenance/product/new",
       },
@@ -163,3 +195,4 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
 };
 
 export default ProductRegisterComponent;
+

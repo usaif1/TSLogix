@@ -54,7 +54,7 @@ const Product: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        {t('product_registry')}
+        {t('product_page')}
       </Text>
       <Divider />
       <ProductRegisterComponent

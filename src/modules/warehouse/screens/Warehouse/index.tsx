@@ -10,7 +10,7 @@ export default function WarehouseView() {
   const { t } = useTranslation(['warehouse', 'common']);
   const [warehouseId, setWarehouseId] = useState<string | undefined>(undefined);
   const {
-    warehouses,
+    warehouses: rawWarehouses,
     cells,
     setWarehouses,
     setCells,
@@ -19,6 +19,9 @@ export default function WarehouseView() {
     stopLoader,
   } = useWarehouseCellStore();
 
+  // Ensure warehouses is always an array
+  const warehouses = Array.isArray(rawWarehouses) ? rawWarehouses : [];
+
   const loadingWarehouses = loaders["warehouses/fetch-warehouses"];
 
   useEffect(() => {
@@ -26,12 +29,16 @@ export default function WarehouseView() {
       startLoader("warehouses/fetch-warehouses");
       try {
         const list = await WarehouseCellService.fetchWarehouses();
-        setWarehouses(list);
-        if (list.length > 0 && !warehouseId) {
-          setWarehouseId(list[0].warehouse_id);
+        // Ensure list is an array
+        const warehouseList = Array.isArray(list) ? list : [];
+        setWarehouses(warehouseList);
+        if (warehouseList.length > 0 && !warehouseId) {
+          setWarehouseId(warehouseList[0].warehouse_id);
         }
       } catch (err) {
-        console.error(err);
+        console.error("Error loading warehouses:", err);
+        // Set empty array on error to prevent map errors
+        setWarehouses([]);
       } finally {
         stopLoader("warehouses/fetch-warehouses");
       }
@@ -64,7 +71,7 @@ export default function WarehouseView() {
   }, [warehouseId, startLoader, stopLoader, setCells]);
 
   const downloadExcel = () => {
-    if (!warehouseId) return;
+    if (!warehouseId || !Array.isArray(warehouses) || !Array.isArray(cells)) return;
     
     const filtered = cells.filter((c) => c.warehouse_id === warehouseId);
     const warehouseName = warehouses.find((w) => w.warehouse_id === warehouseId)?.name || "Warehouse";
@@ -97,11 +104,15 @@ export default function WarehouseView() {
             value={warehouseId || ""}
           >
             <option value="">{t('warehouse:select_warehouse_placeholder')}</option>
-            {warehouses.map((wh) => (
-              <option key={wh.warehouse_id} value={wh.warehouse_id}>
-                {wh.name}
-              </option>
-            ))}
+            {warehouses && warehouses.length > 0 ? (
+              warehouses.map((wh) => (
+                <option key={wh.warehouse_id} value={wh.warehouse_id}>
+                  {wh.name}
+                </option>
+              ))
+            ) : (
+              <option disabled>{t('warehouse:no_warehouses_available')}</option>
+            )}
           </select>
         )}
       </div>

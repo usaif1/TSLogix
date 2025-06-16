@@ -443,11 +443,11 @@ export const InventoryLogService = {
   },
 
   // ✅ NEW: Get cells by quality status for proper role mapping
-  fetchCellsByQualityStatus: async (qualityStatus: QualityControlStatus, warehouseId: string) => {
+  fetchCellsByQualityStatus: async (qualityStatus: QualityControlStatus, warehouseId: string, entryOrderId?: string) => {
     try {
       startLoader("inventoryLogs/fetch-cells-by-quality-status");
       
-      console.log("🔄 Fetching cells by quality status:", { qualityStatus, warehouseId });
+      console.log("🔄 Fetching cells by quality status:", { qualityStatus, warehouseId, entryOrderId });
       
       // For APROBADO status, fetch general available cells instead of special purpose cells
       const apiEndpoint = qualityStatus === QualityControlStatus.APROBADO 
@@ -455,7 +455,10 @@ export const InventoryLogService = {
         : `${baseURL}/cells-by-quality-status`;
       
       const apiParams = qualityStatus === QualityControlStatus.APROBADO
-        ? {} // No specific quality status filter for general cells
+        ? { 
+            // Always add entry_order_id parameter for warehouse staff filtering
+            entry_order_id: entryOrderId || ''
+          }
         : {
             quality_status: qualityStatus,
             warehouse_id: warehouseId

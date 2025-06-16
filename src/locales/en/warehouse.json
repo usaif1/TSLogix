@@ -96,5 +96,6 @@
   "warehouse_coordinator": "Warehouse Coordinator",
   "devoluciones": "Returns",
   "contramuestras": "Samples",
-  "rechazados": "Rejected"
+  "rechazados": "Rejected",
+  "no_warehouses_available": "No warehouses available"
 }
