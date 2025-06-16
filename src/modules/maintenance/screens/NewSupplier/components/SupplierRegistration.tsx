@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Select, { CSSObjectWithLabel, SingleValue } from "react-select";
@@ -16,26 +16,47 @@ const reactSelectStyle = {
 };
 
 interface FormData {
-  companyName: string;
+  // ✅ NEW: Enhanced company information
+  company_name: string;
+  category: CountryOption | null;
+  tax_id: string;
+  
+  // Existing fields
+  companyName: string; // Keep for backward compatibility
   ruc: string;
   address: string;
   city: string;
-  country: CountryOption | null; // Now storing the entire option
+  country: CountryOption | null;
   phone: string;
   email: string;
+  
+  // ✅ NEW: Additional fields
+  registered_address: string;
+  contact_no: string;
+  contact_person: string;
+  notes: string;
 }
 
 interface CountryOption {
   label: string;
-  value: string; // assuming your country ID is a string
+  value: string;
 }
 
 const SupplierRegistration: React.FC = () => {
   const { t } = useTranslation(['maintenance', 'common']);
   const navigate = useNavigate();
-  const { countries, loaders, startLoader, stopLoader } = MaintenanceStore();
+  const countries = MaintenanceStore.use.countries();
+  const supplierCategoryOptions = MaintenanceStore.use.supplierCategoryOptions();
+  const loaders = MaintenanceStore.use.loaders();
+  const { startLoader, stopLoader } = MaintenanceStore.getState();
 
   const [formData, setFormData] = useState<FormData>({
+    // ✅ NEW: Initialize new fields
+    company_name: "",
+    category: null,
+    tax_id: "",
+    
+    // Existing fields
     companyName: "",
     ruc: "",
     address: "",
@@ -43,11 +64,40 @@ const SupplierRegistration: React.FC = () => {
     country: null,
     phone: "",
     email: "",
+    
+    // ✅ NEW: Additional fields
+    registered_address: "",
+    contact_no: "",
+    contact_person: "",
+    notes: "",
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Load form fields on component mount (only if not already loaded)
+  useEffect(() => {
+    const loadFormFields = async () => {
+      try {
+        // Only load if we don't have countries or categories yet
+        if (countries.length === 0 || supplierCategoryOptions.length === 0) {
+          await SupplierService.fetchSupplierFormFields();
+        }
+      } catch (error) {
+        console.error("Error loading supplier form fields:", error);
+      }
+    };
+    loadFormFields();
+  }, []);
+
+
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ 
+      ...prev, 
+      [name]: value,
+      // ✅ NEW: Sync company_name with companyName for backward compatibility
+      ...(name === 'company_name' && { companyName: value }),
+      ...(name === 'companyName' && { company_name: value }),
+    }));
   };
 
   const handleSelectChange = (
@@ -72,16 +122,36 @@ const SupplierRegistration: React.FC = () => {
 
     try {
       await SupplierService.createSupplier({
-        name: formData.companyName,
+        // ✅ NEW: Use enhanced company name field
+        name: formData.company_name || formData.companyName,
+        company_name: formData.company_name || formData.companyName,
+        
+        // ✅ NEW: Add category
+        category_id: formData.category?.value,
+        
+        // ✅ NEW: Add tax_id
+        tax_id: formData.tax_id,
+        
+        // Existing fields
         ruc: formData.ruc,
         address: formData.address,
         city: formData.city,
-        country_id: formData.country.value, // extract the value from the selected option
+        country_id: formData.country.value,
         phone: formData.phone,
         email: formData.email,
+        
+        // ✅ NEW: Additional fields
+        registered_address: formData.registered_address,
+        contact_no: formData.contact_no,
+        contact_person: formData.contact_person,
+        notes: formData.notes,
       });
 
+      // Reset form
       setFormData({
+        company_name: "",
+        category: null,
+        tax_id: "",
         companyName: "",
         ruc: "",
         address: "",
@@ -89,9 +159,13 @@ const SupplierRegistration: React.FC = () => {
         country: null,
         phone: "",
         email: "",
+        registered_address: "",
+        contact_no: "",
+        contact_person: "",
+        notes: "",
       });
 
-      // Navigate to /maintenance/supplier after successful submission
+      // Navigate back after successful submission
       navigate(-1);
     } catch (error) {
       console.error("Error creating supplier:", error);
@@ -103,22 +177,54 @@ const SupplierRegistration: React.FC = () => {
 
   return (
     <form className="order_entry_form" onSubmit={handleSubmit}>
+      {/* Section 1: Company Information */}
       <div className="w-full flex items-center gap-x-6">
-        {/* Company Name */}
         <div className="w-full flex flex-col">
-          <label htmlFor="companyName">{t('company_name')}</label>
+          <label htmlFor="company_name">{t('company_name')}</label>
           <input
             type="text"
-            id="companyName"
-            name="companyName"
-            value={formData.companyName}
+            id="company_name"
+            name="company_name"
+            value={formData.company_name}
             onChange={handleInputChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_company_name')}
             required
           />
         </div>
 
-        {/* RUC */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="category">{t('supplier_category')}</label>
+          <Select
+            options={supplierCategoryOptions}
+            styles={reactSelectStyle}
+            inputId="category"
+            name="category"
+            onChange={(selected) => handleSelectChange("category", selected)}
+            value={formData.category || null}
+            placeholder={t('select_supplier_category')}
+            isClearable
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      {/* Section 2: Tax & Legal Information */}
+      <div className="w-full flex items-center gap-x-6">
+        <div className="w-full flex flex-col">
+          <label htmlFor="tax_id">{t('tax_id')}</label>
+          <input
+            type="text"
+            id="tax_id"
+            name="tax_id"
+            value={formData.tax_id}
+            onChange={handleInputChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_tax_id')}
+          />
+        </div>
+
         <div className="w-full flex flex-col">
           <label htmlFor="ruc">{t('ruc')}</label>
           <input
@@ -128,6 +234,7 @@ const SupplierRegistration: React.FC = () => {
             value={formData.ruc}
             onChange={handleInputChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_ruc')}
             required
           />
         </div>
@@ -135,8 +242,8 @@ const SupplierRegistration: React.FC = () => {
 
       <Divider />
 
+      {/* Section 3: Address Information */}
       <div className="w-full flex items-center gap-x-6">
-        {/* Address */}
         <div className="w-full flex flex-col">
           <label htmlFor="address">{t('address')}</label>
           <input
@@ -146,10 +253,10 @@ const SupplierRegistration: React.FC = () => {
             value={formData.address}
             onChange={handleInputChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_address')}
           />
         </div>
 
-        {/* City */}
         <div className="w-full flex flex-col">
           <label htmlFor="city">{t('city')}</label>
           <input
@@ -159,14 +266,31 @@ const SupplierRegistration: React.FC = () => {
             value={formData.city}
             onChange={handleInputChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_city')}
           />
         </div>
       </div>
 
       <Divider />
 
+      {/* Section 4: Registered Address */}
+      <div className="w-full flex flex-col">
+        <label htmlFor="registered_address">{t('registered_address')}</label>
+        <textarea
+          id="registered_address"
+          name="registered_address"
+          value={formData.registered_address}
+          onChange={handleInputChange}
+          className="min-h-20 border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-primary-500"
+          placeholder={t('enter_registered_address')}
+          rows={3}
+        />
+      </div>
+
+      <Divider />
+
+      {/* Section 5: Country & Contact */}
       <div className="w-full flex items-center gap-x-6">
-        {/* Country */}
         <div className="w-full flex flex-col">
           <label htmlFor="country">{t('country')}</label>
           <Select
@@ -178,10 +302,28 @@ const SupplierRegistration: React.FC = () => {
             value={formData.country || null}
             placeholder={t('select_country')}
             isSearchable
+            required
           />
         </div>
 
-        {/* Phone */}
+        <div className="w-full flex flex-col">
+          <label htmlFor="contact_person">{t('contact_person')}</label>
+          <input
+            type="text"
+            id="contact_person"
+            name="contact_person"
+            value={formData.contact_person}
+            onChange={handleInputChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_contact_person')}
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      {/* Section 6: Contact Information */}
+      <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
           <label htmlFor="phone">{t('phone')}</label>
           <input
@@ -191,65 +333,93 @@ const SupplierRegistration: React.FC = () => {
             value={formData.phone}
             onChange={handleInputChange}
             onInput={(e: any) => {
-              const regex = /^[+]?[0-9]*$/; // Allow only numbers and one optional '+' at the start
+              const regex = /^[+]?[0-9]*$/;
               const inputValue = e.target.value;
-
-              // If the value matches the regex, update the form data
               if (regex.test(inputValue)) {
-                handleInputChange(e); // Call the handleInputChange if valid
+                handleInputChange(e);
               } else {
-                e.target.value = formData.phone; // Revert to the previous value if invalid
+                e.target.value = formData.phone;
               }
             }}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_phone')}
+          />
+        </div>
+
+        <div className="w-full flex flex-col">
+          <label htmlFor="contact_no">{t('contact_number')}</label>
+          <input
+            type="text"
+            id="contact_no"
+            name="contact_no"
+            value={formData.contact_no}
+            onChange={handleInputChange}
+            onInput={(e: any) => {
+              const regex = /^[+]?[0-9]*$/;
+              const inputValue = e.target.value;
+              if (regex.test(inputValue)) {
+                handleInputChange(e);
+              } else {
+                e.target.value = formData.contact_no;
+              }
+            }}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_contact_number')}
           />
         </div>
       </div>
 
       <Divider />
 
-      <div className="w-full flex items-center gap-x-6">
-        {/* Email */}
-        <div className="w-full flex flex-col">
-          <label htmlFor="email">{t('email')}</label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
-          />
-        </div>
+      {/* Section 7: Email */}
+      <div className="w-full flex flex-col">
+        <label htmlFor="email">{t('email')}</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value={formData.email}
+          onChange={handleInputChange}
+          className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+          placeholder={t('enter_email')}
+          required
+        />
       </div>
 
-      <Divider height="lg" />
+      <Divider />
 
-      <div className="flex gap-10">
+      {/* Section 8: Notes */}
+      <div className="w-full flex flex-col">
+        <label htmlFor="notes">{t('notes')}</label>
+        <textarea
+          id="notes"
+          name="notes"
+          value={formData.notes}
+          onChange={handleInputChange}
+          className="min-h-20 border border-slate-400 rounded-md px-4 py-2 focus-visible:outline-primary-500"
+          placeholder={t('enter_notes')}
+          rows={3}
+        />
+      </div>
+
+      <Divider />
+
+      {/* Submit Button */}
+      <div className="w-full flex justify-center gap-4">
         <Button
-          variant="action"
-          additionalClass="w-40"
           type="submit"
+          variant="primary"
           disabled={loaders["suppliers/create-supplier"]}
+          additionalClass="px-8"
         >
-          {loaders["suppliers/create-supplier"] ? t('registering') : t('register')}
+          {loaders["suppliers/create-supplier"] ? t('common:creating') : t('common:submit')}
         </Button>
-
+        
         <Button
-          variant="cancel"
-          additionalClass="w-40"
           type="button"
-          onClick={() =>
-            setFormData({
-              companyName: "",
-              ruc: "",
-              address: "",
-              city: "",
-              country: null,
-              phone: "",
-              email: "",
-            })
-          }
+          variant="cancel"
+          onClick={() => navigate(-1)}
+          additionalClass="px-8"
         >
           {t('common:cancel')}
         </Button>

@@ -1,17 +1,16 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { useTranslation } from "react-i18next";
 // components
 import { Divider, Text } from "@/components";
 import SupplierRegistration from "./components/SupplierRegistration";
-import { SupplierService } from "../../api/maintenance.service";
 
 const NewSupplier: React.FC = () => {
-  useEffect(() => {
-    SupplierService.fetchSupplierFormFields();
-  }, []);
+  const { t } = useTranslation(['maintenance', 'common']);
+  
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        Supplier Registration
+        {t('new_supplier')}
       </Text>
       <Divider height="lg" />
       <SupplierRegistration />

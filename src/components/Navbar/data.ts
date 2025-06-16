@@ -2,13 +2,23 @@
 import {  House, Gear, FolderSimple, FileText, ChartBar, Users, ClockCounterClockwise  } from "@phosphor-icons/react";
 import { TFunction } from "i18next";
 
+// Define user roles
+export enum UserRole {
+  CLIENT = "CLIENT",
+  USER = "USER", // Same as CLIENT for this system
+  WAREHOUSE_INCHARGE = "WAREHOUSE_INCHARGE", 
+  WAREHOUSE_ASSISTANT = "WAREHOUSE_ASSISTANT",
+  ADMIN = "ADMIN"
+}
+
 export const getHomeData = (t: TFunction) => ({
     title: t('home'),
     route: "/",
     icon: House,
 });
 
-export const getLinksData = (t: TFunction) => [
+// Get all links without filtering (for reference)
+const getAllLinksData = (t: TFunction) => [
     {
       title: t('processes'),
       route: "/processes",
@@ -56,7 +66,72 @@ export const getLinksData = (t: TFunction) => [
       icon: ClockCounterClockwise,
       subroutes: [],
     }
-  ];
+];
+
+// Role-based filtering function
+export const getFilteredLinksData = (t: TFunction, userRole: string | null) => {
+  const allLinks = getAllLinksData(t);
+  
+  // If no role or unknown role, return all links
+  if (!userRole) {
+    return allLinks;
+  }
+
+  // Normalize role for comparison (handle both string and object cases)
+  const normalizedRole = userRole.toString().toUpperCase();
+
+  // Role-based filtering
+  switch (normalizedRole) {
+    case UserRole.CLIENT:
+    case UserRole.USER:
+    case "USER":  // Additional case for string "user"
+      // USER can see everything EXCEPT: clients, inventory, event_logs
+      return allLinks.filter(link => 
+        link.route !== "/client" && 
+        link.route !== "/inventory" && 
+        link.route !== "/system-logs/events"
+      );
+      
+    case UserRole.WAREHOUSE_ASSISTANT:
+      // WAREHOUSE_ASSISTANT can see most things except event_logs
+      return allLinks.filter(link => 
+        link.route !== "/system-logs/events"
+      );
+      
+    case UserRole.WAREHOUSE_INCHARGE:
+      // WAREHOUSE_INCHARGE can see everything except event_logs
+      return allLinks.filter(link => 
+        link.route !== "/system-logs/events"
+      );
+      
+    case UserRole.ADMIN:
+      // ADMIN can see everything
+      return allLinks;
+      
+    default:
+      // Unknown role - return all links
+      return allLinks;
+  }
+};
+
+// Backward compatibility - use filtered version by default
+export const getLinksData = (t: TFunction, userRole?: string | null) => {
+  if (userRole !== undefined) {
+    return getFilteredLinksData(t, userRole);
+  }
+  // Fallback to all links if no role provided (for backward compatibility)
+  return getAllLinksData(t);
+};
+
+// Helper function to check if user can access a specific route
+export const canAccessRoute = (route: string, userRole: string | null): boolean => {
+  if (!userRole) return false;
+  
+  const allowedRoutes = getFilteredLinksData((key: string) => key, userRole)
+    .flatMap(link => [link.route, ...link.subroutes.map(sub => sub.route)]);
+    
+  return allowedRoutes.some(allowedRoute => route.startsWith(allowedRoute));
+};
 
 // Legacy exports for backward compatibility
 export const home = {
@@ -107,4 +182,4 @@ export const links = [
       icon: ChartBar,
       subroutes: []
     }
-  ];
+];
