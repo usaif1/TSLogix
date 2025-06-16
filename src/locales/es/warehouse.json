@@ -97,5 +97,6 @@
   "warehouse_coordinator": "Coordinador de Almacén",
   "devoluciones": "Devoluciones",
   "contramuestras": "Contramuestras",
-  "rechazados": "Rechazados"
+  "rechazados": "Rechazados",
+  "no_warehouses_available": "No hay almacenes disponibles"
 }

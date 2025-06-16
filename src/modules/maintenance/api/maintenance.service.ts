@@ -93,7 +93,7 @@ export const SupplierService = {
       const response = await api.get(`${supplierBaseURL}/form-fields`);
       
       // Handle countries - check both 'country' and 'countries' fields
-      let countries = [];
+      let countries: any[] = [];
       const countryData = response.data.country || response.data.countries;
       if (countryData && Array.isArray(countryData)) {
         countries = countryData.map((country: any) => ({
@@ -246,21 +246,21 @@ export const ProductService = {
       
       console.log("Raw subcategories1 response:", response.data);
       
-      // The API already returns data in the correct format with value, label, and subcategory1_id
+      // Map the actual API response structure (subcategory1_id and name) to expected format (value and label)
       const subcategories1 = response.data
         .filter((sub: any) => {
-          // Check for the correct field names that the API returns
-          const isValid = sub.value && sub.label && sub.subcategory1_id;
+          // Check for the actual field names that the API returns
+          const isValid = sub.subcategory1_id && sub.name;
           if (!isValid) {
             console.warn("Filtering out invalid subcategory1:", sub);
           }
           return isValid;
         })
         .map((sub: any) => ({
-          value: sub.value, // Already correct
-          label: sub.label, // Already correct
-          subcategory1_id: sub.subcategory1_id, // Already correct
-          category_id: sub.category_id || null,
+          value: sub.subcategory1_id, // Map subcategory1_id to value
+          label: sub.name, // Map name to label
+          subcategory1_id: sub.subcategory1_id,
+          category_id: sub.category?.category_id || null,
         }));
       
       console.log("Processed subcategories1:", subcategories1);
@@ -287,23 +287,21 @@ export const ProductService = {
       
       console.log("Raw subcategories2 response:", response.data);
       
-      // Be flexible with field names - check what the API actually returns
+      // Map the actual API response structure (similar to subcategories1 response)
       const subcategories2 = response.data
         .filter((sub: any) => {
-          // Check for multiple possible field name patterns
-          const hasValue = sub.value || sub.subcategory2_id || sub.subcategory_id;
-          const hasLabel = sub.label || sub.name;
-          const isValid = hasValue && hasLabel;
+          // Check for the actual field names that the API returns (likely subcategory2_id and name)
+          const isValid = (sub.subcategory2_id || sub.subcategory_id) && sub.name;
           if (!isValid) {
             console.warn("Filtering out invalid subcategory2:", sub);
           }
           return isValid;
         })
         .map((sub: any) => ({
-          value: sub.value || sub.subcategory2_id || sub.subcategory_id,
-          label: sub.label || sub.name,
-          subcategory2_id: sub.subcategory2_id || sub.subcategory_id || sub.value,
-          subcategory1_id: sub.subcategory1_id || null,
+          value: sub.subcategory2_id || sub.subcategory_id, // Use subcategory2_id or fallback to subcategory_id
+          label: sub.name, // Map name to label
+          subcategory2_id: sub.subcategory2_id || sub.subcategory_id,
+          subcategory1_id: sub.subcategory1?.subcategory1_id || sub.subcategory1_id || null,
         }));
       
       console.log("Processed subcategories2:", subcategories2);

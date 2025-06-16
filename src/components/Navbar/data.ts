@@ -127,7 +127,9 @@ export const getLinksData = (t: TFunction, userRole?: string | null) => {
 export const canAccessRoute = (route: string, userRole: string | null): boolean => {
   if (!userRole) return false;
   
-  const allowedRoutes = getFilteredLinksData((key: string) => key, userRole)
+  // Create a dummy translation function for route checking only
+  const dummyT = (key: string) => key;
+  const allowedRoutes = getFilteredLinksData(dummyT as any, userRole)
     .flatMap(link => [link.route, ...link.subroutes.map(sub => sub.route)]);
     
   return allowedRoutes.some(allowedRoute => route.startsWith(allowedRoute));
