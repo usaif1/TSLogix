@@ -13,15 +13,15 @@ import { ClientService, ClientWithCellsPayload } from "@/modules/client/api/clie
 import { ClientStore, Client } from "@/modules/client/store";
 
 interface FormData {
-  client_type: "COMMERCIAL" | "INDIVIDUAL" | "";
+  client_type: "JURIDICO" | "NATURAL" | "";
   
-  // Commercial fields
+  // Juridico fields (formerly Commercial)
   company_name: string;
   company_type: string;
   establishment_type: string;
   ruc: string;
   
-  // Individual fields
+  // Natural fields (formerly Individual)
   first_names: string;
   last_name: string;
   mothers_last_name: string;
@@ -34,6 +34,12 @@ interface FormData {
   phone: string;
   cell_phone: string;
   active_state_id: string;
+  
+  // Client users array - new feature
+  client_users: Array<{
+    id: string; // temporary ID for form management
+    name: string;
+  }>;
 }
 
 interface Cell {
@@ -85,6 +91,8 @@ const ClientForm: React.FC = () => {
     phone: "",
     cell_phone: "",
     active_state_id: "",
+    // Client users array - new feature
+    client_users: [],
   });
 
   // Cell assignment state
@@ -156,7 +164,7 @@ const ClientForm: React.FC = () => {
         date_of_birth: "",
       }));
       setValidationErrors({});
-      // Reset cell assignment when client type changes
+      // Reset cell assignment and client users when client type changes
       setSelectedCells([]);
       setSelectedWarehouseId(null);
       setCellAssignmentNotes("");
@@ -169,6 +177,34 @@ const ClientForm: React.FC = () => {
 
   const handleWarehouseChange = (warehouseId: string | null) => {
     setSelectedWarehouseId(warehouseId);
+  };
+
+  // Client users management functions
+  const addClientUser = () => {
+    const newUser = {
+      id: `temp_${Date.now()}`, // temporary ID for form management
+      name: "",
+    };
+    setFormData(prev => ({
+      ...prev,
+      client_users: [...prev.client_users, newUser]
+    }));
+  };
+
+  const removeClientUser = (userId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      client_users: prev.client_users.filter(user => user.id !== userId)
+    }));
+  };
+
+  const updateClientUser = (userId: string, name: string) => {
+    setFormData(prev => ({
+      ...prev,
+      client_users: prev.client_users.map(user => 
+        user.id === userId ? { ...user, name } : user
+      )
+    }));
   };
 
   const validateForm = (): boolean => {
@@ -191,7 +227,7 @@ const ClientForm: React.FC = () => {
     }
 
     // Type-specific validations
-    if (formData.client_type === "COMMERCIAL") {
+    if (formData.client_type === "JURIDICO") {
       if (!formData.company_name) {
         errors.company_name = t('client:validation.company_name_required');
       }
@@ -206,7 +242,7 @@ const ClientForm: React.FC = () => {
       if (!formData.company_type) {
         errors.company_type = t('client:validation.company_type_required');
       }
-    } else if (formData.client_type === "INDIVIDUAL") {
+    } else if (formData.client_type === "NATURAL") {
       if (!formData.first_names) {
         errors.first_names = t('client:validation.first_names_required');
       }
@@ -238,9 +274,9 @@ const ClientForm: React.FC = () => {
     try {
       let clientPayload: ClientWithCellsPayload;
 
-      if (formData.client_type === "COMMERCIAL") {
+      if (formData.client_type === "JURIDICO") {
         clientPayload = {
-          client_type: "COMMERCIAL",
+          client_type: "JURIDICO",
           company_name: formData.company_name,
           company_type: formData.company_type,
           establishment_type: formData.establishment_type,
@@ -250,10 +286,13 @@ const ClientForm: React.FC = () => {
           phone: formData.phone,
           cell_phone: formData.cell_phone,
           active_state_id: formData.active_state_id,
+          client_users: formData.client_users.filter(user => user.name.trim()).map(user => ({
+            name: user.name.trim()
+          })),
         };
       } else {
         clientPayload = {
-          client_type: "INDIVIDUAL",
+          client_type: "NATURAL",
           first_names: formData.first_names,
           last_name: formData.last_name,
           mothers_last_name: formData.mothers_last_name,
@@ -264,6 +303,9 @@ const ClientForm: React.FC = () => {
           phone: formData.phone,
           cell_phone: formData.cell_phone,
           active_state_id: formData.active_state_id,
+          client_users: formData.client_users.filter(user => user.name.trim()).map(user => ({
+            name: user.name.trim()
+          })),
         };
       }
 
@@ -306,6 +348,7 @@ const ClientForm: React.FC = () => {
         phone: "",
         cell_phone: "",
         active_state_id: clientFormFields?.active_states?.[0]?.value || "",
+        client_users: [],
       });
       setValidationErrors({});
       setSelectedCells([]);
@@ -359,8 +402,8 @@ const ClientForm: React.FC = () => {
 
             <Divider height="sm" />
 
-            {/* Commercial Client Fields */}
-            {formData.client_type === "COMMERCIAL" && (
+            {/* Juridico Client Fields */}
+            {formData.client_type === "JURIDICO" && (
               <>
                 <div className="space-y-4">
                   <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
@@ -442,8 +485,8 @@ const ClientForm: React.FC = () => {
               </>
             )}
 
-            {/* Individual Client Fields */}
-            {formData.client_type === "INDIVIDUAL" && (
+            {/* Natural Client Fields */}
+            {formData.client_type === "NATURAL" && (
               <>
                 <div className="space-y-4">
                   <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
@@ -614,6 +657,56 @@ const ClientForm: React.FC = () => {
                       )}
                     </div>
                   </div>
+                </div>
+
+                <Divider height="sm" />
+
+                {/* Client Users Section */}
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
+                      {t('client:sections.client_users')}
+                    </Text>
+                    <Button
+                      type="button"
+                      variant="action"
+                      onClick={addClientUser}
+                      additionalClass="text-sm px-3 py-1"
+                    >
+                      {t('client:buttons.add_user')}
+                    </Button>
+                  </div>
+
+                  {formData.client_users.length > 0 && (
+                    <div className="space-y-3">
+                      {formData.client_users.map((user) => (
+                        <div key={user.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-md">
+                          <div className="flex-1">
+                            <TextInput
+                              value={user.name}
+                              onChange={(e) => updateClientUser(user.id, e.target.value)}
+                              placeholder={t('client:placeholders.user_name')}
+                              className="w-full"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="cancel"
+                            onClick={() => removeClientUser(user.id)}
+                            additionalClass="text-sm px-2 py-1"
+                          >
+                            {t('client:buttons.remove')}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {formData.client_users.length === 0 && (
+                    <div className="text-center py-4 text-gray-500 text-sm">
+                      {t('client:messages.no_users_added')}
+                    </div>
+                  )}
                 </div>
 
                 <Divider height="sm" />

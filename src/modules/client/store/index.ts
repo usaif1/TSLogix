@@ -15,15 +15,15 @@ export type ClientLoaderTypes =
 
 export interface Client {
   client_id: string;
-  client_type: "COMMERCIAL" | "INDIVIDUAL";
+  client_type: "JURIDICO" | "NATURAL";
   
-  // Commercial client fields
+  // Juridico client fields (formerly Commercial)
   company_name?: string;
   company_type?: string;
   establishment_type?: string;
   ruc?: string;
   
-  // Individual client fields
+  // Natural client fields (formerly Individual)
   first_names?: string;
   last_name?: string;
   mothers_last_name?: string;
@@ -38,6 +38,13 @@ export interface Client {
   active_state_id: string;
   created_at: string;
   updated_at: string;
+  
+  // Client users array
+  client_users?: Array<{
+    client_user_id?: string;
+    name: string;
+    created_at?: string;
+  }>;
   
   // Relations
   active_state?: {
