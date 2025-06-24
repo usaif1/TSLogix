@@ -15,7 +15,8 @@
   "sections": {
     "commercial_information": "Información Comercial",
     "personal_information": "Información Personal",
-    "contact_information": "Información de Contacto"
+    "contact_information": "Información de Contacto",
+    "client_users": "Usuarios del Cliente"
   },
   "fields": {
     "client_type": "Tipo de Cliente",
@@ -46,7 +47,8 @@
     "email": "Ingrese correo electrónico",
     "address": "Ingrese dirección completa",
     "phone": "Ingrese número de teléfono",
-    "cell_phone": "Ingrese número de celular"
+    "cell_phone": "Ingrese número de celular",
+    "user_name": "Ingrese nombre del usuario"
   },
   "types": {
     "commercial": "Comercial",
@@ -56,7 +58,9 @@
     "create_client": "Crear Cliente",
     "new_client": "Nuevo Cliente",
     "save_client": "Guardar Cliente",
-    "cancel": "Cancelar"
+    "cancel": "Cancelar",
+    "add_user": "Agregar Usuario",
+    "remove": "Eliminar"
   },
   "validation": {
     "client_type_required": "El tipo de cliente es requerido",
@@ -80,7 +84,8 @@
     "client_created_successfully": "Cliente creado exitosamente",
     "client_creation_failed": "Error al crear el cliente",
     "loading_form_fields": "Cargando opciones del formulario...",
-    "loading_clients": "Cargando clientes..."
+    "loading_clients": "Cargando clientes...",
+    "no_users_added": "Aún no se han agregado usuarios. Haga clic en 'Agregar Usuario' para añadir usuarios del cliente."
   },
   "list": {
     "title": "Lista de Clientes",
@@ -110,7 +115,9 @@
     "created": "Creado",
     "status": "Estado",
     "cells_assigned": "asignadas",
-    "orders_count": "órdenes"
+    "orders_count": "órdenes",
+    "user": "usuario",
+    "users": "usuarios"
   },
   "status": {
     "active": "Activo",

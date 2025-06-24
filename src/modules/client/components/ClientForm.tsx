@@ -329,7 +329,7 @@ const ClientForm: React.FC = () => {
       }
 
       // Redirect to client list page
-      navigate("/client");
+      navigate("/maintenance/client");
       
       // Reset form
       setFormData({

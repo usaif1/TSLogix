@@ -38,13 +38,8 @@ const getAllLinksData = (t: TFunction) => [
       subroutes: [
         { title: t('supplier'), route: "/maintenance/supplier" },
         { title: t('product'), route: "/maintenance/product" },
+        { title: t('client'), route: "/maintenance/client" },
       ],
-    },
-    {
-      title: t('clients'),
-      route: "/client",
-      icon: Users,
-      subroutes: [],
     },
     {
       title: t('reports'),
@@ -86,8 +81,15 @@ export const getFilteredLinksData = (t: TFunction, userRole: string | null) => {
     case UserRole.USER:
     case "USER":  // Additional case for string "user"
       // USER can see everything EXCEPT: clients, inventory, event_logs
-      return allLinks.filter(link => 
-        link.route !== "/client" && 
+      return allLinks.map(link => {
+        if (link.route === "/maintenance") {
+          return {
+            ...link,
+            subroutes: link.subroutes.filter(subroute => subroute.route !== "/maintenance/client")
+          };
+        }
+        return link;
+      }).filter(link => 
         link.route !== "/inventory" && 
         link.route !== "/system-logs/events"
       );
@@ -162,13 +164,8 @@ export const links = [
       subroutes: [
         { title: "Supplier", route: "/maintenance/supplier" },
         { title: "Product", route: "/maintenance/product" },
+        { title: "Client", route: "/maintenance/client" },
       ],
-    },
-    {
-      title: "Clients",
-      route: "/client",
-      icon: Users,
-      subroutes: [],
     },
     {
       title: "Reports",

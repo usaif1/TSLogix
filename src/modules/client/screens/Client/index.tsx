@@ -11,7 +11,7 @@ const Client: React.FC = () => {
   const { t } = useTranslation(['client', 'common']);
 
   const handleCreateClient = () => {
-    navigate("/client/new");
+    navigate("/maintenance/client/new");
   };
 
   return (

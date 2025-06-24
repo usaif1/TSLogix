@@ -80,6 +80,10 @@ const ProtectedRoutes: React.FC = () => {
             <Route index element={<Product />} />
             <Route path="new" element={<NewProduct />} />
           </Route>
+          <Route path="client">
+            <Route index element={<Client />} />
+            <Route path="new" element={<NewClient />} />
+          </Route>
         </Route>
         <Route path="warehouse">
           <Route index element={<WareHouse />} />
@@ -89,10 +93,6 @@ const ProtectedRoutes: React.FC = () => {
           <Route path="allocate" element={<AllocateOrder />} />
           <Route path="summary" element={<InventorySummary />} />
           <Route path="quarantine" element={<QuarantineManagement />} />
-        </Route>
-        <Route path="client">
-          <Route index element={<Client />} />
-          <Route path="new" element={<NewClient />} />
         </Route>
         <Route path="system-logs">
           <Route path="events" element={<EventLogsPage />} />
