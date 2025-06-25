@@ -110,7 +110,7 @@
     "name": "Nombre",
     "type": "Tipo",
     "contact": "Contacto",
-    "cells": "Celdas",
+    "cells": "Posiciones",
     "orders": "Órdenes",
     "created": "Creado",
     "status": "Estado",

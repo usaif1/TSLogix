@@ -1,5 +1,5 @@
 {
-  "new_entry": "Nueva Entrada",
+  "new_entry": "Nuevo Ingreso",
   "entry_order": "Orden de Entrada",
   "entry_order_information": "Información de la Orden de Entrada",
   "entry_orders": "Órdenes de Entrada",
@@ -47,7 +47,7 @@
   "package_quantity": "Cantidad de Paquetes",
   "weight_kg": "Peso (kg)",
   "volume_m3": "Volumen (m³)",
-  "quantity_pallets": "Cantidad de Pallets",
+  "quantity_pallets": "Cantidad de Paletas",
   "presentation": "Presentación",
   "select_presentation": "Seleccionar presentación",
   "temperature_range": "Rango de Temperatura",
@@ -282,6 +282,7 @@
   "failed_to": "Error al",
   "successfully": "exitosamente",
   "auto_filled_when_product_selected": "Auto-completado cuando se selecciona el producto",
+  "auto_filled_revision": "Auto-completado como REVISIÓN",
   "total_packages": "Total de Paquetes",
   "cells_selected": "Celdas Seleccionadas",
   "request_qty": "Cant. Solicitada",

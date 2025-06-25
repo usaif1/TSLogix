@@ -385,10 +385,9 @@ const NewProductForm: React.FC = () => {
 
       {/* Section 5: Document Upload */}
       <div className="w-full flex flex-col">
-        <label htmlFor="uploaded_documents">{t('upload_documents')}</label>
         <Fileupload
           id="uploaded_documents"
-          label={t('select_document')}
+          label={t('upload_documents')}
           onFileSelected={handleFileUpload}
           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
         />

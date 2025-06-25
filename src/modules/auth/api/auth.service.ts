@@ -15,11 +15,32 @@ export const AuthService = {
   login: async (credentials: LoginPayload) => {
     const response = await api.post(`${baseURL}/login`, credentials);
     console.log(response);
-    setAuthUser(response.data.data);
-    localStorage.setItem("liu", JSON.stringify(response.data.data));
-    localStorage.setItem("organisation_id", response.data.data.organisation_id);
-    localStorage.setItem("id", response.data.data.id);
-    localStorage.setItem("role", response.data.data.role);
+    
+    const userData = response.data.data;
+    
+    setAuthUser(userData);
+    localStorage.setItem("liu", JSON.stringify(userData));
+    localStorage.setItem("organisation_id", userData.organisation_id);
+    localStorage.setItem("id", userData.id);
+    localStorage.setItem("role", userData.role);
+    
+    // Store additional user info for profile display
+    if (userData.first_name) {
+      localStorage.setItem("first_name", userData.first_name);
+    }
+    if (userData.last_name) {
+      localStorage.setItem("last_name", userData.last_name);
+    }
+    if (userData.name) {
+      localStorage.setItem("name", userData.name);
+    }
+    if (userData.email) {
+      localStorage.setItem("email", userData.email);
+    }
+    if (userData.userId || userData.user_id) {
+      localStorage.setItem("user_id", userData.userId || userData.user_id);
+    }
+    
     return response.data;
   },
   logout: async () => {
@@ -28,5 +49,10 @@ export const AuthService = {
     localStorage.removeItem("organisation_id");
     localStorage.removeItem("id");
     localStorage.removeItem("role");
+    localStorage.removeItem("first_name");
+    localStorage.removeItem("last_name");
+    localStorage.removeItem("name");
+    localStorage.removeItem("email");
+    localStorage.removeItem("user_id");
   },
 };

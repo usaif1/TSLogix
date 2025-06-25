@@ -215,5 +215,11 @@
   "warehouse_report": "Reporte de Almacén",
   "logo_alt_text": "Logo TSLogix",
   "select_file": "Seleccionar Archivo",
-  "no_file_selected": "Ningún archivo seleccionado"
+  "no_file_selected": "Ningún archivo seleccionado",
+  "user_profile": "Perfil de Usuario",
+  "current_user": "Usuario Actual",
+  "logged_in_as": "Conectado como",
+  "administrator": "Administrador",
+  "warehouse_manager": "Gerente de Almacén",
+  "warehouse_assistant": "Asistente de Almacén"
 }

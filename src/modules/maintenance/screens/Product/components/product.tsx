@@ -1,40 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import Select, { CSSObjectWithLabel } from "react-select";
 import { Divider } from "@/components";
 import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
 import { OrderBtnGroup } from "@/modules/process/components";
 import { Plus } from "@phosphor-icons/react";
 
-const reactSelectStyle = {
-  container: (style: CSSObjectWithLabel) => ({
-    ...style,
-    height: "2.5rem",
-  }),
-};
-
 interface ProductRegisterProps {
-  productLineOptions: any[];
-  groupOptions: any[];
   products: any[];
-  selectedProductLine: any;
-  setSelectedProductLine: (option: any) => void;
-  selectedGroup: any;
-  setSelectedGroup: (option: any) => void;
   searchText: string;
   setSearchText: (text: string) => void;
 }
 
 const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
-  productLineOptions,
-  groupOptions,
   products,
-  selectedProductLine,
-  setSelectedProductLine,
-  selectedGroup,
-  setSelectedGroup,
   searchText,
   setSearchText,
 }) => {
@@ -121,39 +101,6 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
 
   return (
     <div>
-      {/* Filter section */}
-      <div className="w-full flex items-center gap-x-6">
-        <div className="w-full flex flex-col">
-          <label htmlFor="product_line">{t('product_line')}</label>
-          <Select
-            inputId="product_line"
-            name="product_line"
-            className="!z-20"
-            options={productLineOptions}
-            styles={reactSelectStyle}
-            onChange={(option) => setSelectedProductLine(option)}
-            placeholder={t('select_product_line')}
-            value={selectedProductLine}
-            isClearable
-          />
-        </div>
-        <div className="w-full flex flex-col">
-          <label htmlFor="group">{t('group')}</label>
-          <Select
-            inputId="group"
-            name="group"
-            options={groupOptions}
-            styles={reactSelectStyle}
-            onChange={(option) => setSelectedGroup(option)}
-            placeholder={t('select_group')}
-            value={selectedGroup}
-            isClearable
-          />
-        </div>
-      </div>
-
-      <Divider />
-
       {/* Search field for product name or id */}
       <div className="w-full flex items-end gap-x-6">
         <div className="w-1/2 flex flex-col">

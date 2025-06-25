@@ -100,5 +100,12 @@
   "warehouse_report": "Warehouse Report",
   "logo_alt_text": "TSLogix Logo",
   "select_file": "Select File",
-  "no_file_selected": "No file selected"
+  "no_file_selected": "No file selected",
+  "user_profile": "User Profile",
+  "current_user": "Current User",
+  "logged_in_as": "Logged in as",
+  "administrator": "Administrator",
+  "warehouse_manager": "Warehouse Manager",
+  "warehouse_assistant": "Warehouse Assistant",
+  "user": "User"
 }

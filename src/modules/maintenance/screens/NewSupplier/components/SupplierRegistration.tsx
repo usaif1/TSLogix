@@ -18,8 +18,9 @@ const reactSelectStyle = {
 interface FormData {
   // ✅ NEW: Enhanced company information
   company_name: string;
-  category: CountryOption | null;
+  category: string; // Changed from CountryOption to string for text field
   tax_id: string;
+  document_type: "RUC" | "ID_FISCAL" | ""; // New field for document type selection
   
   // Existing fields
   companyName: string; // Keep for backward compatibility
@@ -53,8 +54,9 @@ const SupplierRegistration: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     // ✅ NEW: Initialize new fields
     company_name: "",
-    category: null,
+    category: "",
     tax_id: "",
+    document_type: "",
     
     // Existing fields
     companyName: "",
@@ -89,7 +91,7 @@ const SupplierRegistration: React.FC = () => {
 
 
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ 
       ...prev, 
@@ -118,6 +120,12 @@ const SupplierRegistration: React.FC = () => {
       return;
     }
 
+    // Validate RUC only if document type is RUC
+    if (formData.document_type === "RUC" && !formData.ruc.trim()) {
+      alert(t('ruc_required_for_peru'));
+      return;
+    }
+
     startLoader("suppliers/create-supplier");
 
     try {
@@ -126,10 +134,11 @@ const SupplierRegistration: React.FC = () => {
         name: formData.company_name || formData.companyName,
         company_name: formData.company_name || formData.companyName,
         
-        // ✅ NEW: Add category
-        category_id: formData.category?.value,
+        // ✅ NEW: Add category as string
+        category: formData.category,
         
-        // ✅ NEW: Add tax_id
+        // ✅ NEW: Add document type and tax_id
+        document_type: formData.document_type,
         tax_id: formData.tax_id,
         
         // Existing fields
@@ -150,8 +159,9 @@ const SupplierRegistration: React.FC = () => {
       // Reset form
       setFormData({
         company_name: "",
-        category: null,
+        category: "",
         tax_id: "",
+        document_type: "",
         companyName: "",
         ruc: "",
         address: "",
@@ -195,15 +205,14 @@ const SupplierRegistration: React.FC = () => {
 
         <div className="w-full flex flex-col">
           <label htmlFor="category">{t('supplier_category')}</label>
-          <Select
-            options={supplierCategoryOptions}
-            styles={reactSelectStyle}
-            inputId="category"
+          <input
+            type="text"
+            id="category"
             name="category"
-            onChange={(selected) => handleSelectChange("category", selected)}
-            value={formData.category || null}
-            placeholder={t('select_supplier_category')}
-            isClearable
+            value={formData.category}
+            onChange={handleInputChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+            placeholder={t('enter_supplier_category')}
           />
         </div>
       </div>
@@ -226,19 +235,50 @@ const SupplierRegistration: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
-          <label htmlFor="ruc">{t('ruc')}</label>
-          <input
-            type="text"
-            id="ruc"
-            name="ruc"
-            value={formData.ruc}
+          <label htmlFor="document_type">{t('document_type')}</label>
+          <select
+            id="document_type"
+            name="document_type"
+            value={formData.document_type}
             onChange={handleInputChange}
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
-            placeholder={t('enter_ruc')}
-            required
-          />
+          >
+            <option value="">{t('select_document_type')}</option>
+            <option value="RUC">{t('ruc')} (Peru)</option>
+            <option value="ID_FISCAL">{t('id_fiscal')} (Other Countries)</option>
+          </select>
         </div>
       </div>
+
+      {/* Document Number Input - Shows based on document type selection */}
+      {formData.document_type && (
+        <>
+          <Divider />
+          <div className="w-full flex items-center gap-x-6">
+            <div className="w-full flex flex-col">
+              <label htmlFor="ruc">
+                {formData.document_type === "RUC" ? t('ruc_number') : t('id_fiscal_number')}
+                {formData.document_type === "RUC" && " *"}
+              </label>
+              <input
+                type="text"
+                id="ruc"
+                name="ruc"
+                value={formData.ruc}
+                onChange={handleInputChange}
+                className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
+                placeholder={
+                  formData.document_type === "RUC" 
+                    ? t('enter_ruc_number') 
+                    : t('enter_id_fiscal_number')
+                }
+                required={formData.document_type === "RUC"}
+              />
+            </div>
+            <div className="w-full"></div> {/* Empty div to maintain layout */}
+          </div>
+        </>
+      )}
 
       <Divider />
 

@@ -9,7 +9,7 @@ import { MaintenanceStore } from "@/globalStore";
 
 const Product: React.FC = () => {
   const { t } = useTranslation(['maintenance', 'common']);
-  const { productLineOptions, groupOptions, products } = MaintenanceStore();
+  const { products } = MaintenanceStore();
 
   // const buttonGroup = useMemo(
   //   () => [
@@ -22,21 +22,14 @@ const Product: React.FC = () => {
   //   []
   // );
 
-  const [selectedProductLine, setSelectedProductLine] = useState<any>(null);
-  const [selectedGroup, setSelectedGroup] = useState<any>(null);
   const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     const fetchFilteredProducts = async () => {
       try {
         const filters: {
-          product_line_id?: string;
-          group_id?: string;
           name?: string;
         } = {};
-        if (selectedProductLine)
-          filters.product_line_id = selectedProductLine.value;
-        if (selectedGroup) filters.group_id = selectedGroup.value;
         if (searchText) filters.name = searchText;
         await ProductService.fetchAllProducts(filters);
       } catch (error) {
@@ -45,7 +38,7 @@ const Product: React.FC = () => {
     };
 
     fetchFilteredProducts();
-  }, [selectedProductLine, selectedGroup, searchText]);
+  }, [searchText]);
 
   useEffect(() => {
     ProductService.fetchProductFormFields();
@@ -54,17 +47,11 @@ const Product: React.FC = () => {
   return (
     <div className="flex flex-col h-full">
       <Text size="3xl" weight="font-bold">
-        {t('product_page')}
+        {t('product')}
       </Text>
       <Divider />
       <ProductRegisterComponent
-        productLineOptions={productLineOptions}
-        groupOptions={groupOptions}
         products={products}
-        selectedProductLine={selectedProductLine}
-        setSelectedProductLine={setSelectedProductLine}
-        selectedGroup={selectedGroup}
-        setSelectedGroup={setSelectedGroup}
         searchText={searchText}
         setSearchText={setSearchText}
       />

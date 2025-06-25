@@ -1019,8 +1019,8 @@ const Review: React.FC = () => {
                 </Button>
               )}
 
-              {/* ✅ Existing review buttons for admin */}
-              {canReview && (
+              {/* ✅ Review buttons only for admin/non-client users */}
+              {canReview && localStorage.getItem("role") !== "CLIENT" && (
                 <>
                   <Button
                     variant="action"
