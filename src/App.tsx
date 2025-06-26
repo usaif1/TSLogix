@@ -18,8 +18,14 @@ function App() {
 
   useEffect(() => {
     const loggedInUser = localStorage.getItem("liu");
-    if (loggedInUser) {
-      setAuthUser(JSON.parse(loggedInUser));
+    if (loggedInUser && loggedInUser !== "undefined") {
+      try {
+        setAuthUser(JSON.parse(loggedInUser));
+      } catch (error) {
+        console.error("Error parsing stored user data:", error);
+        localStorage.removeItem("liu"); // Clear invalid data
+        setAuthUser(null);
+      }
     } else {
       setAuthUser(null);
     }

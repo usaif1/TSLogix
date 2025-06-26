@@ -15,7 +15,8 @@
   "sections": {
     "commercial_information": "Commercial Information",
     "personal_information": "Personal Information",
-    "contact_information": "Contact Information"
+    "contact_information": "Contact Information",
+    "client_users": "Client Users"
   },
   "fields": {
     "client_type": "Client Type",
@@ -46,7 +47,8 @@
     "email": "Enter email address",
     "address": "Enter full address",
     "phone": "Enter phone number",
-    "cell_phone": "Enter cell phone number"
+    "cell_phone": "Enter cell phone number",
+    "user_name": "Enter user name"
   },
   "types": {
     "commercial": "Commercial",
@@ -56,7 +58,9 @@
     "create_client": "Create Client",
     "new_client": "New Client",
     "save_client": "Save Client",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "add_user": "Add User",
+    "remove": "Remove"
   },
   "validation": {
     "client_type_required": "Client type is required",
@@ -80,7 +84,8 @@
     "client_created_successfully": "Client created successfully",
     "client_creation_failed": "Failed to create client",
     "loading_form_fields": "Loading form options...",
-    "loading_clients": "Loading clients..."
+    "loading_clients": "Loading clients...",
+    "no_users_added": "No users added yet. Click 'Add User' to add client users."
   },
   "list": {
     "title": "Client List",
@@ -110,7 +115,9 @@
     "created": "Created",
     "status": "Status",
     "cells_assigned": "assigned",
-    "orders_count": "orders"
+    "orders_count": "orders",
+    "user": "user",
+    "users": "users"
   },
   "status": {
     "active": "Active",

@@ -657,4 +657,287 @@ export const InventoryLogService = {
       stopLoader("inventoryLogs/fetch-cells");
     }
   },
+
+  // ✅ NEW: Simplified Allocation Flow - Step 1: Get allocation helper data
+  fetchAllocationHelper: async (entryOrderId: string) => {
+    try {
+      startLoader("inventoryLogs/fetch-allocation-helper");
+      
+      console.log("🔄 Attempting to fetch allocation helper for entry order:", entryOrderId);
+      
+      // Try the new endpoint first
+      try {
+        const response = await api.get(`${baseURL}/entry-order/${entryOrderId}/allocation-helper`);
+        const data = response.data.data || response.data;
+        console.log("✅ Allocation helper data received:", data);
+        return data;
+      } catch (newEndpointError) {
+        console.warn("⚠️ New allocation helper endpoint not available, using fallback...");
+        
+        // Fallback: Use existing endpoints to construct allocation helper data
+        const [entryOrderResponse, warehousesResponse] = await Promise.all([
+          api.get(`${baseURL}/approved-entry-orders`),
+          api.get(`${warehouseURL}`)
+        ]);
+        
+        const entryOrders = entryOrderResponse.data.data || entryOrderResponse.data;
+        const selectedOrder = entryOrders.find((order: any) => order.entry_order_id === entryOrderId);
+        
+        if (!selectedOrder) {
+          throw new Error("Entry order not found");
+        }
+        
+        // Get products for this entry order
+        const productsResponse = await api.get(`${baseURL}/entry-order/${entryOrderId}/products`);
+        const products = productsResponse.data.products || productsResponse.data.data || productsResponse.data;
+        
+        const warehouses = warehousesResponse.data.data || warehousesResponse.data;
+        
+        // Get available cells for each warehouse
+        const warehousesWithCells = await Promise.all(
+          warehouses.map(async (warehouse: any) => {
+            try {
+              const cellsResponse = await api.get(`${warehouseURL}/${warehouse.warehouse_id}/cells`);
+              const cells = cellsResponse.data.data || cellsResponse.data;
+              
+              const available_cells = cells
+                .filter((cell: any) => cell.status === 'AVAILABLE')
+                .map((cell: any) => ({
+                  cell_id: cell.id,
+                  cell_reference: `${cell.row}.${String(cell.bay).padStart(2, '0')}.${String(cell.position).padStart(2, '0')}`,
+                  row: cell.row,
+                  bay: cell.bay,
+                  position: cell.position,
+                  capacity: Number(cell.capacity),
+                  available_capacity: Number(cell.capacity) - Number(cell.currentUsage || 0),
+                  capacity_percentage: Number(cell.currentUsage || 0) / Number(cell.capacity) * 100,
+                  status: cell.status
+                }));
+              
+              return {
+                warehouse_id: warehouse.warehouse_id,
+                name: warehouse.name,
+                available_cells
+              };
+            } catch (error) {
+              console.warn(`Failed to fetch cells for warehouse ${warehouse.warehouse_id}:`, error);
+              return {
+                warehouse_id: warehouse.warehouse_id,
+                name: warehouse.name,
+                available_cells: []
+              };
+            }
+          })
+        );
+        
+        // Construct fallback allocation helper response
+        const fallbackData = {
+          can_proceed: true,
+          entry_order: {
+            entry_order_id: selectedOrder.entry_order_id,
+            entry_order_no: selectedOrder.entry_order_no,
+            organisation_name: selectedOrder.organisation_name,
+            created_by: selectedOrder.created_by || "System",
+            registration_date: selectedOrder.registration_date || new Date().toISOString()
+          },
+          products: products.map((product: any) => ({
+            entry_order_product_id: product.entry_order_product_id,
+            product: {
+              product_id: product.product?.product_id || product.product_id,
+              product_code: product.product?.product_code || product.product_code,
+              name: product.product?.name || product.product_name
+            },
+            serial_number: product.serial_number || "",
+            lot_series: product.lot_series || "",
+            total_quantity: Number(product.inventory_quantity || 0),
+            total_packages: Number(product.package_quantity || 0),
+            total_weight: Number(product.weight_kg || 0),
+            remaining_quantity: Number(product.remaining_quantity || product.inventory_quantity || 0),
+            remaining_packages: Number(product.remaining_packaging_qty || product.package_quantity || 0),
+            remaining_weight: Number(product.remaining_weight || product.weight_kg || 0),
+            presentation: product.presentation || "PALETA",
+            supplier_name: product.supplier?.name || product.supplier_name || "Unknown"
+          })),
+          warehouses: warehousesWithCells,
+          allocation_constraints: {
+            client_requirements: undefined,
+            temperature_control: false,
+            special_handling: undefined
+          },
+          validation_summary: {
+            blocking_issues: [],
+            warnings: [],
+            recommendations: []
+          }
+        };
+        
+        console.log("✅ Fallback allocation helper data constructed:", fallbackData);
+        return fallbackData;
+      }
+    } catch (error) {
+      console.error("❌ Fetch allocation helper error:", error);
+      throw error;
+    } finally {
+      stopLoader("inventoryLogs/fetch-allocation-helper");
+    }
+  },
+
+  // ✅ NEW: Simplified Allocation Flow - Step 2: Bulk assign entry order
+  bulkAssignEntryOrder: async (request: {
+    entry_order_id: string;
+    allocations: Array<{
+      entry_order_product_id: string;
+      cell_id: string;
+      warehouse_id: string;
+      inventory_quantity: number;
+      package_quantity: number;
+      weight_kg: number;
+      volume_m3: number;
+      presentation: string;
+      product_status: string;
+      status_code: number;
+      guide_number?: string;
+      observations?: string;
+    }>;
+    notes?: string;
+    force_complete_allocation: boolean;
+  }) => {
+    try {
+      startLoader("inventoryLogs/bulk-assign");
+
+      // Get user ID from localStorage
+      const userId = localStorage.getItem("id");
+      if (!userId) {
+        throw new Error("User not authenticated. Please log in again.");
+      }
+
+      // Create payload with user information
+      const payload = {
+        ...request,
+        assigned_by: userId,
+        organisation_id: localStorage.getItem("organisation_id"),
+      };
+
+      console.log("=== BULK ALLOCATION REQUEST ===");
+      console.log("URL:", `${baseURL}/bulk-assign-entry-order`);
+      console.log("Method: POST");
+      console.log("Content-Type: application/json");
+      console.log("Payload:", JSON.stringify(payload, null, 2));
+      console.log("=== END PAYLOAD ===");
+
+      // Try the new bulk endpoint first
+      try {
+        const response = await api.post(`${baseURL}/bulk-assign-entry-order`, payload, {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        console.log("✅ Bulk allocation successful:", response.data);
+        const data = response.data.data || response.data;
+        return data;
+      } catch (bulkEndpointError) {
+        console.warn("⚠️ Bulk allocation endpoint not available, using fallback individual assignments...");
+        
+        // Fallback: Use existing assignProductToCell for each allocation
+        const results = [];
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (const allocation of request.allocations) {
+          try {
+            console.log(`🔄 Processing allocation ${successCount + 1}/${request.allocations.length}:`, allocation);
+            
+            const assignmentPayload = {
+              entry_order_product_id: allocation.entry_order_product_id,
+              cell_id: allocation.cell_id,
+              inventory_quantity: allocation.inventory_quantity,
+              package_quantity: allocation.package_quantity,
+              quantity_pallets: 0, // Default value
+              presentation: allocation.presentation,
+              weight_kg: allocation.weight_kg,
+              volume_m3: allocation.volume_m3,
+              guide_number: allocation.guide_number,
+              product_status: allocation.product_status,
+              uploaded_documents: null, // No file upload in bulk
+              observations: allocation.observations,
+              warehouse_id: allocation.warehouse_id,
+            };
+            
+            // Use the existing assignProductToCell method
+            const result = await InventoryLogService.assignProductToCell(assignmentPayload);
+            results.push(result);
+            successCount++;
+            
+            console.log(`✅ Allocation ${successCount} successful:`, result);
+            
+          } catch (allocationError) {
+            console.error(`❌ Allocation ${successCount + errorCount + 1} failed:`, allocationError);
+            errorCount++;
+            
+            // If this is a critical error, we might want to stop
+            if (errorCount > request.allocations.length / 2) {
+              throw new Error(`Too many allocation failures (${errorCount}/${request.allocations.length}). Stopping bulk operation.`);
+            }
+          }
+        }
+        
+        // Construct fallback response
+        const fallbackResponse = {
+          allocations_created: successCount,
+          cells_occupied: successCount, // Assume 1 cell per allocation
+          allocation_percentage: (successCount / request.allocations.length) * 100,
+          is_fully_allocated: successCount === request.allocations.length,
+          warehouses_used: [...new Set(request.allocations.map(a => a.warehouse_id))].length,
+          message: `Successfully allocated ${successCount} out of ${request.allocations.length} items using fallback method.`,
+          results: results
+        };
+        
+        console.log("✅ Fallback bulk allocation completed:", fallbackResponse);
+        
+        if (errorCount > 0) {
+          console.warn(`⚠️ ${errorCount} allocations failed during bulk operation`);
+        }
+        
+        return fallbackResponse;
+      }
+    } catch (error: any) {
+      console.error("❌ Bulk allocation failed:", error);
+
+      // Enhanced error handling
+      let errorMessage = "Failed to submit bulk allocation. Please try again.";
+
+      if (error.response) {
+        console.error("Backend error response:", {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+        });
+
+        if (error.response.data) {
+          if (typeof error.response.data === "string") {
+            errorMessage = error.response.data;
+          } else if (error.response.data.message) {
+            errorMessage = error.response.data.message;
+          } else if (error.response.data.error) {
+            errorMessage = error.response.data.error;
+          } else {
+            try {
+              errorMessage = JSON.stringify(error.response.data);
+            } catch {
+              errorMessage = `Server error: ${error.response.status} ${error.response.statusText}`;
+            }
+          }
+        } else {
+          errorMessage = `Server error: ${error.response.status} ${error.response.statusText}`;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("inventoryLogs/bulk-assign");
+    }
+  },
 };

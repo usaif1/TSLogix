@@ -117,10 +117,10 @@ export const ProcessService = {
           option: doc.name
         })) || [],
         
-        users: formFields.users?.map(user => ({
-          value: user.id,
-          label: `${user.first_name} ${user.last_name}`,
-          option: `${user.first_name} ${user.last_name}`
+        users: formFields.users?.map((user, index) => ({
+          value: user.id || user.user_id || `user_${index}`,
+          label: user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || `User ${index + 1}`,
+          option: user.name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || `User ${index + 1}`
         })) || [],
         
         suppliers: formFields.suppliers?.map(supplier => ({

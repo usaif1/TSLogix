@@ -20,7 +20,7 @@ const reactSelectStyle = {
   }),
 };
 
-// ✅ Updated ProductData interface to include product_code
+// ✅ Updated ProductData interface to include product_code and guide_number
 export interface ProductData {
   id: string;
   product_id: string;
@@ -28,7 +28,7 @@ export interface ProductData {
   supplier_id: string;
   serial_number: string;
   lot_series: string;
-  guide_number: string;
+  guide_number: string; // ✅ Added guide_number field for each product
 
   // Updated field names to match new backend schema
   inventory_quantity: string;
@@ -59,12 +59,11 @@ interface EntryFormData {
   entry_transfer_note: string;
   personnel_incharge_id: { option: string; value: string; label: string };
   document_status: { option: string; value: string; label: string };
-  order_status: { option: string; value: string; label: string };
   observation: string;
   cif_value: string;
   supplier: { option: string; value: string; label: string };
   certificate_protocol_analysis: string;
-  lot_series: string;
+  guide_number: string;
   type: string;
 
   // Products Array
@@ -127,12 +126,11 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       value: "REGISTERED", 
       label: "REGISTERED",
     },
-    order_status: { option: "", value: "", label: "" },
     observation: "",
     cif_value: "",
     supplier: { option: "", value: "", label: "" },
     certificate_protocol_analysis: "",
-    lot_series: "",
+    guide_number: "",
     type: "",
     products: [],
   });
@@ -174,7 +172,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     return isReturnOrigin || isReconditionedOrigin;
   }, [isReturnOrigin, isReconditionedOrigin]);
 
-  // ✅ Add product with product_code field
+  // ✅ Add product with product_code and guide_number fields
   const addProduct = () => {
     const newProduct: ProductData = {
       id: Date.now().toString(),
@@ -183,7 +181,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       supplier_id: "",
       serial_number: "",
       lot_series: "",
-      guide_number: "",
+      guide_number: "", // ✅ Added guide_number field
       inventory_quantity: "",
       package_quantity: "",
       weight_kg: "",
@@ -281,6 +279,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     e:
       | React.ChangeEvent<HTMLInputElement>
       | React.ChangeEvent<HTMLTextAreaElement>
+      | React.ChangeEvent<HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
@@ -339,13 +338,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         });
         return;
       }
-      if (!product.guide_number) {
-        setSubmitStatus({
-          success: false,
-          message: `Product ${i + 1}: Guide number is required`,
-        });
-        return;
-      }
+
       if (!product.inventory_quantity || parseInt(product.inventory_quantity) <= 0) {
         setSubmitStatus({
           success: false,
@@ -400,7 +393,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         entry_date_time: formData.admission_date_time,
         created_by: localStorage.getItem("id"),
         organisation_id: localStorage.getItem("organisation_id"),
-        order_status: formData.order_status?.value || "REVISION",
+        order_status: "REVISION",
         total_volume: formData.products.reduce((sum, p) => sum + parseFloat(p.volume_m3 || "0"), 0),
         total_weight: formData.products.reduce((sum, p) => sum + parseFloat(p.weight_kg || "0"), 0),
         cif_value: parseFloat(formData.cif_value) || null,
@@ -408,20 +401,20 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         observation: formData.observation,
         uploaded_documents: certificateUrl || null,
 
-        // ✅ Products array with product_code included
+        // ✅ Products array with product_code and guide_number included
         products: formData.products.map((product) => ({
           serial_number: product.serial_number,
           supplier_id: product.supplier_id,
           product_code: product.product_code, // ✅ Include product_code in submission
           product_id: product.product_id,
           lot_series: product.lot_series,
+          guide_number: product.guide_number || formData.guide_number || "", // ✅ Include guide_number from product or fallback to form level
           manufacturing_date: product.manufacturing_date,
           expiration_date: product.expiration_date,
           inventory_quantity: parseInt(product.inventory_quantity),
           package_quantity: parseInt(product.package_quantity),
           quantity_pallets: parseInt(product.quantity_pallets) || null,
           presentation: product.presentation || "CAJA",
-          guide_number: product.guide_number,
           weight_kg: parseFloat(product.weight_kg),
           volume_m3: parseFloat(product.volume_m3) || null,
           insured_value: parseFloat(product.insured_value) || null,
@@ -636,25 +629,20 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
             )}
           </div>
 
-          {/* order status */}
+          {/* order status - auto-filled as REVISION */}
           <div className="w-full flex flex-col">
             <label htmlFor="order_status">{t("process:order_status")} *</label>
-            <Select
-              options={dropdownOptions.orderStatus.map((item: any) => ({
-                option: item.label,
-                value: item.value,
-                label: item.label,
-              }))}
-              styles={reactSelectStyle}
-              inputId="order_status"
+            <input
+              type="text"
+              id="order_status"
               name="order_status"
-              value={formData.order_status.value ? formData.order_status : null}
-              onChange={(selectedOption) =>
-                handleSelectChange("order_status", selectedOption)
-              }
-              placeholder={t("process:select_status")}
-              isClearable
+              value="REVISION"
+              disabled
+              className="h-10 border border-slate-400 rounded-md px-4 bg-gray-100 text-gray-600"
             />
+            <p className="text-xs text-gray-500 mt-1">
+              {t("process:auto_filled_revision")}
+            </p>
           </div>
         </div>
 
@@ -689,26 +677,29 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
           </div>
 
           <div className="w-full flex flex-col">
-            <label htmlFor="lot_series">{t("process:lot_series")} *</label>
+            <label htmlFor="guide_number">{t("process:guide_number")} *</label>
             <input
               type="text"
-              id="lot_series"
-              name="lot_series"
-              value={formData.lot_series}
+              id="guide_number"
+              name="guide_number"
+              value={formData.guide_number}
               onChange={handleChange}
               className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500"
             />
           </div>
         </div>
 
-        {/* Certificate upload for non-return origins */}
-        {!shouldDisableFields && (
+        {/* Document upload based on selected document type */}
+        {!shouldDisableFields && formData.document_type_id?.value && (
           <div className="mt-4">
-            <FileUpload
-              id="certificate_protocol_analysis"
-              label={t("process:protocol_analysis_certificate")}
-              onFileSelected={(file: File) => setCertificateFile(file)}
-            />
+            <Divider />
+            <div className="mt-4">
+              <FileUpload
+                id="document_upload"
+                label={`${t("process:upload")} ${formData.document_type_id.label || t("process:document")}`}
+                onFileSelected={(file: File) => setCertificateFile(file)}
+              />
+            </div>
           </div>
         )}
       </div>

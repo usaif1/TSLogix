@@ -46,7 +46,13 @@ interface ExtendedEntryOrder {
   cif_value?: number;
   total_pallets?: number;
   observation?: string;
-  created_by: string; // ✅ Add this property
+  created_by?: string; // ✅ Legacy field
+  creator?: { // ✅ New API structure
+    id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
 }
 
 interface SubmitStatus {
@@ -130,9 +136,21 @@ const Review: React.FC = () => {
     const userId = localStorage.getItem("id");
     const userRole = localStorage.getItem("role");
     
+    // ✅ Check both possible creator field locations
+    const creatorId = entry.created_by || entry.creator?.id;
+    
+    // ✅ Debug logging to help troubleshoot
+    console.log("Edit permissions check:", {
+      userId,
+      userRole,
+      creatorId,
+      reviewStatus: entry.review_status,
+      canEdit: entry.review_status === "NEEDS_REVISION" && (creatorId === userId || userRole === "ADMIN")
+    });
+    
     return (
       entry.review_status === "NEEDS_REVISION" && 
-      (entry.created_by === userId || userRole === "ADMIN")
+      (creatorId === userId || userRole === "ADMIN")
     );
   }, [entry]);
 
@@ -1019,8 +1037,8 @@ const Review: React.FC = () => {
                 </Button>
               )}
 
-              {/* ✅ Existing review buttons for admin */}
-              {canReview && (
+              {/* ✅ Review buttons only for admin/non-client users */}
+              {canReview && localStorage.getItem("role") !== "CLIENT" && (
                 <>
                   <Button
                     variant="action"

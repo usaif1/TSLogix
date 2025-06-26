@@ -20,8 +20,8 @@ const ClientList: React.FC = () => {
   
   // Hardcoded client type options (no need for API call)
   const clientTypeOptions = [
-    { value: "COMMERCIAL", label: t('client:types.commercial') },
-    { value: "INDIVIDUAL", label: t('client:types.individual') },
+    { value: "JURIDICO", label: t('client:types.commercial') },
+    { value: "NATURAL", label: t('client:types.individual') },
   ];
   
   // Store state
@@ -91,14 +91,14 @@ const ClientList: React.FC = () => {
   }, [filters.client_type, filters.search, filters.page]);
 
   const getClientDisplayName = (client: Client): string => {
-    if (client.client_type === "COMMERCIAL") {
+    if (client.client_type === "JURIDICO") {
       return client.company_name || "Unknown Company";
     } else {
       return `${client.first_names || ""} ${client.last_name || ""}`.trim() || "Unknown Individual";
     }
   };
   const getClientTypeDisplay = (clientType: string): string => {
-    return clientType === "COMMERCIAL" ? t('client:types.commercial') : t('client:types.individual');
+    return clientType === "JURIDICO" ? t('client:types.commercial') : t('client:types.individual');
   };
 
   const formatDate = (dateString: string): string => {
@@ -221,12 +221,12 @@ const ClientList: React.FC = () => {
                           <Text weight="font-medium" additionalClass="text-gray-900">
                             {getClientDisplayName(client)}
                           </Text>
-                          {client.client_type === "COMMERCIAL" && client.ruc && (
+                          {client.client_type === "JURIDICO" && client.ruc && (
                             <Text additionalClass="text-sm text-gray-500">
                               RUC: {client.ruc}
                             </Text>
                           )}
-                          {client.client_type === "INDIVIDUAL" && client.individual_id && (
+                          {client.client_type === "NATURAL" && client.individual_id && (
                             <Text additionalClass="text-sm text-gray-500">
                               {t('client:fields.individual_id')}: {client.individual_id}
                             </Text>
@@ -237,13 +237,13 @@ const ClientList: React.FC = () => {
                       {/* Type */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          client.client_type === "COMMERCIAL" 
+                          client.client_type === "JURIDICO" 
                             ? "bg-blue-100 text-blue-800" 
                             : "bg-green-100 text-green-800"
                         }`}>
                           {getClientTypeDisplay(client.client_type)}
                         </span>
-                        {client.client_type === "COMMERCIAL" && client.establishment_type && (
+                        {client.client_type === "JURIDICO" && client.establishment_type && (
                           <div className="text-xs text-gray-500 mt-1">
                             {client.establishment_type}
                           </div>
@@ -255,6 +255,11 @@ const ClientList: React.FC = () => {
                         <div className="flex flex-col space-y-1">
                           <Text additionalClass="text-sm text-gray-900">{client.email}</Text>
                           <Text additionalClass="text-sm text-gray-500">{client.phone}</Text>
+                          {client.client_users && client.client_users.length > 0 && (
+                            <Text additionalClass="text-xs text-blue-600">
+                              {client.client_users.length} {client.client_users.length === 1 ? t('client:table.user') : t('client:table.users')}
+                            </Text>
+                          )}
                         </div>
                       </td>
 

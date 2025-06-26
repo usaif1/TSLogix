@@ -47,7 +47,7 @@ const Entry: React.FC = () => {
         {t("process:entry_orders")}
       </Text>
       <Divider />
-      <div className="w-1/2">
+      <div className="w-full max-w-md">
         <Searchbar
           searchButton={true}
           iconHidden={true}
@@ -58,12 +58,11 @@ const Entry: React.FC = () => {
       <Divider />
       <OrderBtnGroup items={buttonGroup} />
       <Divider />
-      <div className="sm:h-3/5 2xl:h-full rounded-md py-1.5 overflow-scroll max-w-[85%]">
+      <div className="flex-1 w-full min-h-0 overflow-hidden">
         {loaders["processes/fetch-entry-orders"] ? (
-          <>
-            <Divider height="md" />
+          <div className="flex justify-center items-center h-full">
             <LoaderSync loaderText={t("process:fetching_entry_orders")} />
-          </>
+          </div>
         ) : (
           <EntryRecordsTable />
         )}

@@ -13,8 +13,8 @@ const {
   stopLoader,
 } = ClientStore.getState();
 
-export interface CommercialClientPayload {
-  client_type: "COMMERCIAL";
+export interface JuridicoClientPayload {
+  client_type: "JURIDICO";
   company_name: string;
   company_type: string;
   establishment_type: string;
@@ -24,10 +24,13 @@ export interface CommercialClientPayload {
   phone: string;
   cell_phone: string;
   active_state_id: string;
+  client_users?: Array<{
+    name: string;
+  }>;
 }
 
-export interface IndividualClientPayload {
-  client_type: "INDIVIDUAL";
+export interface NaturalClientPayload {
+  client_type: "NATURAL";
   first_names: string;
   last_name: string;
   mothers_last_name: string;
@@ -38,25 +41,28 @@ export interface IndividualClientPayload {
   phone: string;
   cell_phone: string;
   active_state_id: string;
+  client_users?: Array<{
+    name: string;
+  }>;
 }
 
-export type ClientPayload = CommercialClientPayload | IndividualClientPayload;
+export type ClientPayload = JuridicoClientPayload | NaturalClientPayload;
 
-export interface CommercialClientWithCellsPayload extends CommercialClientPayload {
+export interface JuridicoClientWithCellsPayload extends JuridicoClientPayload {
   cell_ids?: string[];
   warehouse_id?: string;
   assigned_by?: string;
   notes?: string;
 }
 
-export interface IndividualClientWithCellsPayload extends IndividualClientPayload {
+export interface NaturalClientWithCellsPayload extends NaturalClientPayload {
   cell_ids?: string[];
   warehouse_id?: string;
   assigned_by?: string;
   notes?: string;
 }
 
-export type ClientWithCellsPayload = CommercialClientWithCellsPayload | IndividualClientWithCellsPayload;
+export type ClientWithCellsPayload = JuridicoClientWithCellsPayload | NaturalClientWithCellsPayload;
 
 export interface ClientFormFields {
   client_types: Array<{ value: string; label: string }>;
@@ -64,8 +70,8 @@ export interface ClientFormFields {
   company_types: Array<{ value: string; label: string }>;
   active_states: Array<{ value: string; label: string }>;
   required_fields: {
-    commercial: string[];
-    individual: string[];
+    juridico: string[];
+    natural: string[];
   };
   field_descriptions: Record<string, string>;
 }

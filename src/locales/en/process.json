@@ -313,6 +313,7 @@
   "failed_to": "Failed to",
   "successfully": "successfully",
   "auto_filled_when_product_selected": "Auto-filled when product is selected",
+  "auto_filled_revision": "Auto-filled as REVISION",
   "total_packages": "Total Packages",
   "cells_selected": "Cells Selected",
   "available": "Available",
@@ -377,5 +378,7 @@
   "allocated_successfully": "Allocated successfully",
   "validation_failed": "Validation failed",
   "multi_product_selection": "Multi-product Selection",
-  "products_from_entry_order": "Products from Entry Order"
+  "products_from_entry_order": "Products from Entry Order",
+  "upload": "Upload",
+  "document": "Document"
 }

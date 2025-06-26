@@ -1,5 +1,6 @@
 {
   "supplier_maintenance": "Supplier Maintenance",
+  "product": "Product",
   "product_maintenance": "Product Maintenance",
   "product_registry": "Product Registry",
   "product_page": "Product Page",
@@ -119,6 +120,17 @@
   "enter_email": "Enter email address",
   "please_select_country": "Please select a country",
   "failed_create_supplier": "Failed to create supplier. Please try again.",
+  
+  "_comment_new_document_fields": "=== NEW DOCUMENT TYPE FIELDS ===",
+  "document_type": "Document Type",
+  "id_fiscal": "ID Fiscal",
+  "ruc_number": "RUC Number",
+  "id_fiscal_number": "ID Fiscal Number",
+  "select_document_type": "Select document type",
+  "enter_ruc_number": "Enter RUC number",
+  "enter_id_fiscal_number": "Enter ID Fiscal number",
+  "enter_supplier_category": "Enter supplier category",
+  "ruc_required_for_peru": "RUC is required for suppliers from Peru",
   
   "_comment_supplier_assignment": "=== SUPPLIER ASSIGNMENT ===",
   "assign_suppliers": "Assign Suppliers",

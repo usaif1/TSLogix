@@ -1,5 +1,6 @@
 {
   "supplier_maintenance": "Mantenimiento de Proveedores",
+  "product": "Producto",
   "product_maintenance": "Mantenimiento de Productos",
   "product_registry": "Registro de Productos",
   "product_page": "Página de Productos",
@@ -163,5 +164,16 @@
   "assigned": "Asignado",
   "suppliers_found": "{{count}} proveedores encontrados",
   "assignments_found": "{{count}} asignaciones encontradas",
-  "client": "Cliente"
+  "client": "Cliente",
+  
+  "_comment_new_document_fields": "=== CAMPOS DE TIPO DE DOCUMENTO ===",
+  "document_type": "Tipo de Documento",
+  "id_fiscal": "ID Fiscal",
+  "ruc_number": "Número de RUC",
+  "id_fiscal_number": "Número de ID Fiscal",
+  "select_document_type": "Seleccionar tipo de documento",
+  "enter_ruc_number": "Ingrese el número de RUC",
+  "enter_id_fiscal_number": "Ingrese el número de ID Fiscal",
+  "enter_supplier_category": "Ingrese la categoría del proveedor",
+  "ruc_required_for_peru": "El RUC es requerido para proveedores de Perú"
 }

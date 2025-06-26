@@ -42,6 +42,12 @@ const Breadcrumbs: React.FC = () => {
       'product': t('common:product'),
       'settings': t('common:settings'),
       'profile': t('common:profile'),
+      'allocate': t('common:allocate'),
+      'supplier': t('common:supplier'),
+      'suppliers': t('common:supplier'),
+      'client': t('common:client'),
+      'clients': t('common:client'),
+      'new': t('common:new'),
     };
 
     return translationMap[normalizedText] || text;

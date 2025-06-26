@@ -24,13 +24,17 @@ const Route: React.FC<Props> = ({ item, isOpen, hasSubroutes }) => {
       <NavLink
         to={item.route}
         className={({ isActive }) =>
-          `w-full text-white flex py-3 gap-2 ${
+          `w-full text-white flex py-3 gap-2 items-center min-w-0 ${
             isActive ? "route_active font-bold" : ""
           }`
         }
       >
-        <item.icon size={20} weight={isActive ? "bold" : "regular"} />
-        {item.title}
+        <div className="flex-shrink-0">
+          <item.icon size={20} weight={isActive ? "bold" : "regular"} />
+        </div>
+        <span className="truncate" title={item.title}>
+          {item.title}
+        </span>
       </NavLink>
     );
   }
@@ -38,15 +42,21 @@ const Route: React.FC<Props> = ({ item, isOpen, hasSubroutes }) => {
   // Otherwise render your accordion header (or whatever) for subroutes
   return (
     <div className={`route ${isActive ? "route_active" : ""}`}>
-      <div className="flex items-center gap-2">
-        <item.icon size={20} weight={isActive ? "bold" : "regular"} />
-        {item.title}
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <div className="flex-shrink-0">
+          <item.icon size={20} weight={isActive ? "bold" : "regular"} />
+        </div>
+        <span className="truncate" title={item.title}>
+          {item.title}
+        </span>
       </div>
-      <CaretDown
-        className={`caret_icon transform transition-transform ${
-          isOpen ? "-rotate-180" : "rotate-0"
-        }`}
-      />
+      <div className="flex-shrink-0">
+        <CaretDown
+          className={`caret_icon transform transition-transform ${
+            isOpen ? "-rotate-180" : "rotate-0"
+          }`}
+        />
+      </div>
     </div>
   );
 };

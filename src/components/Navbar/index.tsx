@@ -11,6 +11,7 @@ import { useLocation } from "react-router";
 import LogoutButton from "@/components/Logout";
 import SubRoute from "./SubRoute";
 import Route from "./Route";
+import UserProfile from "./UserProfile";
 
 // data
 import { getFilteredLinksData, getHomeData } from "./data";
@@ -60,36 +61,44 @@ const Navbar: React.FC = () => {
   }
 
   return (
-    <nav className="relative w-64 h-full bg-primary-500 px-5 py-1.5 flex flex-col">
-      <ControlledAccordion providerValue={providerValue} className="w-full">
-        <HomeRoute item={home} />
-        {links.map((link) => (
-          <AccordionItem
-            className="w-full cursor-pointer"
-            header={({ state }) => (
-              <Route
-                item={link}
-                isOpen={state.isEnter}
-                hasSubroutes={link.subroutes.length > 0}
-              />
-            )}
-            key={link.route} // Use route as key instead of title for stability
-            itemKey={link.route}
-          >
-            <div className="flex flex-col gap-y-2">
-              {link.subroutes.map((subroute) => (
-                <SubRoute 
-                  key={subroute.route} 
-                  item={subroute} 
+    <nav className="relative w-64 h-full bg-primary-500 flex-shrink-0">
+      {/* Scrollable navigation section with proper bottom spacing */}
+      <div className="h-full overflow-y-auto overflow-x-hidden px-5 py-1.5 pb-32">
+        <ControlledAccordion providerValue={providerValue} className="w-full">
+          <HomeRoute item={home} />
+          {links.map((link) => (
+            <AccordionItem
+              className="w-full cursor-pointer"
+              header={({ state }) => (
+                <Route
+                  item={link}
+                  isOpen={state.isEnter}
+                  hasSubroutes={link.subroutes.length > 0}
                 />
-              ))}
-            </div>
-          </AccordionItem>
-        ))}
-        <div className="absolute bottom-24 left-10 right-10 mx-auto">
+              )}
+              key={link.route} // Use route as key instead of title for stability
+              itemKey={link.route}
+            >
+              <div className="flex flex-col gap-y-2">
+                {link.subroutes.map((subroute) => (
+                  <SubRoute 
+                    key={subroute.route} 
+                    item={subroute} 
+                  />
+                ))}
+              </div>
+            </AccordionItem>
+          ))}
+        </ControlledAccordion>
+      </div>
+      
+      {/* Fixed bottom section - always visible with consistent height */}
+      <div className="absolute bottom-0 left-0 right-0 bg-primary-500 border-t border-primary-400 border-opacity-30">
+        <UserProfile />
+        <div className="px-4 pb-4">
           <LogoutButton />
         </div>
-      </ControlledAccordion>
+      </div>
     </nav>
   );
 };
