@@ -221,5 +221,6 @@
   "logged_in_as": "Conectado como",
   "administrator": "Administrador",
   "warehouse_manager": "Gerente de Almacén",
-  "warehouse_assistant": "Asistente de Almacén"
+  "warehouse_assistant": "Asistente de Almacén",
+  "allocate": "Asignar"
 }

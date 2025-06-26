@@ -38,6 +38,8 @@ export type InventoryLogLoaderTypes =
   | "inventoryLogs/fetch-available-for-departure"
   | "inventoryLogs/fetch-audit-trail"
   | "inventoryLogs/fetch-cells-by-quality-status"
+  | "inventoryLogs/fetch-allocation-helper"
+  | "inventoryLogs/bulk-assign"
   | AssignCellLoader;
 
 type InventoryLog = any;
@@ -331,6 +333,8 @@ const initialLoaders: Record<InventoryLogLoaderTypes, boolean> = {
   "inventoryLogs/fetch-available-for-departure": false,
   "inventoryLogs/fetch-audit-trail": false,
   "inventoryLogs/fetch-cells-by-quality-status": false,
+  "inventoryLogs/fetch-allocation-helper": false,
+  "inventoryLogs/bulk-assign": false,
 };
 
 const initialState: InventoryLogStore = {
