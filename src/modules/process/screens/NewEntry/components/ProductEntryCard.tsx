@@ -12,6 +12,7 @@ interface ProductData {
   supplier_id: string;
   serial_number: string;
   lot_series: string;
+  guide_number: string; // ✅ Added guide_number field
   inventory_quantity: string;
   package_quantity: string;
   weight_kg: string;
@@ -155,7 +156,7 @@ const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
         </div>
       </div>
 
-      {/* Serial and Lot Information */}
+      {/* Serial, Lot and Guide Information */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div className="flex flex-col">
           <label className="text-sm font-medium text-gray-700 mb-1">
@@ -183,7 +184,18 @@ const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
           />
         </div>
 
-
+        <div className="flex flex-col">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            {t("process:guide_number")} *
+          </label>
+          <input
+            type="text"
+            value={product.guide_number}
+            onChange={(e) => handleChange('guide_number', e.target.value)}
+            className="h-10 border border-gray-300 rounded px-3"
+            placeholder={t("process:enter_guide_number")}
+          />
+        </div>
       </div>
 
       {/* Quantities */}

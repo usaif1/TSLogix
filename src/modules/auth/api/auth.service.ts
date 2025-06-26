@@ -16,13 +16,26 @@ export const AuthService = {
     const response = await api.post(`${baseURL}/login`, credentials);
     console.log(response);
     
-    const userData = response.data.data;
+    // Handle both response.data.data and response.data structures
+    const userData = response.data.data || response.data;
+    
+    if (!userData) {
+      throw new Error("Invalid response format: user data not found");
+    }
     
     setAuthUser(userData);
     localStorage.setItem("liu", JSON.stringify(userData));
-    localStorage.setItem("organisation_id", userData.organisation_id);
-    localStorage.setItem("id", userData.id);
-    localStorage.setItem("role", userData.role);
+    
+    // Safely set localStorage items with null checks
+    if (userData.organisation_id) {
+      localStorage.setItem("organisation_id", userData.organisation_id);
+    }
+    if (userData.id) {
+      localStorage.setItem("id", userData.id);
+    }
+    if (userData.role) {
+      localStorage.setItem("role", userData.role);
+    }
     
     // Store additional user info for profile display
     if (userData.first_name) {
@@ -40,6 +53,12 @@ export const AuthService = {
     if (userData.userId || userData.user_id) {
       localStorage.setItem("user_id", userData.userId || userData.user_id);
     }
+    if (userData.username) {
+      localStorage.setItem("username", userData.username);
+    }
+    if (userData.token) {
+      localStorage.setItem("token", userData.token);
+    }
     
     return response.data;
   },
@@ -54,5 +73,7 @@ export const AuthService = {
     localStorage.removeItem("name");
     localStorage.removeItem("email");
     localStorage.removeItem("user_id");
+    localStorage.removeItem("username");
+    localStorage.removeItem("token");
   },
 };

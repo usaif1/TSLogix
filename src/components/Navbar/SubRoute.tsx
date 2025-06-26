@@ -17,10 +17,12 @@ const SubRoute: React.FC<LinkProps> = ({ item }) => {
   return (
     <NavLink
       to={item.route}
-      className={`subroute ${isActive ? "subroute_active" : ""}`}
+      className={`subroute ${isActive ? "subroute_active" : ""} block`}
       onClick={(e) => e.stopPropagation()}
     >
-      {item.title}
+      <span className="truncate block" title={item.title}>
+        {item.title}
+      </span>
     </NavLink>
   );
 };

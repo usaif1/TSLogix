@@ -61,9 +61,9 @@ const Navbar: React.FC = () => {
   }
 
   return (
-    <nav className="relative w-64 h-full bg-primary-500">
-      {/* Scrollable navigation section with bottom padding to avoid overlap */}
-      <div className="h-full overflow-y-auto px-5 py-1.5 pb-20">
+    <nav className="relative w-64 h-full bg-primary-500 flex-shrink-0">
+      {/* Scrollable navigation section with proper bottom spacing */}
+      <div className="h-full overflow-y-auto overflow-x-hidden px-5 py-1.5 pb-32">
         <ControlledAccordion providerValue={providerValue} className="w-full">
           <HomeRoute item={home} />
           {links.map((link) => (
@@ -92,10 +92,10 @@ const Navbar: React.FC = () => {
         </ControlledAccordion>
       </div>
       
-      {/* Fixed bottom section - absolutely positioned */}
+      {/* Fixed bottom section - always visible with consistent height */}
       <div className="absolute bottom-0 left-0 right-0 bg-primary-500 border-t border-primary-400 border-opacity-30">
         <UserProfile />
-        <div className="px-4 pb-2">
+        <div className="px-4 pb-4">
           <LogoutButton />
         </div>
       </div>
