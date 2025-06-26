@@ -1,10 +1,7 @@
-// dependencies
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { AccordionItem } from "@szhsin/react-accordion";
 import { NavLink } from "react-router";
-
-// components
-import Text from "../Text";
 
 // types
 import { Icon } from "@phosphor-icons/react";

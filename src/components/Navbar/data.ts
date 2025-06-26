@@ -1,5 +1,5 @@
 // dependencies
-import {  House, Gear, FolderSimple, FileText, ChartBar, Users, ClockCounterClockwise  } from "@phosphor-icons/react";
+import {  House, Gear, FolderSimple, FileText, ChartBar, ClockCounterClockwise  } from "@phosphor-icons/react";
 import { TFunction } from "i18next";
 
 // Define user roles
@@ -79,7 +79,6 @@ export const getFilteredLinksData = (t: TFunction, userRole: string | null) => {
   switch (normalizedRole) {
     case UserRole.CLIENT:
     case UserRole.USER:
-    case "USER":  // Additional case for string "user"
       // USER can see everything EXCEPT: clients, inventory, event_logs
       return allLinks.map(link => {
         if (link.route === "/maintenance") {

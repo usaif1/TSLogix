@@ -1,7 +1,5 @@
 import React from "react";
-import { UserCircle } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
-import { Text } from "@/components";
 import { AuthStore } from "@/globalStore";
 
 const UserProfile: React.FC = () => {
@@ -52,7 +50,7 @@ const UserProfile: React.FC = () => {
           ? `${firstName} ${lastName}`
           : name || username || userId || t('common:user'),
         role: role || t('common:user'),
-        initials: getInitials(firstName, lastName, name, username, userId)
+        initials: getInitials(firstName || undefined, lastName || undefined, name || undefined, username || undefined, userId || undefined)
       };
     }
 
