@@ -378,5 +378,7 @@
   "allocated_successfully": "Allocated successfully",
   "validation_failed": "Validation failed",
   "multi_product_selection": "Multi-product Selection",
-  "products_from_entry_order": "Products from Entry Order"
+  "products_from_entry_order": "Products from Entry Order",
+  "upload": "Upload",
+  "document": "Document"
 }

@@ -19,7 +19,6 @@ interface FormData {
   // ✅ NEW: Enhanced company information
   company_name: string;
   category: string; // Changed from CountryOption to string for text field
-  tax_id: string;
   document_type: "RUC" | "ID_FISCAL" | ""; // New field for document type selection
   
   // Existing fields
@@ -55,7 +54,6 @@ const SupplierRegistration: React.FC = () => {
     // ✅ NEW: Initialize new fields
     company_name: "",
     category: "",
-    tax_id: "",
     document_type: "",
     
     // Existing fields
@@ -139,7 +137,7 @@ const SupplierRegistration: React.FC = () => {
         
         // ✅ NEW: Add document type and tax_id
         document_type: formData.document_type,
-        tax_id: formData.tax_id,
+        tax_id: formData.ruc,
         
         // Existing fields
         ruc: formData.ruc,
@@ -160,7 +158,6 @@ const SupplierRegistration: React.FC = () => {
       setFormData({
         company_name: "",
         category: "",
-        tax_id: "",
         document_type: "",
         companyName: "",
         ruc: "",
@@ -219,21 +216,8 @@ const SupplierRegistration: React.FC = () => {
 
       <Divider />
 
-      {/* Section 2: Tax & Legal Information */}
+      {/* Section 2: Document Type Selection */}
       <div className="w-full flex items-center gap-x-6">
-        <div className="w-full flex flex-col">
-          <label htmlFor="tax_id">{t('tax_id')}</label>
-          <input
-            type="text"
-            id="tax_id"
-            name="tax_id"
-            value={formData.tax_id}
-            onChange={handleInputChange}
-            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
-            placeholder={t('enter_tax_id')}
-          />
-        </div>
-
         <div className="w-full flex flex-col">
           <label htmlFor="document_type">{t('document_type')}</label>
           <select
@@ -248,6 +232,7 @@ const SupplierRegistration: React.FC = () => {
             <option value="ID_FISCAL">{t('id_fiscal')} (Other Countries)</option>
           </select>
         </div>
+        <div className="w-full"></div> {/* Empty div to maintain layout */}
       </div>
 
       {/* Document Number Input - Shows based on document type selection */}

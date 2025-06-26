@@ -279,6 +279,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     e:
       | React.ChangeEvent<HTMLInputElement>
       | React.ChangeEvent<HTMLTextAreaElement>
+      | React.ChangeEvent<HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prevState) => ({
@@ -688,14 +689,17 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
           </div>
         </div>
 
-        {/* Certificate upload for non-return origins */}
-        {!shouldDisableFields && (
+        {/* Document upload based on selected document type */}
+        {!shouldDisableFields && formData.document_type_id?.value && (
           <div className="mt-4">
-            <FileUpload
-              id="certificate_protocol_analysis"
-              label={t("process:protocol_analysis_certificate")}
-              onFileSelected={(file: File) => setCertificateFile(file)}
-            />
+            <Divider />
+            <div className="mt-4">
+              <FileUpload
+                id="document_upload"
+                label={`${t("process:upload")} ${formData.document_type_id.label || t("process:document")}`}
+                onFileSelected={(file: File) => setCertificateFile(file)}
+              />
+            </div>
           </div>
         )}
       </div>

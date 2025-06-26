@@ -409,5 +409,7 @@
   "departure_transfer_note": "Nota de Transferencia de Salida",
   "comments": "Comentarios",
   "status": "Estado",
-  "type": "Tipo"
+  "type": "Tipo",
+  "upload": "Subir",
+  "document": "Documento"
 }
