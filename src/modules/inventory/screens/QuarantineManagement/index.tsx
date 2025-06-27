@@ -50,24 +50,24 @@ const QuarantineManagement: React.FC = () => {
   const getQualityControlInfo = () => {
     const statusInfo = {
       [QualityControlStatus.CUARENTENA]: { 
-        cells: 'A-Q rows (Standard warehouse)', 
-        description: 'Initial quarantine state' 
+        cells: t('inventory:standard_warehouse_rows'), 
+        description: t('inventory:initial_quarantine_state') 
       },
       [QualityControlStatus.APROBADO]: { 
-        cells: 'A-Q rows (Standard warehouse)', 
-        description: 'Ready for departure' 
+        cells: t('inventory:standard_warehouse_rows'), 
+        description: t('inventory:ready_for_departure') 
       },
       [QualityControlStatus.DEVOLUCIONES]: { 
-        cells: 'V row (Returns area)', 
-        description: 'Customer returns' 
+        cells: t('inventory:returns_area_row'), 
+        description: t('inventory:customer_returns') 
       },
       [QualityControlStatus.CONTRAMUESTRAS]: { 
-        cells: 'T row (Samples area)', 
-        description: 'Quality samples' 
+        cells: t('inventory:samples_area_row'), 
+        description: t('inventory:quality_samples') 
       },
       [QualityControlStatus.RECHAZADOS]: { 
-        cells: 'R row (Rejected area)', 
-        description: 'Failed quality control' 
+        cells: t('inventory:rejected_area_row'), 
+        description: t('inventory:failed_quality_control') 
       },
     };
     return statusInfo[filters.selectedStatus || QualityControlStatus.CUARENTENA];

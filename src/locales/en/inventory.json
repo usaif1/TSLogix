@@ -238,5 +238,15 @@
   "warehouses_used": "warehouse(s) used",
   "allocation_progress": "allocation progress",
   "fully_allocated": "Entry order fully allocated!",
-  "partial_allocation": "Partial allocation completed"
+  "partial_allocation": "Partial allocation completed",
+  "choose_action": "Choose Action",
+  "standard_warehouse_rows": "A-Q rows (Standard warehouse)",
+  "returns_area_row": "V row (Returns area)",
+  "samples_area_row": "T row (Samples area)",
+  "rejected_area_row": "R row (Rejected area)",
+  "initial_quarantine_state": "Initial quarantine state",
+  "ready_for_departure": "Ready for departure",
+  "customer_returns": "Customer returns",
+  "quality_samples": "Quality samples",
+  "failed_quality_control": "Failed quality control"
 }

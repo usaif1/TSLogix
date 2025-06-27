@@ -20,7 +20,7 @@ const reactSelectStyle = {
   }),
 };
 
-// ✅ Updated ProductData interface to include product_code and guide_number
+// ✅ Updated ProductData interface to include product_code
 export interface ProductData {
   id: string;
   product_id: string;
@@ -28,7 +28,6 @@ export interface ProductData {
   supplier_id: string;
   serial_number: string;
   lot_series: string;
-  guide_number: string; // ✅ Added guide_number field for each product
 
   // Updated field names to match new backend schema
   inventory_quantity: string;
@@ -172,7 +171,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     return isReturnOrigin || isReconditionedOrigin;
   }, [isReturnOrigin, isReconditionedOrigin]);
 
-  // ✅ Add product with product_code and guide_number fields
+  // ✅ Add product with product_code
   const addProduct = () => {
     const newProduct: ProductData = {
       id: Date.now().toString(),
@@ -181,7 +180,6 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       supplier_id: "",
       serial_number: "",
       lot_series: "",
-      guide_number: "", // ✅ Added guide_number field
       inventory_quantity: "",
       package_quantity: "",
       weight_kg: "",
@@ -401,14 +399,14 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         observation: formData.observation,
         uploaded_documents: certificateUrl || null,
 
-        // ✅ Products array with product_code and guide_number included
+        // ✅ Products array with product_code included
         products: formData.products.map((product) => ({
           serial_number: product.serial_number,
           supplier_id: product.supplier_id,
           product_code: product.product_code, // ✅ Include product_code in submission
           product_id: product.product_id,
           lot_series: product.lot_series,
-          guide_number: product.guide_number || formData.guide_number || "", // ✅ Include guide_number from product or fallback to form level
+          guide_number: formData.guide_number || "", // ✅ Use form-level guide_number for all products
           manufacturing_date: product.manufacturing_date,
           expiration_date: product.expiration_date,
           inventory_quantity: parseInt(product.inventory_quantity),
