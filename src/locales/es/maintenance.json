@@ -90,8 +90,8 @@
   "select_file": "Seleccionar Archivo",
   "selected_file": "Archivo seleccionado",
   "product_created_successfully": "Producto creado exitosamente",
-  "failed_create_product_try_again": "Error al crear el producto. Inténtelo de nuevo.",
-  "document_upload": "Subida de Documentos",
+  "failed_create_product_try_again": "Error al crear producto. Inténtalo de nuevo.",
+  "document_upload": "Subida de Documento",
   "file_upload": "Subida de Archivos",
   "browse_files": "Explorar Archivos",
   "drag_drop_files": "Arrastre y suelte archivos aquí",
@@ -176,5 +176,7 @@
   "enter_ruc_number": "Ingrese el número de RUC",
   "enter_id_fiscal_number": "Ingrese el número de ID Fiscal",
   "enter_supplier_category": "Ingrese la categoría del proveedor",
-  "ruc_required_for_peru": "El RUC es requerido para proveedores de Perú"
+  "ruc_required_for_peru": "El RUC es requerido para proveedores de Perú",
+  "documents": "Documentos",
+  "no_documents": "Sin Documentos"
 }

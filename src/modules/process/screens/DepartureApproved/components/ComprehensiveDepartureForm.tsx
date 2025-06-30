@@ -3,12 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Select from "react-select";
 import { Button, Text } from "@/components";
+import FileUpload from "@/components/FileUpload";
 import ProcessesStore, { ProductRow } from "@/modules/process/store";
 import { ProcessService } from "@/modules/process/api/process.service";
 
 const ComprehensiveDepartureForm: React.FC = () => {
   const { t } = useTranslation(['process']);
   const navigate = useNavigate();
+  
+  // ✅ Document type options for Departure Orders
+  const DEPARTURE_DOCUMENT_TYPES = [
+    { value: 'CUSTOMER_DISPATCH_NOTE', label: t('process:customer_dispatch_note') || 'Customer Dispatch Note' },
+    { value: 'TRANSPORT_DISPATCH_NOTE', label: t('process:transport_dispatch_note') || 'Transport Dispatch Note' },
+    { value: 'WAREHOUSE_EXIT_NOTE', label: t('process:warehouse_exit_note') || 'Warehouse Exit Note' }
+  ];
   
   const {
     departureFormFields,
@@ -34,6 +42,35 @@ const ComprehensiveDepartureForm: React.FC = () => {
   } = ProcessesStore();
 
   const fifoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // ✅ State for multi-select document types and files
+  const [selectedDocumentTypes, setSelectedDocumentTypes] = React.useState<Array<{value: string, label: string}>>([]);
+  const [documentFiles, setDocumentFiles] = React.useState<Record<string, File | null>>({});
+
+  // ✅ Handle document type selection
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleDocumentTypeChange = (selectedOptions: any) => {
+    const newTypes = selectedOptions ? [...selectedOptions] : [];
+    setSelectedDocumentTypes(newTypes);
+    
+    // Clear files for unselected document types
+    const newDocumentFiles = { ...documentFiles };
+    Object.keys(newDocumentFiles).forEach(type => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (!newTypes.find((t: any) => t.value === type)) {
+        delete newDocumentFiles[type];
+      }
+    });
+    setDocumentFiles(newDocumentFiles);
+  };
+
+  // ✅ Handle file selection for specific document type
+  const handleFileSelection = (documentType: string, file: File | null) => {
+    setDocumentFiles(prev => ({
+      ...prev,
+      [documentType]: file
+    }));
+  };
 
   useEffect(() => {
     const loadFormData = async () => {
@@ -281,6 +318,9 @@ const ComprehensiveDepartureForm: React.FC = () => {
     setIsSubmittingDepartureForm(true);
     
     try {
+      // ✅ Use FormData for multipart upload with multiple documents
+      const formDataToSend = new FormData();
+      
       const orderData = {
         departure_order_code: formData.departure_order_code,
         customer_id: formData.personnel_in_charge_id.value,
@@ -313,7 +353,43 @@ const ComprehensiveDepartureForm: React.FC = () => {
         })),
       };
 
-      await ProcessService.createComprehensiveDepartureOrder(orderData);
+      // ✅ Append non-product form data
+      Object.keys(orderData).forEach(key => {
+        if (key !== 'products') {
+          formDataToSend.append(key, String(orderData[key as keyof typeof orderData]));
+        }
+      });
+
+      // ✅ Append products array - Send each product individually
+      orderData.products.forEach((product, index) => {
+        Object.keys(product).forEach(productKey => {
+          const value = product[productKey as keyof typeof product];
+          if (value !== null && value !== undefined) {
+            formDataToSend.append(`products[${index}][${productKey}]`, String(value));
+          }
+        });
+      });
+
+      // ✅ Append document types
+      const documentTypesArray = selectedDocumentTypes.map(type => type.value);
+      formDataToSend.append('document_types', JSON.stringify(documentTypesArray));
+
+      // ✅ Append files
+      selectedDocumentTypes.forEach(docType => {
+        const file = documentFiles[docType.value];
+        if (file) {
+          formDataToSend.append('documents', file);
+        }
+      });
+
+      // ✅ Submit using new ProcessService method for document uploads
+      const result = await ProcessService.createComprehensiveDepartureOrderWithDocuments(formDataToSend);
+
+      // Log document upload results if available
+      if (result.document_uploads) {
+        console.log('📎 Document upload results:', result.document_uploads);
+      }
+      
       navigate("/processes/departure");
     } catch (error: unknown) {
       setDepartureFormError(error instanceof Error ? error.message : "Failed to create departure order");
@@ -462,6 +538,71 @@ const ComprehensiveDepartureForm: React.FC = () => {
             </tr>
           </tbody>
         </table>
+
+        {/* ✅ NEW: Multi-Document Upload Section */}
+        <div className="mb-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+          <Text
+            size="sm"
+            weight="font-semibold"
+            additionalClass="mb-3 text-gray-800"
+          >
+            📎 {t("process:document_upload")} ({t("process:optional")})
+          </Text>
+          
+          {/* Document Type Multi-Select */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {t("process:select_departure_document_types")}
+            </label>
+            <Select
+              isMulti
+              options={DEPARTURE_DOCUMENT_TYPES}
+              value={selectedDocumentTypes}
+              onChange={handleDocumentTypeChange}
+              placeholder={t("process:select_document_types_placeholder")}
+              className="text-sm"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              {t("process:max_10_files_10mb_each")}
+            </p>
+          </div>
+
+          {/* Document Upload Areas */}
+          {selectedDocumentTypes.length > 0 && (
+            <div className="space-y-4">
+              {selectedDocumentTypes.map((docType) => (
+                <div key={docType.value} className="bg-white border border-gray-300 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <Text
+                      size="sm"
+                      weight="font-medium"
+                      additionalClass="text-gray-700"
+                    >
+                      📄 {docType.label}
+                    </Text>
+                    {documentFiles[docType.value] && (
+                      <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                        ✅ {t("process:file_selected")}
+                      </span>
+                    )}
+                  </div>
+                  <FileUpload
+                    id={`departure_document_upload_${docType.value}`}
+                    label={`${t("process:upload")} ${docType.label}`}
+                    onFileSelected={(file: File) => handleFileSelection(docType.value, file)}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
+                  />
+                  {documentFiles[docType.value] && (
+                    <div className="mt-2 text-xs text-gray-600">
+                      📎 {documentFiles[docType.value]?.name} 
+                      ({Math.round((documentFiles[docType.value]?.size || 0) / 1024)} KB)
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">

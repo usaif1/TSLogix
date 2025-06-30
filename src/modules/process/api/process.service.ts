@@ -2529,6 +2529,165 @@ export const ProcessService = {
         return false;
     }
   },
+
+  /**
+   * Create new entry order with document uploads - Customer creates and sends for admin review
+   * Uses FormData for multipart upload
+   */
+  createNewEntryOrderWithDocuments: async (formData: FormData) => {
+    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
+    startLoader("processes/create-entry-order");
+
+    try {
+      // Add required fields only if they're not already present
+      if (!formData.has('organisation_id')) {
+        formData.append('organisation_id', localStorage.getItem("organisation_id") || '');
+      }
+      if (!formData.has('created_by')) {
+        formData.append('created_by', localStorage.getItem("id") || '');
+      }
+
+      const response = await api.post(`${entryBaseURL}/create-entry-order`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      setSubmitStatus({
+        success: true,
+        message: "Entry order created successfully and sent for admin review",
+      });
+
+      // Refresh entry orders list if needed
+      try {
+        await ProcessService.fetchEntryOrders({ 
+          organisationId: localStorage.getItem("organisation_id") || undefined 
+        });
+      } catch (refreshError) {
+        console.warn("Failed to refresh entry orders list:", refreshError);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error("Failed to create entry order:", error);
+      
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create entry order";
+      setSubmitStatus({
+        success: false,
+        message: errorMessage,
+      });
+      
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/create-entry-order");
+    }
+  },
+
+  /**
+   * Create comprehensive departure order with document uploads
+   * Uses FormData for multipart upload
+   */
+  createComprehensiveDepartureOrderWithDocuments: async (formData: FormData) => {
+    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
+    startLoader("processes/create-departure-order");
+
+    try {
+      // Add required fields only if they're not already present
+      if (!formData.has('organisation_id')) {
+        formData.append('organisation_id', localStorage.getItem("organisation_id") || '');
+      }
+      if (!formData.has('created_by')) {
+        formData.append('created_by', localStorage.getItem("id") || '');
+      }
+      if (!formData.has('status')) {
+        formData.append('status', 'PENDING');
+      }
+
+      const response = await api.post(`${departureBaseURL}/comprehensive-orders`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setSubmitStatus({
+        success: true,
+        message: "Departure order created successfully and submitted for approval",
+      });
+
+      // Refresh departure orders list
+      try {
+        await ProcessService.fetchComprehensiveDepartureOrders({ 
+          organisationId: localStorage.getItem("organisation_id") || undefined 
+        });
+      } catch (refreshError) {
+        console.warn("Failed to refresh departure orders list:", refreshError);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error("Failed to create comprehensive departure order:", error);
+      
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create departure order";
+      setSubmitStatus({
+        success: false,
+        message: errorMessage,
+      });
+      
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/create-departure-order");
+    }
+  },
+
+  /**
+   * Update departure order (only for orders in REVISION status)
+   * Uses FormData for multipart upload
+   */
+  updateDepartureOrder: async (departureOrderId: string, formData: FormData) => {
+    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
+    startLoader("processes/update-departure-order");
+
+    try {
+      // Add the user ID for validation on backend
+      if (!formData.has('updated_by')) {
+        formData.append('updated_by', localStorage.getItem("id") || '');
+      }
+
+      const response = await api.put(`${departureBaseURL}/departure-orders/${departureOrderId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      setSubmitStatus({
+        success: true,
+        message: "Departure order updated successfully and submitted for re-review",
+      });
+
+      // Refresh departure orders list
+      try {
+        await ProcessService.fetchComprehensiveDepartureOrders({ 
+          organisationId: localStorage.getItem("organisation_id") || undefined 
+        });
+      } catch (refreshError) {
+        console.warn("Failed to refresh departure orders list:", refreshError);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error("Failed to update departure order:", error);
+      
+      const errorMessage = error.response?.data?.message || error.message || "Failed to update departure order";
+      setSubmitStatus({
+        success: false,
+        message: errorMessage,
+      });
+      
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/update-departure-order");
+    }
+  },
 };
 
 export default ProcessService;

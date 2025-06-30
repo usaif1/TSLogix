@@ -184,8 +184,9 @@ const NewProductForm: React.FC = () => {
       console.log("Category value:", formData.category);
       console.log("Subcategory1 value:", formData.subcategory1);
       console.log("Subcategory2 value:", formData.subcategory2);
+      console.log("Uploaded document:", formData.uploaded_documents);
 
-      // Create JSON object like other parts of the application
+      // Create product data object
       const productData = {
         name: formData.name,
         product_code: formData.product_code,
@@ -198,16 +199,17 @@ const NewProductForm: React.FC = () => {
         category_id: formData.category?.value || null,
         subcategory1_id: formData.subcategory1?.value || null,
         subcategory2_id: formData.subcategory2?.value || null,
-        
-        // Note: File upload will be handled separately if needed
-        // For now, we'll skip the file upload functionality
-        uploaded_documents: formData.uploaded_documents?.name || null,
       };
 
       // Debug: Log the product data being sent
       console.log("Product data being sent:", productData);
 
-      const response = await ProductService.createProduct(productData);
+      // Use the new method that handles file uploads with FormData
+      const response = await ProductService.createProductWithDocuments(
+        productData, 
+        formData.uploaded_documents || undefined
+      );
+      
       addProduct(response);
       setSubmitStatus({
         success: true,

@@ -53,6 +53,18 @@ interface ExtendedEntryOrder {
     last_name: string;
     email: string;
   };
+  // ✅ Add missing properties from API response
+  uploaded_documents?: any[] | string;
+  calculated_totals?: {
+    inventory_quantity?: number;
+    package_quantity?: number;
+    weight_kg?: number;
+    volume_m3?: number;
+    insured_value?: number;
+  };
+  creator_name?: string;
+  allocation_percentage?: number;
+  inventoryAllocations?: any[];
 }
 
 interface SubmitStatus {
@@ -400,18 +412,6 @@ const Review: React.FC = () => {
                 {t('process:returning_to_view_mode')}
               </Text>
             )}
-          </div>
-        )}
-
-        {/* Review Comments from Admin */}
-        {entry.review_comments && (
-          <div className="bg-orange-50 border border-orange-200 rounded-md p-4 mb-4">
-            <Text size="sm" weight="font-medium" additionalClass="text-orange-800 mb-2">
-              {t('process:admin_review_comments')}:
-            </Text>
-            <Text size="sm" additionalClass="text-orange-700">
-              {entry.review_comments}
-            </Text>
           </div>
         )}
 
@@ -846,92 +846,44 @@ const Review: React.FC = () => {
     }
   };
 
-  const orderInfo = [
-    { label: t('process:entry_order_no'), value: entry.entry_order_no },
-    {
-      label: t('process:organisation'),
-      value: entry.organisation_name || entry.order?.organisation?.name,
-    },
-    { label: t('process:total_products'), value: entry.products?.length || 0 },
-    {
-      label: t('process:total_inventory_qty'),
-      // ✅ Calculate from products array instead of relying on stored total
-      value: entry.products?.reduce((sum: number, product: any) => {
-        return sum + (Number(product.inventory_quantity) || 0);
-      }, 0) || 0,
-    },
-    { 
-      label: t('process:total_package_qty'), 
-      // ✅ Calculate from products array instead of relying on stored total
-      value: entry.products?.reduce((sum: number, product: any) => {
-        return sum + (Number(product.package_quantity) || 0);
-      }, 0) || 0,
-    },
-    {
-      label: t('process:total_weight'),
-      // ✅ Calculate from products array if calculated totals are not available
-      value: `${
-        entry.calculated_total_weight || 
-        entry.total_weight || 
-        entry.products?.reduce((sum: number, product: any) => {
-          return sum + (Number(product.weight_kg) || 0);
-        }, 0) || 0
-      } kg`,
-    },
-    {
-      label: t('process:total_volume'),
-      // ✅ Calculate from products array if calculated totals are not available
-      value: `${
-        entry.calculated_total_volume || 
-        entry.total_volume || 
-        entry.products?.reduce((sum: number, product: any) => {
-          return sum + (Number(product.volume_m3) || 0);
-        }, 0) || 0
-      } m³`,
-    },
-    {
-      label: t('process:registration_date'),
-      // ✅ Pass string directly to formatDate
-      value: formatDate(entry.registration_date),
-    },
-    {
-      label: t('process:document_date'),
-      // ✅ Pass string directly to formatDate
-      value: formatDate(entry.document_date),
-    },
-    {
-      label: t('process:entry_date'),
-      // ✅ Pass string directly to formatDate
-      value: formatDate(entry.entry_date_time),
-    },
-    { label: t('process:order_status'), value: entry.order_status },
-    { label: t('process:document_type'), value: entry.documentType?.name },
-    { label: t('process:supplier'), value: getMainSupplier(entry.products || []) },
-    { label: t('process:origin'), value: entry.origin?.name },
-    { label: t('process:review_status'), value: getReviewStatusText(entry.review_status) },
-    { label: t('process:reviewed_by'), value: entry.reviewer_name || t('process:not_reviewed') },
-    {
-      label: t('process:reviewed_at'),
-      // ✅ Pass string directly to formatDate with null check
-      value: entry.reviewed_at ? formatDate(entry.reviewed_at) : t('process:not_reviewed'),
-    },
-  ];
-
-  function getMainSupplier(products: any[]) {
-    if (!products || products.length === 0) return "-";
-
-    const suppliers = [
-      ...new Set(products.map((p) => p.supplier?.name).filter(Boolean)),
-    ];
-
-    if (suppliers.length === 1) {
-      return suppliers[0];
-    } else if (suppliers.length > 1) {
-      return t('process:multiple_suppliers_count', { count: suppliers.length });
+  // ✅ Handle document download/view
+  const handleDocumentAction = (document: any, action: 'view' | 'download') => {
+    if (typeof document === 'string') {
+      // Old format - single URL
+      if (action === 'view') {
+        window.open(document, '_blank');
+      } else {
+        // Create a temporary link for download
+        const link = window.document.createElement('a');
+        link.href = document;
+        link.download = document.split('/').pop() || 'document';
+        link.click();
+      }
     } else {
-      return "-";
+      // New format - object with file details
+      if (action === 'view') {
+        window.open(document.public_url, '_blank');
+      } else {
+        const link = document.createElement('a');
+        link.href = document.public_url;
+        link.download = document.file_name;
+        link.click();
+      }
     }
-  }
+  };
+
+  // ✅ Format file size
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+
+
+
 
   const canReview =
     entry.review_status === "PENDING" ||
@@ -966,61 +918,162 @@ const Review: React.FC = () => {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto space-y-6">
-        {/* Order Information Card */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
+      <div className="flex-1 overflow-y-auto space-y-4">
+        {/* Compact Order Information */}
+        <div className="bg-white rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <Text
-              size="lg"
-              weight="font-semibold"
-              additionalClass="text-gray-800"
-            >
-              {t('process:order_information')}
+            <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
+              {entry.entry_order_no} - {entry.organisation_name || entry.order?.organisation?.name}
             </Text>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${getReviewStatusColor(
-                entry.review_status
-              )}`}
-            >
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getReviewStatusColor(entry.review_status)}`}>
               {getReviewStatusText(entry.review_status)}
             </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {orderInfo.map(({ label, value }) => (
-              <div key={label} className="flex flex-col space-y-1">
-                <span className="font-medium text-gray-700 text-sm">{label}</span>
-                <span className="text-gray-600 text-sm">{value ?? "-"}</span>
-              </div>
-            ))}
+
+          {/* Compact grid layout */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:order_status')}</span>
+              <p className="font-medium">{entry.order_status}</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:total_products')}</span>
+              <p className="font-medium">{entry.products?.length || 0}</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:total_weight')}</span>
+              <p className="font-medium">{entry.calculated_totals?.weight_kg || entry.total_weight || 0} kg</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:total_volume')}</span>
+              <p className="font-medium">{entry.calculated_totals?.volume_m3 || entry.total_volume || 0} m³</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:cif_value')}</span>
+              <p className="font-medium">${entry.cif_value || 0}</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:entry_date')}</span>
+              <p className="font-medium">{formatDate(entry.entry_date_time)}</p>
+            </div>
           </div>
+
+          {/* Comments/Observations inline */}
+          {(entry.observation || entry.review_comments) && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              {entry.observation && (
+                <div className="mb-2">
+                  <span className="text-gray-500 text-xs">{t('process:observations')}: </span>
+                  <span className="text-sm">{entry.observation}</span>
+                </div>
+              )}
+              {entry.review_comments && (
+                <div>
+                  <span className="text-gray-500 text-xs">{t('process:review_comments')}: </span>
+                  <span className="text-sm">{entry.review_comments}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Review Comments */}
-        {entry.review_comments && (
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <Text
-              size="lg"
-              weight="font-semibold"
-              additionalClass="mb-3 text-gray-800"
-            >
-              {t('process:review_comments')}
-            </Text>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <Text size="sm" additionalClass="text-gray-700">
-                {entry.review_comments}
-              </Text>
+        {/* Documents and Allocations - Compact */}
+        {((entry.uploaded_documents) || (entry.inventoryAllocations && entry.inventoryAllocations.length > 0)) && (
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Documents */}
+              {entry.uploaded_documents && (
+                <div>
+                  <Text size="lg" weight="font-semibold" additionalClass="mb-3 text-gray-800">
+                    {t('process:uploaded_documents')}
+                  </Text>
+                  
+                  {typeof entry.uploaded_documents === 'string' ? (
+                    <div className="border border-gray-200 rounded p-3 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                          </svg>
+                          <Text size="sm" weight="font-medium">{entry.uploaded_documents.split('/').pop() || t('process:document')}</Text>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button onClick={() => handleDocumentAction(entry.uploaded_documents, 'view')} additionalClass="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700">
+                            {t('process:view')}
+                          </Button>
+                          <Button onClick={() => handleDocumentAction(entry.uploaded_documents, 'download')} additionalClass="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700">
+                            {t('process:download')}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {entry.uploaded_documents.map((document: any, index: number) => (
+                        <div key={index} className="border border-gray-200 rounded p-3 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                              </svg>
+                              <div>
+                                <Text size="sm" weight="font-medium">{document.file_name}</Text>
+                                <Text size="xs" additionalClass="text-gray-500">{document.document_type?.replace(/_/g, ' ')} • {formatFileSize(document.file_size)}</Text>
+                              </div>
+                            </div>
+                            <div className="flex space-x-1">
+                              <Button onClick={() => handleDocumentAction(document, 'view')} additionalClass="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700">
+                                {t('process:view')}
+                              </Button>
+                              <Button onClick={() => handleDocumentAction(document, 'download')} additionalClass="px-2 py-1 text-xs bg-green-100 hover:bg-green-200 text-green-700">
+                                {t('process:download')}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Allocations */}
+              {entry.inventoryAllocations && entry.inventoryAllocations.length > 0 && (
+                <div>
+                  <Text size="lg" weight="font-semibold" additionalClass="mb-3 text-gray-800">
+                    {t('process:allocations')} ({entry.inventoryAllocations.length})
+                  </Text>
+                  <div className="space-y-2">
+                    {entry.inventoryAllocations.map((allocation: any) => (
+                      <div key={allocation.allocation_id} className="border border-gray-200 rounded p-3 text-sm">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <Text size="sm" weight="font-medium" additionalClass="font-mono">{allocation.allocation_id.slice(0, 8)}...</Text>
+                            <Text size="xs" additionalClass="text-gray-500">{formatDate(allocation.allocated_at)}</Text>
+                          </div>
+                          <div className="text-right">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${allocation.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                              {allocation.status}
+                            </span>
+                            <Text size="xs" additionalClass="text-gray-500 mt-1">
+                              {allocation.allocator ? `${allocation.allocator.first_name} ${allocation.allocator.last_name}` : 'N/A'}
+                            </Text>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Products Card */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <Text
-              size="lg"
-              weight="font-semibold"
-              additionalClass="text-gray-800"
-            >
+        {/* Products Table - Compact */}
+        <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className="flex justify-between items-center mb-3">
+            <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
               {t('process:products')} ({entry.products?.length || 0})
             </Text>
 
@@ -1067,164 +1120,146 @@ const Review: React.FC = () => {
             </div>
           </div>
 
-          {/* Products List */}
-          <div className="space-y-4">
-            {entry.products?.map((product: any, index: number) => (
-              <div
-                key={product.entry_order_product_id}
-                className="rounded-lg p-4 bg-gray-50"
-              >
-                {/* Product Header */}
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <Text weight="font-semibold" additionalClass="text-gray-800">
-                      #{index + 1}: {product.product?.name}
-                    </Text>
-                    <Text size="sm" additionalClass="text-gray-600">
-                      {t('process:product_code')}: {product.product?.product_code} | {t('process:serial_number')}: {product.serial_number}
-                    </Text>
-                  </div>
-                </div>
-
-                {/* Product Details Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:inventory_quantity')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.inventory_quantity}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:package_quantity')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.package_quantity}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:weight_kg')}:
-                    </span>
-                    <span className="text-gray-600">{product.weight_kg} kg</span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:volume_m3')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.volume_m3 || 0} m³
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:presentation')}:
-                    </span>
-                    <span className="text-gray-600">{product.presentation}</span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:lot_series')}:
-                    </span>
-                    <span className="text-gray-600">{product.lot_series}</span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:temperature_range')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.temperature_range}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:supplier')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.supplier?.name}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:country')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.supplier?.country?.name ||
-                        product.supplier_country}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:guide_number')}:
-                    </span>
-                    <span className="text-gray-600">{product.guide_number}</span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:insured_value')}:
-                    </span>
-                    <span className="text-gray-600">
-                      ${product.insured_value || 0}
-                    </span>
-                  </div>
-
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:humidity')}:
-                    </span>
-                    <span className="text-gray-600">{product.humidity}%</span>
-                  </div>
-                </div>
-
-                {/* Dates - strings passed directly to formatDate */}
-                <div className="grid grid-cols-2 gap-4 mt-3 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:manufacturing_date')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {formatDate(product.manufacturing_date)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:expiration_date')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {formatDate(product.expiration_date)}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Health Registration */}
-                {product.health_registration && (
-                  <div className="mt-3 text-sm">
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:health_registration')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.health_registration}
-                    </span>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-
-          {(!entry.products || entry.products.length === 0) && (
-            <div className="text-center py-8 text-gray-500">
+          {/* Excel-like Products Table */}
+          {entry.products && entry.products.length > 0 ? (
+            <div className="overflow-x-auto border border-gray-200 rounded-lg">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      #
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:product')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:serial_number')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:supplier')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:lot_series')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:inventory_quantity')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:package_quantity')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:weight_kg')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:volume_m3')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:presentation')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:temperature_range')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:dates')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('process:allocations')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {entry.products.map((product: any, index: number) => (
+                    <tr key={product.entry_order_product_id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}>
+                      <td className="px-3 py-4 text-sm font-medium text-gray-900 border-r border-gray-200">
+                        {index + 1}
+                      </td>
+                      <td className="px-4 py-4 text-sm border-r border-gray-200">
+                        <div>
+                          <Text weight="font-medium" additionalClass="text-gray-900">
+                            {product.product?.name}
+                          </Text>
+                          <Text size="xs" additionalClass="text-gray-500">
+                            {product.product?.product_code}
+                          </Text>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 font-mono">
+                        {product.serial_number}
+                      </td>
+                      <td className="px-4 py-4 text-sm border-r border-gray-200">
+                        <div>
+                          <Text weight="font-medium" additionalClass="text-gray-900">
+                            {product.supplier?.name}
+                          </Text>
+                          <Text size="xs" additionalClass="text-gray-500">
+                            {product.supplier?.country?.name}
+                          </Text>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 font-mono">
+                        {product.lot_series}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-center font-medium">
+                        {product.inventory_quantity}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-center font-medium">
+                        {product.package_quantity}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-right font-medium">
+                        {product.weight_kg} kg
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-right font-medium">
+                        {product.volume_m3 || 0} m³
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                          {product.presentation}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200">
+                        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                          {product.temperature_range}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 border-r border-gray-200">
+                        <div className="space-y-1">
+                          <div>
+                            <Text size="xs" additionalClass="text-gray-400">Mfg:</Text>
+                            <Text size="xs">{formatDate(product.manufacturing_date)}</Text>
+                          </div>
+                          <div>
+                            <Text size="xs" additionalClass="text-gray-400">Exp:</Text>
+                            <Text size="xs">{formatDate(product.expiration_date)}</Text>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500">
+                        {product.inventoryAllocations && product.inventoryAllocations.length > 0 ? (
+                          <div className="space-y-1">
+                            {product.inventoryAllocations.map((allocation: any) => (
+                              <div key={allocation.allocation_id} className="flex items-center space-x-2">
+                                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                  {allocation.cellReference}
+                                </span>
+                                <Text size="xs" additionalClass="text-gray-500">
+                                  {allocation.inventory_quantity} units
+                                </Text>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                            {t('process:not_allocated')}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500 border border-gray-200 rounded-lg">
               <Text>{t('process:no_products_found')}</Text>
             </div>
           )}

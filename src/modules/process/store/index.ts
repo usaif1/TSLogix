@@ -465,6 +465,7 @@ const processesInitialState: ProcessesStore = {
     "processes/load-departure-form-fields": false,
     "processes/get-departure-order-no": false,
     "processes/create-departure-order": false,
+    "processes/update-departure-order": false,
     "processes/fetch-entry-orders-for-departure": false,
     "processes/fetch-products-by-entry-order": false,
     "processes/fetch-cells-for-entry-product": false,

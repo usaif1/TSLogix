@@ -336,6 +336,64 @@ export const ProductService = {
     }
   },
 
+  // ✅ New method for creating products with document uploads
+  createProductWithDocuments: async (productData: any, documents?: File) => {
+    try {
+      startLoader("products/create-product");
+      
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      
+      // Add all product fields to FormData
+      formData.append("name", productData.name || "");
+      formData.append("product_code", productData.product_code || "");
+      formData.append("manufacturer", productData.manufacturer || "");
+      formData.append("humidity", productData.humidity || "");
+      formData.append("observations", productData.observations || "");
+      formData.append("organisation_id", localStorage.getItem("organisation_id") || "");
+      formData.append("created_by", localStorage.getItem("id") || "");
+      
+      // Add optional fields if they exist
+      if (productData.temperature_range_id) {
+        formData.append("temperature_range_id", productData.temperature_range_id);
+      }
+      if (productData.category_id) {
+        formData.append("category_id", productData.category_id);
+      }
+      if (productData.subcategory1_id) {
+        formData.append("subcategory1_id", productData.subcategory1_id);
+      }
+      if (productData.subcategory2_id) {
+        formData.append("subcategory2_id", productData.subcategory2_id);
+      }
+      
+      // Add document if provided
+      if (documents) {
+        formData.append("uploaded_documents", documents);
+      }
+      
+      // Debug: Log FormData contents
+      console.log("FormData contents:");
+      for (const [key, value] of formData.entries()) {
+        console.log(`${key}:`, value);
+      }
+      
+      const response = await api.post(productBaseURL, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      addProduct(response.data);
+      return response.data;
+    } catch (err) {
+      console.error("Create product with documents error:", err);
+      throw err;
+    } finally {
+      stopLoader("products/create-product");
+    }
+  },
+
   fetchProductById: async (id: string) => {
     try {
       startLoader("products/fetch-product");

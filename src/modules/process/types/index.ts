@@ -98,6 +98,7 @@ export type ProcessLoaderTypes =
   | "processes/load-departure-form-fields"
   | "processes/get-departure-order-no"
   | "processes/create-departure-order"
+  | "processes/update-departure-order"
   | "processes/fetch-entry-orders-for-departure"
   | "processes/fetch-products-by-entry-order"
   | "processes/fetch-cells-for-entry-product"
