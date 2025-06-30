@@ -17,7 +17,9 @@ import {
   DepartureApproved,
   DepartureCounter,
   DepartureReturned,
+  DepartureDispatch,
   Audit,
+  DepartureAudit,
 } from "@/modules/process/screens";
 
 import {
@@ -68,6 +70,8 @@ const ProtectedRoutes: React.FC = () => {
             <Route path="approved" element={<DepartureApproved />} />
             <Route path="returned" element={<DepartureReturned />} />
             <Route path="counter" element={<DepartureCounter />} />
+            <Route path="dispatch" element={<DepartureDispatch />} />
+            <Route path="audit" element={<DepartureAudit />} />
           </Route>
         </Route>
         <Route path="maintenance">

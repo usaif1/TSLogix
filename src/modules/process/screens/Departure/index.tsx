@@ -18,7 +18,12 @@ const Departure: React.FC = () => {
 
   // Single effect that handles both initial load and search
   useEffect(() => {
-    ProcessService.fetchAllDepartureOrders(debouncedSearchQuery);
+    // Use comprehensive departure orders to match the audit screen
+    const organisationId = localStorage.getItem("organisation_id");
+    ProcessService.fetchComprehensiveDepartureOrders({ 
+      organisationId: organisationId || undefined,
+      orderNo: debouncedSearchQuery || undefined
+    });
   }, [debouncedSearchQuery]);
 
   const handleSearch = useCallback((query: string) => {

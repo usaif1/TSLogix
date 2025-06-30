@@ -126,7 +126,6 @@ const SimplifiedInventoryAllocation: React.FC = () => {
   const [allocationData, setAllocationData] = useState<AllocationHelperResponse | null>(null);
   const [allocationRows, setAllocationRows] = useState<AllocationRow[]>([]);
   const [notes, setNotes] = useState("");
-  const [forceComplete, setForceComplete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -391,7 +390,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
         observations: row.observations || undefined,
       })),
       notes: notes || undefined,
-      force_complete_allocation: forceComplete,
+      force_complete_allocation: false,
     };
 
     try {
@@ -404,40 +403,22 @@ const SimplifiedInventoryAllocation: React.FC = () => {
       const allocationsCount = response.allocations?.length || response.allocations_created || 0;
       const cellsOccupied = response.cells_occupied?.length || response.cells_occupied || 0;
       const allocationPercentage = response.allocation_percentage || 0;
-      const isFullyAllocated = response.is_fully_allocated || false;
-      const totalQuantity = response.summary?.total_quantity_allocated || 0;
-      const totalPackages = response.summary?.total_packages_allocated || 0;
-      const totalWeight = response.summary?.total_weight_allocated || 0;
-      const warehousesUsed = response.warehouses_used?.length || 1;
       
-      // Create comprehensive success message
-      const successMessage = `
-        🎉 ${response.message || t('inventory:allocation_success_title')}
-        
-        📊 ${t('inventory:allocation_summary')}
-        • ${allocationsCount} ${t('inventory:allocations_created')}
-        • ${cellsOccupied} ${t('inventory:cells_occupied')}  
-        • ${totalQuantity} ${t('inventory:units_allocated')}
-        • ${totalPackages} ${t('inventory:packages_allocated')}
-        • ${totalWeight}kg ${t('inventory:total_weight')}
-        • ${warehousesUsed} ${t('inventory:warehouses_used')}
-        • ${allocationPercentage}% ${t('inventory:allocation_progress')}
-        
-        ${isFullyAllocated ? '✅ ' + t('inventory:fully_allocated') : '⚠️ ' + t('inventory:partial_allocation')}
-      `.trim();
+      // Create simple success message
+      const successMessage = `${response.message || 'Allocation completed successfully'} - ${allocationsCount} allocations created in ${cellsOccupied} cells (${allocationPercentage}% complete)`;
       
       setSuccess(successMessage);
       
       // Navigate to inventory after successful allocation
       setTimeout(() => {
         navigate("/inventory");
-      }, 3000); // Increased time to read the detailed message
+      }, 2000);
 
     } catch (error: any) {
       console.error("Bulk allocation error:", error);
       setError(error.message || "Failed to submit allocation");
     }
-  }, [allocationData, selectedEntryOrder, allocationRows, notes, forceComplete, navigate]);
+  }, [allocationData, selectedEntryOrder, allocationRows, notes, navigate]);
 
   // ✅ Get warehouse and cell options for dropdowns
   const getWarehouseOptions = useCallback(() => {
@@ -533,7 +514,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
 
       {success && (
         <div className="bg-green-50 border border-green-200 rounded-md p-4 mb-4">
-          <div className="text-green-800 text-sm whitespace-pre-line font-mono">
+          <div className="text-green-800 text-sm">
             {success}
           </div>
         </div>
@@ -681,9 +662,12 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                         isClearable
                         isSearchable={false}
                         className="text-xs"
+                        menuPortalTarget={document.body}
                         styles={{
                           control: (base) => ({ ...base, minHeight: '28px', fontSize: '12px' }),
                           option: (base) => ({ ...base, fontSize: '12px' }),
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          menu: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
                     </td>
@@ -702,9 +686,12 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                         isSearchable={false}
                         isDisabled={!row.warehouse_id}
                         className="text-xs"
+                        menuPortalTarget={document.body}
                         styles={{
                           control: (base) => ({ ...base, minHeight: '28px', fontSize: '12px' }),
                           option: (base) => ({ ...base, fontSize: '12px' }),
+                          menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                          menu: (base) => ({ ...base, zIndex: 9999 }),
                         }}
                       />
                     </td>
@@ -840,19 +827,9 @@ const SimplifiedInventoryAllocation: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 <div className="text-sm">
-                  <span className="font-medium">{validRowsCount}</span> valid allocations
                 </div>
                 <div className="text-sm">
-                  <span className="font-medium">{totalAllocationQuantity}</span> total units
                 </div>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={forceComplete}
-                    onChange={(e) => setForceComplete(e.target.checked)}
-                  />
-                  Force complete allocation
-                </label>
               </div>
               
               <div className="flex items-center gap-2">

@@ -10,6 +10,7 @@ export type ClientLoaderTypes =
   | "clients/delete-client"
   | "clients/fetch-form-fields"
   | "clients/fetch-available-cells"
+  | "clients/fetch-warehouses"
   | "clients/assign-cell"
   | "clients/remove-cell-assignment";
 
@@ -176,6 +177,7 @@ const clientInitialState: ClientStore = {
     "clients/delete-client": false,
     "clients/fetch-form-fields": false,
     "clients/fetch-available-cells": false,
+    "clients/fetch-warehouses": false,
     "clients/assign-cell": false,
     "clients/remove-cell-assignment": false,
   },

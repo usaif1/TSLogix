@@ -47,6 +47,7 @@
   "cell_not_available": "Celda no disponible",
   "product_assigned_successfully": "Producto asignado exitosamente al inventario",
   "movement_type": "Tipo de Movimiento",
+  "departure_order": "Orden de Salida",
   "entry": "Ingreso",
   "departure": "Salida",
   "transfer": "Transferencia",
@@ -272,5 +273,8 @@
   "ready_for_departure": "Listo para salida",
   "customer_returns": "Devoluciones de clientes",
   "quality_samples": "Muestras de calidad",
-  "failed_quality_control": "Control de calidad fallido"
+  "failed_quality_control": "Control de calidad fallido",
+  "quarantine_to_approved_message": "El artículo será aprobado en su ubicación actual.",
+  "quarantine_approval_info": "Transición de Cuarentena a Aprobado",
+  "item_will_remain_same_location": "El artículo permanecerá en la misma celda y solo el estado cambiará a APROBADO."
 }

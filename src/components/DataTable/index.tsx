@@ -14,6 +14,7 @@ interface DataTableProps<T extends object> {
   pageSize?: number;
   emptyMessage?: string;
   className?: string;
+  onRowClick?: (row: T) => void;
 }
 
 function DataTable<T extends object>({
@@ -23,6 +24,7 @@ function DataTable<T extends object>({
   pageSize = 10,
   emptyMessage,
   className = "",
+  onRowClick,
 }: DataTableProps<T>) {
   const { t } = useTranslation('components');
   
@@ -83,7 +85,10 @@ function DataTable<T extends object>({
                   key={row.id}
                   className={`border-b border-gray-200 ${
                     rowIndex % 2 === 0 ? "bg-white" : "bg-gray-50"
-                  } hover:bg-gray-100 transition-colors`}
+                  } hover:bg-gray-100 transition-colors ${
+                    onRowClick ? "cursor-pointer" : ""
+                  }`}
+                  onClick={() => onRowClick?.(row.original)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
                     <td

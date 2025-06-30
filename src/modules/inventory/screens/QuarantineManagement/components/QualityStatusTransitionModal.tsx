@@ -93,12 +93,15 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
 }) => {
   const { t } = useTranslation(['inventory', 'common']);
 
+  // Special case: Quarantine to Approved keeps same cell, no selection needed
+  const isQuarantineToApproved = selectedItem?.quality_status === QualityControlStatus.CUARENTENA && 
+                                transitionStatus === QualityControlStatus.APROBADO;
+  
   const requiresCellSelection = transitionStatus && [
-    QualityControlStatus.APROBADO,
     QualityControlStatus.DEVOLUCIONES,
     QualityControlStatus.CONTRAMUESTRAS,
     QualityControlStatus.RECHAZADOS
-  ].includes(transitionStatus);
+  ].includes(transitionStatus) && !isQuarantineToApproved;
 
   useEffect(() => {
     if (isOpen && requiresCellSelection && transitionStatus && selectedItem) {
@@ -141,13 +144,13 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
                 status: getStatusLabel(transitionStatus, t) 
               })}
               {' '}
-              {requiresCellSelection 
-                ? transitionStatus === QualityControlStatus.APROBADO
-                  ? t('select_destination_cell_and_provide_reason')
-                  : t('specify_quantities_destination_and_reason')
-                : showQuantityFields 
-                  ? t('specify_quantities_and_reason') 
-                  : t('please_provide_reason')
+              {isQuarantineToApproved 
+                ? t('quarantine_to_approved_message')
+                : requiresCellSelection 
+                  ? t('specify_quantities_destination_and_reason')
+                  : showQuantityFields 
+                    ? t('specify_quantities_and_reason') 
+                    : t('please_provide_reason')
               }
             </p>
           </div>
@@ -235,11 +238,28 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
             </div>
           )}
 
-          {!requiresCellSelection && transitionStatus === QualityControlStatus.APROBADO && (
+          {isQuarantineToApproved && selectedItem && (
             <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <Text size="sm" additionalClass="text-green-800">
-                ℹ️ {t('approval_no_cell_change_message')}
-              </Text>
+              <div className="flex items-start gap-3">
+                <div className="flex-shrink-0">
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <Text size="sm" weight="font-medium" additionalClass="text-green-800 mb-1">
+                    {t('quarantine_approval_info')}
+                  </Text>
+                  <Text size="sm" additionalClass="text-green-700">
+                    {t('current_location')}: <span className="font-mono font-semibold">
+                      {selectedItem.cell.row}.{String(selectedItem.cell.bay).padStart(2, '0')}.{String(selectedItem.cell.position).padStart(2, '0')}
+                    </span> ({selectedItem.cell.warehouse.name})
+                  </Text>
+                  <Text size="xs" additionalClass="text-green-600 mt-1">
+                    {t('item_will_remain_same_location')}
+                  </Text>
+                </div>
+              </div>
             </div>
           )}
 

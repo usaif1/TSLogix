@@ -3,42 +3,30 @@ import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 // components
-import { Text, Divider } from "@/components";
-import DepartureApprovedForm from "./components/DepartureApprovedForm";
+import { Text } from "@/components";
+import ComprehensiveDepartureForm from "./components/ComprehensiveDepartureForm";
+
 // service
 import { ProcessService } from "@/modules/process/api/process.service";
 
 const DepartureApproved: React.FC = () => {
   const { t } = useTranslation("process");
+  
+  console.log("DepartureApproved component loaded");
 
   useEffect(() => {
-    // Fetch both departure form fields and warehouses
-    const fetchData = async () => {
-      try {
-        await Promise.all([
-          ProcessService.fetchDepartureFormFields(),
-          ProcessService.fetchWarehouses(),
-        ]);
-      } catch (error) {
-        console.error("Error fetching form data:", error);
-      }
-    };
-
-    fetchData();
+    ProcessService.loadDepartureFormFields();
+    ProcessService.fetchWarehouses();
   }, []);
 
   return (
     <div className="flex flex-col h-full">
       <div className="mb-4">
-        <Text size="3xl" weight="font-bold">
-          {t("new_departure_order")}
-        </Text>
-        <Text size="xl" additionalClass="mt-2 text-gray-600">
-          {t("departure_order_description")}
+        <Text size="2xl" weight="font-bold">
+          {t("departure_order")}
         </Text>
       </div>
-      <Divider height="lg" />
-      <DepartureApprovedForm />
+      <ComprehensiveDepartureForm />
     </div>
   );
 };

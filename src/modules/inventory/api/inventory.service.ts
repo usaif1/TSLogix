@@ -69,43 +69,59 @@ export const InventoryLogService = {
       const response = await api.get(`${baseURL}/summary`, { params: filters });
       const data = response.data.data || response.data;
 
-      // ✅ Map inventory summary to logs format for display
-      const logsData = data.map((item: any) => ({
-        log_id: item.inventory_id,
-        user: {
-          first_name: "System",
-          last_name: "User",
-        },
-        product: {
-          product_id: item.product.product_id,
-          product_code: item.product.product_code,
-          name: item.product.name,
-        },
-        movement_type: "ENTRY",
-        quantity_change: item.current_quantity,
-        package_change: item.current_package_quantity,
-        weight_change: item.current_weight,
-        volume_change: item.current_volume,
-        warehouseCell: {
-          row: item.cell.row,
-          bay: item.cell.bay,
-          position: item.cell.position,
-        },
-        warehouse: item.warehouse,
-        entry_order: item.allocation?.entry_order_no
-          ? {
-              entry_order_no: item.allocation.entry_order_no,
-            }
-          : null,
-        product_status: item.product_status,
-        status_code: item.status_code,
-        quality_status: item.quality_status,
-        timestamp: item.allocation?.allocated_at || new Date().toISOString(),
-        notes: item.allocation?.observations || "Current inventory",
-      }));
+      // ✅ Extract and flatten all movement logs from inventory items
+      const allMovementLogs: any[] = [];
+      
+      data.forEach((item: any) => {
+        if (item.movement_logs && Array.isArray(item.movement_logs)) {
+          item.movement_logs.forEach((log: any) => {
+            allMovementLogs.push({
+              log_id: log.log_id,
+              inventory_id: item.inventory_id,
+              user: log.user_id ? {
+                first_name: "User", // Could be enhanced with actual user data
+                last_name: "",
+              } : {
+                first_name: "System",
+                last_name: "",
+              },
+              product: {
+                product_id: item.product.product_id,
+                product_code: item.product.product_code,
+                name: item.product.name,
+                manufacturer: item.product.manufacturer,
+              },
+              movement_type: log.movement_type,
+              quantity_change: log.quantity_change,
+              package_change: log.package_change,
+              weight_change: log.weight_change,
+              volume_change: log.volume_change,
+              warehouseCell: item.cell ? {
+                row: item.cell.row,
+                bay: item.cell.bay,
+                position: item.cell.position,
+              } : null,
+              warehouse: item.warehouse,
+              entry_order: log.entry_order,
+              departure_order: log.departure_order,
+              departure_order_id: log.departure_order_id,
+              entry_order_id: log.entry_order_id,
+              product_status: log.product_status,
+              status_code: log.status_code,
+              quality_status: item.allocation?.quality_status,
+              timestamp: log.timestamp,
+              notes: item.allocation?.observations || null,
+              cell_reference: item.cell_reference,
+            });
+          });
+        }
+      });
 
-      setInventoryLogs(logsData);
-      return logsData;
+      // Sort by timestamp (newest first)
+      allMovementLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      setInventoryLogs(allMovementLogs);
+      return allMovementLogs;
     } catch (error) {
       console.error("Fetch inventory logs error:", error);
       throw error;

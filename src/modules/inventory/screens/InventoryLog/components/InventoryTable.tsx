@@ -73,25 +73,30 @@ export function InventoryTable<T extends object = any>({
 
             <tbody className="bg-white divide-y divide-gray-200">
               {table.getRowModel().rows.length > 0 ? (
-                table.getRowModel().rows.map((row, idx) => (
-                  <tr
-                    key={row.id}
-                    className={`${
-                      idx % 2 === 0 ? "bg-white" : "bg-gray-50"
-                    } hover:bg-gray-100 transition-colors`}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        key={cell.id}
-                        className="px-3 py-3 text-sm text-gray-600 border-r border-gray-100 last:border-r-0 overflow-hidden"
-                      >
-                        <div className="w-full overflow-hidden">
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </div>
-                      </td>
-                    ))}
-                  </tr>
-                ))
+                table.getRowModel().rows.map((row, idx) => {
+                  const isDeparture = (row.original as any).movement_type === "DEPARTURE";
+                  const baseRowClass = idx % 2 === 0 ? "bg-white" : "bg-gray-50";
+                  const departureClass = isDeparture ? "bg-red-50 border-l-4 border-l-red-500" : "";
+                  const hoverClass = isDeparture ? "hover:bg-red-100" : "hover:bg-gray-100";
+                  
+                  return (
+                    <tr
+                      key={row.id}
+                      className={`${baseRowClass} ${departureClass} ${hoverClass} transition-colors`}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-3 py-3 text-sm text-gray-600 border-r border-gray-100 last:border-r-0 overflow-hidden"
+                        >
+                          <div className="w-full overflow-hidden">
+                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          </div>
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td

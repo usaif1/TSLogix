@@ -734,6 +734,12 @@ export const ProcessService = {
           option: customer.name || customer.company_name
         })) || [],
         
+        personnel: formFields.users?.map((user: any, index: number) => ({
+          value: user.user_id || user.id || user.name || `user_${index}`,
+          label: user.name,
+          option: user.name
+        })) || [],
+        
         documentTypes: formFields.documentTypes?.map((doc: any) => ({
           value: doc.document_type_id || doc.id,
           label: doc.name,
@@ -1524,6 +1530,1003 @@ export const ProcessService = {
       throw new Error(errorMessage);
     } finally {
       stopLoader("processes/create-departure-order");
+    }
+  },
+
+  // =====================================
+  // NEW: COMPREHENSIVE DEPARTURE WORKFLOW
+  // =====================================
+
+  /**
+   * Get user role-based permissions for departure operations
+   */
+  getDeparturePermissions: async (): Promise<import("../types").DeparturePermissions> => {
+    try {
+      const userRole = localStorage.getItem("role") as import("../types").UserRole;
+      const response = await api.get(`${departureBaseURL}/permissions?role=${userRole}`);
+      
+      // Extract the permissions from the API response
+      const apiData = response.data.data || response.data;
+      const apiPermissions = apiData.permissions || apiData;
+      
+      // Transform API response to match DeparturePermissions interface
+      const transformedPermissions: import("../types").DeparturePermissions = {
+        can_create_order: apiPermissions.can_create || false,
+        can_edit_order: apiPermissions.can_edit || false,
+        can_delete_order: apiPermissions.can_delete || false,
+        can_submit_order: apiPermissions.can_create || false, // Map to can_create
+        can_approve_order: apiPermissions.can_approve || false,
+        can_reject_order: apiPermissions.can_reject || false,
+        can_request_revision: apiPermissions.can_request_revision || false,
+        can_dispatch_order: apiPermissions.can_dispatch || false,
+        can_complete_order: apiPermissions.can_dispatch || false, // Map to can_dispatch
+        can_view_all_orders: apiPermissions.can_view_all || false,
+        can_view_own_orders: apiPermissions.can_view_own || false,
+        can_assign_orders: apiPermissions.can_assign || false,
+        can_override_fifo: apiPermissions.can_override_fifo || false,
+        can_access_admin_panel: apiPermissions.can_access_admin || false,
+             };
+       
+       return transformedPermissions;
+    } catch (error) {
+      console.error("Failed to fetch departure permissions:", error);
+      // Return default permissions based on role
+      const userRole = localStorage.getItem("role") as import("../types").UserRole;
+      return ProcessService.getDefaultPermissions(userRole);
+    }
+  },
+
+  /**
+   * Get default permissions based on user role (fallback)
+   */
+  getDefaultPermissions: (role: import("../types").UserRole): import("../types").DeparturePermissions => {
+    const basePermissions = {
+      can_create_order: false,
+      can_edit_order: false,
+      can_delete_order: false,
+      can_submit_order: false,
+      can_approve_order: false,
+      can_reject_order: false,
+      can_request_revision: false,
+      can_dispatch_order: false,
+      can_complete_order: false,
+      can_view_all_orders: false,
+      can_view_own_orders: false,
+      can_assign_orders: false,
+      can_override_fifo: false,
+      can_access_admin_panel: false,
+    };
+
+    switch (role) {
+      case "ADMIN":
+        return { ...basePermissions, 
+          can_create_order: true,
+          can_edit_order: true,
+          can_delete_order: true,
+          can_submit_order: true,
+          can_approve_order: true,
+          can_reject_order: true,
+          can_request_revision: true,
+          can_dispatch_order: true,
+          can_complete_order: true,
+          can_view_all_orders: true,
+          can_view_own_orders: true,
+          can_assign_orders: true,
+          can_override_fifo: true,
+          can_access_admin_panel: true,
+        };
+      case "WAREHOUSE_INCHARGE":
+        return { ...basePermissions,
+          can_create_order: true,
+          can_edit_order: true,
+          can_submit_order: true,
+          can_approve_order: true,
+          can_reject_order: true,
+          can_request_revision: true,
+          can_dispatch_order: true,
+          can_complete_order: true,
+          can_view_all_orders: true,
+          can_view_own_orders: true,
+          can_assign_orders: true,
+          can_override_fifo: false,
+        };
+      case "CLIENT":
+        return { ...basePermissions,
+          can_create_order: true,
+          can_edit_order: true,
+          can_submit_order: true,
+          can_view_own_orders: true,
+        };
+      default:
+        return basePermissions;
+    }
+  },
+
+  /**
+   * Get current departure order number from backend
+   */
+  getCurrentDepartureOrderNo: async (): Promise<string> => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/get-departure-order-no");
+
+    try {
+      const response = await api.get(`${departureBaseURL}/current-departure-order-no`);
+      const orderNo = response.data.data?.departure_order_no || response.data.departure_order_no || response.data;
+      return orderNo;
+    } catch (error) {
+      console.error("Failed to get current departure order number:", error);
+      // Fallback to manual generation if API fails
+      return `DEP-${new Date().getFullYear()}-${Date.now().toString().slice(-6)}`;
+    } finally {
+      stopLoader("processes/get-departure-order-no");
+    }
+  },
+
+  /**
+   * Create departure order with new comprehensive workflow
+   */
+  createComprehensiveDepartureOrder: async (formData: {
+    departure_order_code: string;
+    customer_id: string;
+    warehouse_id: string;
+    document_type_id: string;
+    document_number: string;
+    document_date: string;
+    dispatch_document_number: string;
+    departure_date: string;
+    entry_date_time: string;
+    products: Array<{
+      product_id: string;
+      product_code: string;
+      product_name: string;
+      requested_quantity: number;
+      requested_weight: number;
+      packaging_quantity: number;
+      pallet_quantity?: number;
+      lot_number: string;
+      packaging_type: string;
+      presentation: string;
+      entry_order_no: string;
+      guide_number: string;
+      fifo_allocations?: import("../types").ExpiryFifoLocation[];
+    }>;
+    transport_type?: string;
+    arrival_point?: string;
+    observations?: string;
+    special_instructions?: string;
+    priority_level?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+    uploaded_documents?: File[];
+  }) => {
+    const { startLoader, stopLoader, setSubmitStatus } = ProcessesStore.getState();
+    startLoader("processes/create-departure-order");
+
+    try {
+      // Validate comprehensive mandatory fields
+      if (!formData.departure_order_code?.trim()) {
+        throw new Error("Departure order code is required");
+      }
+      if (!formData.dispatch_document_number?.trim()) {
+        throw new Error("Dispatch document number is required");
+      }
+      if (!formData.products || formData.products.length === 0) {
+        throw new Error("At least one product is required");
+      }
+
+      // Validate each product for mandatory fields
+      for (const [index, product] of formData.products.entries()) {
+        const productNum = index + 1;
+        
+        if (!product.product_code?.trim()) {
+          throw new Error(`Product ${productNum}: Product code is required`);
+        }
+        if (!product.product_name?.trim()) {
+          throw new Error(`Product ${productNum}: Product name is required`);
+        }
+        if (!product.lot_number?.trim()) {
+          throw new Error(`Product ${productNum}: Lot number is required`);
+        }
+        if (!product.requested_quantity || product.requested_quantity <= 0) {
+          throw new Error(`Product ${productNum}: Quantity inventory units must be greater than 0`);
+        }
+        if (!product.packaging_quantity || product.packaging_quantity <= 0) {
+          throw new Error(`Product ${productNum}: Packaging quantity must be greater than 0`);
+        }
+        if (!product.packaging_type?.trim()) {
+          throw new Error(`Product ${productNum}: Packaging type is required`);
+        }
+        if (!product.entry_order_no?.trim()) {
+          throw new Error(`Product ${productNum}: Entry order number is required`);
+        }
+        if (!product.guide_number?.trim()) {
+          throw new Error(`Product ${productNum}: Guide number is required`);
+        }
+      }
+
+      const payload = {
+        ...formData,
+        organisation_id: localStorage.getItem("organisation_id"),
+        created_by: localStorage.getItem("id"),
+        status: "PENDING",
+        priority_level: formData.priority_level || "MEDIUM",
+      };
+
+      const response = await api.post(`${departureBaseURL}/comprehensive-orders`, payload);
+
+      setSubmitStatus({
+        success: true,
+        message: "Departure order created successfully and submitted for approval",
+      });
+
+      // Refresh departure orders list
+      try {
+        await ProcessService.fetchComprehensiveDepartureOrders({ 
+          organisationId: localStorage.getItem("organisation_id") || undefined 
+        });
+      } catch (refreshError) {
+        console.warn("Failed to refresh departure orders list:", refreshError);
+      }
+
+      return response.data;
+    } catch (error: any) {
+      console.error("Failed to create comprehensive departure order:", error);
+      
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create departure order";
+      setSubmitStatus({
+        success: false,
+        message: errorMessage,
+      });
+      
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/create-departure-order");
+    }
+  },
+
+  /**
+   * Fetch comprehensive departure orders with workflow status
+   */
+  fetchComprehensiveDepartureOrders: async (filters?: { 
+    status?: import("../types").DepartureOrderStatus;
+    organisationId?: string; 
+    orderNo?: string;
+    priority?: string;
+    warehouse_id?: string;
+    customer_id?: string;
+    created_by?: string;
+  }) => {
+    const { startLoader, stopLoader, setDepartureOrders } = ProcessesStore.getState();
+    startLoader("processes/fetch-departure-orders");
+
+    try {
+      const params = new URLSearchParams();
+      if (filters?.organisationId) params.append("organisationId", filters.organisationId);
+      if (filters?.orderNo) params.append("orderNo", filters.orderNo);
+      if (filters?.status) params.append("status", filters.status);
+      if (filters?.priority) params.append("priority", filters.priority);
+      if (filters?.warehouse_id) params.append("warehouse_id", filters.warehouse_id);
+      if (filters?.customer_id) params.append("customer_id", filters.customer_id);
+      if (filters?.created_by) params.append("created_by", filters.created_by);
+
+      const response = await api.get(`${departureBaseURL}/comprehensive-orders?${params.toString()}`);
+      const orders: import("../types").DepartureOrder[] = response.data.data || response.data;
+
+      setDepartureOrders(orders);
+      return orders;
+    } catch (error) {
+      console.error("Failed to fetch comprehensive departure orders:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-departure-orders");
+    }
+  },
+
+  /**
+   * Fetch single comprehensive departure order by ID
+   */
+  fetchComprehensiveDepartureOrderById: async (orderId: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/fetch-departure-orders");
+
+    try {
+      const response = await api.get(`${departureBaseURL}/comprehensive-orders/${orderId}`);
+      const order: import("../types").DepartureOrder = response.data.data || response.data;
+      return order;
+    } catch (error) {
+      console.error("Failed to fetch comprehensive departure order:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-departure-orders");
+    }
+  },
+
+  /**
+   * Fetch single comprehensive departure order by order number (for audit screen)
+   */
+  fetchComprehensiveDepartureOrderByNo: async (orderNo: string) => {
+    const { startLoader, stopLoader, setCurrentDepartureOrder } = ProcessesStore.getState();
+    startLoader("processes/fetch-departure-orders");
+
+    try {
+      // First try to get orders by order number
+      const response = await api.get(`${departureBaseURL}/comprehensive-orders?orderNo=${encodeURIComponent(orderNo)}`);
+      const orders: import("../types").DepartureOrder[] = response.data.data || response.data;
+      
+      if (orders && orders.length > 0) {
+        const order = orders[0]; // Get the first matching order
+        setCurrentDepartureOrder(order);
+        return order;
+      } else {
+        throw new Error(`Departure order ${orderNo} not found`);
+      }
+    } catch (error) {
+      console.error("Failed to fetch departure order by number:", error);
+      setCurrentDepartureOrder(null);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-departure-orders");
+    }
+  },
+
+  /**
+   * Approve departure order (WAREHOUSE_INCHARGE & ADMIN only)
+   */
+  approveDepartureOrder: async (orderId: string, approvalData: {
+    comments?: string;
+    priority_level?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+    warehouse_assignment?: string;
+    special_instructions?: string;
+  }) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/approve-departure-order");
+
+    try {
+      const payload = {
+        ...approvalData,
+        reviewed_by: localStorage.getItem("id"),
+        reviewed_at: new Date().toISOString(),
+      };
+
+      const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/approve`, payload);
+
+      // Refresh orders list
+      await ProcessService.fetchComprehensiveDepartureOrders({ 
+        organisationId: localStorage.getItem("organisation_id") || undefined 
+      });
+
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Failed to approve departure order:", error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
+        || "Failed to approve departure order";
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/approve-departure-order");
+    }
+  },
+
+  /**
+   * Reject departure order (WAREHOUSE_INCHARGE & ADMIN only)
+   */
+  rejectDepartureOrder: async (orderId: string, rejectionData: {
+    comments: string;
+    reason: string;
+  }) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/reject-departure-order");
+
+    try {
+      if (!rejectionData.comments?.trim()) {
+        throw new Error("Rejection comments are required");
+      }
+      if (!rejectionData.reason?.trim()) {
+        throw new Error("Rejection reason is required");
+      }
+
+      const payload = {
+        ...rejectionData,
+        reviewed_by: localStorage.getItem("id"),
+        reviewed_at: new Date().toISOString(),
+      };
+
+      const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/reject`, payload);
+
+      // Refresh orders list
+      await ProcessService.fetchComprehensiveDepartureOrders({ 
+        organisationId: localStorage.getItem("organisation_id") || undefined 
+      });
+
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Failed to reject departure order:", error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
+        || "Failed to reject departure order";
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/reject-departure-order");
+    }
+  },
+
+  /**
+   * Request revision for departure order (WAREHOUSE_INCHARGE & ADMIN only)
+   */
+  requestDepartureOrderRevision: async (orderId: string, revisionData: {
+    comments: string;
+    required_changes: string[];
+    priority_level?: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  }) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/request-departure-revision");
+
+    try {
+      if (!revisionData.comments?.trim()) {
+        throw new Error("Revision comments are required");
+      }
+      if (!revisionData.required_changes || revisionData.required_changes.length === 0) {
+        throw new Error("At least one required change must be specified");
+      }
+
+      const payload = {
+        ...revisionData,
+        reviewed_by: localStorage.getItem("id"),
+        reviewed_at: new Date().toISOString(),
+      };
+
+      const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/request-revision`, payload);
+
+      // Refresh orders list
+      await ProcessService.fetchComprehensiveDepartureOrders({ 
+        organisationId: localStorage.getItem("organisation_id") || undefined 
+      });
+
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Failed to request departure order revision:", error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
+        || "Failed to request departure order revision";
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/request-departure-revision");
+    }
+  },
+
+  /**
+   * Get departure order audit trail
+   */
+  getDepartureOrderAuditTrail: async (orderId: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/fetch-departure-audit-trail");
+
+    try {
+      const response = await api.get(`${departureBaseURL}/departure-orders/${orderId}/audit-trail`);
+      const auditTrail: import("../types").DepartureApprovalStep[] = response.data.data || response.data || [];
+      return auditTrail;
+    } catch (error) {
+      console.error("Failed to fetch departure order audit trail:", error);
+      // Return empty array if audit trail endpoint is not available
+      return [];
+    } finally {
+      stopLoader("processes/fetch-departure-audit-trail");
+    }
+  },
+
+  /**
+   * Dispatch single departure order (WAREHOUSE_INCHARGE & ADMIN only)
+   */
+  dispatchDepartureOrder: async (orderId: string, dispatchData: {
+    dispatch_date_time?: string;
+    transport_details?: {
+      vehicle_info?: string;
+      driver_name?: string;
+      route_info?: string;
+      estimated_arrival?: string;
+    };
+    final_inventory_allocations?: Array<{
+      product_id: string;
+      allocations: import("../types").DepartureInventoryAllocation[];
+    }>;
+    dispatch_notes?: string;
+  }) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/dispatch-departure-order");
+
+    try {
+      // Set default dispatch date/time if not provided
+      const dispatch_date_time = dispatchData.dispatch_date_time || new Date().toISOString();
+
+      const payload = {
+        dispatch_date_time,
+        transport_details: dispatchData.transport_details,
+        final_inventory_allocations: dispatchData.final_inventory_allocations || [],
+        dispatch_notes: dispatchData.dispatch_notes,
+        dispatched_by: localStorage.getItem("id"),
+      };
+
+      const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/auto-dispatch`, payload);
+
+      // Refresh orders list
+      await ProcessService.fetchComprehensiveDepartureOrders({ 
+        organisationId: localStorage.getItem("organisation_id") || undefined 
+      });
+
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Failed to dispatch departure order:", error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
+        || "Failed to dispatch departure order";
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/dispatch-departure-order");
+    }
+  },
+
+  /**
+   * Simple dispatch for approved orders (removes from inventory automatically)
+   */
+  simpleDispatchDepartureOrder: async (orderId: string, dispatchNotes?: string) => {
+    console.log('simpleDispatchDepartureOrder called with:', { orderId, dispatchNotes });
+    const { startLoader, stopLoader, currentDepartureOrder } = ProcessesStore.getState();
+    startLoader("processes/dispatch-departure-order");
+
+    try {
+      // Get the current departure order to extract inventory selections
+      let order = currentDepartureOrder;
+      if (!order || (order.departure_order_id !== orderId && order.departure_order_no !== orderId && order.departure_order_code !== orderId)) {
+        // Fetch the order if not available in store
+        order = await ProcessService.fetchComprehensiveDepartureOrderByNo(orderId);
+      }
+
+      if (!order || !order.products || order.products.length === 0) {
+        throw new Error('No products found in departure order for dispatch');
+      }
+
+      // Check if order has been allocated to inventory
+      const hasInventoryAllocations = order.products.some((product: any) => 
+        product.inventory_allocations && product.inventory_allocations.length > 0
+      );
+
+      console.log('Order structure check:', {
+        hasInventoryAllocations,
+        productsCount: order.products.length,
+        firstProduct: order.products[0],
+        sampleProductKeys: order.products[0] ? Object.keys(order.products[0]) : []
+      });
+
+      if (!hasInventoryAllocations) {
+        // Check if products have fifo_allocations or any other allocation data
+        const hasFifoAllocations = order.products.some((product: any) => 
+          product.fifo_allocations && product.fifo_allocations.length > 0
+        );
+
+        const hasProductInventoryData = order.products.some((product: any) => 
+          product.departure_order_product_id || product.product_id
+        );
+
+        console.log('Alternative allocation check:', {
+          hasFifoAllocations,
+          hasProductInventoryData,
+          orderData: order
+        });
+
+        if (!hasFifoAllocations && !hasProductInventoryData) {
+          throw new Error('Departure order has not been allocated to specific inventory cells yet. Please allocate the order before dispatching.');
+        }
+
+        console.warn('No specific inventory allocations found, but proceeding with available product data');
+      }
+
+      // Create inventory selections from available data
+      const inventory_selections: any[] = [];
+
+      order.products.forEach((product: any) => {
+        // Priority 1: Use inventory_allocations if available
+        if (product.inventory_allocations && product.inventory_allocations.length > 0) {
+          product.inventory_allocations.forEach((allocation: any) => {
+            inventory_selections.push({
+              inventory_id: allocation.inventory_id,
+              product_id: product.product_id,
+              requested_qty: allocation.allocated_quantity || parseInt(product.requested_quantity?.toString() || "0"),
+              requested_weight: allocation.allocated_weight || parseFloat(product.requested_weight?.toString() || "0"),
+              lot_number: allocation.lot_series || product.lot_series || product.lot_number,
+              presentation: product.presentation || "CAJA",
+              cell_id: allocation.cell_id,
+              allocation_id: allocation.allocation_id,
+            });
+          });
+        } 
+        // Priority 2: Use fifo_allocations if available
+        else if (product.fifo_allocations && product.fifo_allocations.length > 0) {
+          product.fifo_allocations.forEach((allocation: any) => {
+            inventory_selections.push({
+              inventory_id: allocation.inventory_id,
+              product_id: product.product_id,
+              requested_qty: allocation.allocated_quantity || parseInt(product.requested_quantity?.toString() || "0"),
+              requested_weight: allocation.allocated_weight || parseFloat(product.requested_weight?.toString() || "0"),
+              lot_number: allocation.lot_series || product.lot_series || product.lot_number,
+              presentation: product.presentation || "CAJA",
+              cell_id: allocation.cell_id,
+            });
+          });
+        }
+        // Priority 3: Use product-level information (for orders without specific allocations)
+        else {
+          console.warn(`Product ${product.product_code || product.product_name} has no specific allocations, using product-level data for dispatch`);
+          
+          // For comprehensive orders without allocations, we need to send the product info
+          // The backend should handle finding the appropriate inventory to remove
+          inventory_selections.push({
+            inventory_id: product.departure_order_product_id || `temp_${product.product_id}_${Date.now()}`,
+            product_id: product.product_id,
+            product_code: product.product_code,
+            requested_qty: parseInt(product.requested_quantity?.toString() || "0"),
+            requested_weight: parseFloat(product.requested_weight?.toString() || "0"),
+            lot_number: product.lot_series || product.lot_number,
+            presentation: product.presentation || "CAJA",
+            // Include product details for backend to match against inventory
+            departure_order_product_id: product.departure_order_product_id,
+            use_auto_allocation: true, // Flag for backend to auto-allocate
+          });
+        }
+      });
+
+      if (inventory_selections.length === 0) {
+        throw new Error('No valid inventory selections found for dispatch. The order may not be properly allocated.');
+      }
+
+      const payload = {
+        dispatch_notes: dispatchNotes || "Order dispatched - inventory removed automatically",
+        inventory_selections,
+        dispatch_method: hasInventoryAllocations ? 'specific_allocations' : 'auto_allocate',
+      };
+
+      console.log('Dispatch API payload:', JSON.stringify(payload, null, 2));
+      console.log('Dispatch API URL:', `${departureBaseURL}/departure-orders/${orderId}/auto-dispatch`);
+      console.log('Inventory selections summary:', inventory_selections.map(sel => ({
+        inventory_id: sel.inventory_id,
+        product_id: sel.product_id,
+        product_code: sel.product_code,
+        requested_qty: sel.requested_qty,
+        use_auto_allocation: sel.use_auto_allocation
+      })));
+      
+      const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/auto-dispatch`, payload);
+
+      // Refresh orders list
+      await ProcessService.fetchComprehensiveDepartureOrders({ 
+        organisationId: localStorage.getItem("organisation_id") || undefined 
+      });
+
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Failed to dispatch departure order:", error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
+        || "Failed to dispatch departure order";
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/dispatch-departure-order");
+    }
+  },
+
+  /**
+   * Batch dispatch multiple departure orders
+   */
+  batchDispatchDepartureOrders: async (batchData: import("../types").BatchDispatchRequest) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/batch-dispatch-orders");
+
+    try {
+      if (!batchData.departure_order_ids || batchData.departure_order_ids.length === 0) {
+        throw new Error("At least one departure order must be selected for batch dispatch");
+      }
+      if (!batchData.dispatch_date_time) {
+        throw new Error("Dispatch date and time is required");
+      }
+
+      const payload = {
+        ...batchData,
+        dispatched_by: localStorage.getItem("id"),
+      };
+
+      const response = await api.post(`${departureBaseURL}/batch-dispatch`, payload);
+
+      // Refresh orders list
+      await ProcessService.fetchComprehensiveDepartureOrders({ 
+        organisationId: localStorage.getItem("organisation_id") || undefined 
+      });
+
+      return response.data;
+    } catch (error: unknown) {
+      console.error("Failed to batch dispatch departure orders:", error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (error as { response?: { data?: { message?: string } } })?.response?.data?.message 
+        || "Failed to batch dispatch departure orders";
+      throw new Error(errorMessage);
+    } finally {
+      stopLoader("processes/batch-dispatch-orders");
+    }
+  },
+
+  // =====================================
+  // NEW: EXPIRY-BASED FIFO SYSTEM
+  // =====================================
+
+  /**
+   * Get expiry-based FIFO locations for a product
+   */
+  getExpiryFifoLocations: async (productId: string, warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/get-fifo-locations");
+
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouseId", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/products/${productId}/fifo-locations?${params.toString()}`);
+      const locations: import("../types").ExpiryFifoLocation[] = response.data.data || response.data;
+      
+      return locations;
+    } catch (error) {
+      console.error("Failed to get expiry FIFO locations:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/get-fifo-locations");
+    }
+  },
+
+  /**
+   * Get expiry-based FIFO allocation for a product with requested quantity
+   */
+  getExpiryFifoAllocation: async (productId: string, requestedQuantity: number, warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/get-fifo-allocation");
+
+    try {
+      const params = new URLSearchParams();
+      params.append("requestedQuantity", requestedQuantity.toString());
+      if (warehouseId) params.append("warehouseId", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/products/${productId}/fifo-allocation?${params.toString()}`);
+      
+      if (!response.data || !response.data.success) {
+        throw new Error(response.data?.message || "Failed to get expiry FIFO allocation");
+      }
+
+      const allocation: import("../types").ExpiryFifoAllocation = response.data.data;
+      return allocation;
+    } catch (error) {
+      console.error("Failed to get expiry FIFO allocation:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/get-fifo-allocation");
+    }
+  },
+
+  /**
+   * Get comprehensive product FIFO analysis
+   */
+  getProductFifoAnalysis: async (productId: string, warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/get-product-fifo-analysis");
+
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouseId", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/products/${productId}/fifo-analysis?${params.toString()}`);
+      const analysis: import("../types").ProductFifoAnalysis = response.data.data || response.data;
+      
+      return analysis;
+    } catch (error) {
+      console.error("Failed to get product FIFO analysis:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/get-product-fifo-analysis");
+    }
+  },
+
+  /**
+   * Get products with expiry urgency dashboard
+   */
+  getExpiryUrgencyDashboard: async (warehouseId?: string) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/get-expiry-dashboard");
+
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) params.append("warehouseId", warehouseId);
+
+      const response = await api.get(`${departureBaseURL}/expiry-urgency-dashboard?${params.toString()}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Failed to get expiry urgency dashboard:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/get-expiry-dashboard");
+    }
+  },
+
+  /**
+   * Validate expiry-based FIFO allocation before creating departure order
+   */
+  validateExpiryFifoAllocation: async (allocations: Array<{
+    product_id: string;
+    requested_quantity: number;
+    fifo_locations: import("../types").ExpiryFifoLocation[];
+  }>) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/validate-fifo-allocation");
+
+    try {
+      const response = await api.post(`${departureBaseURL}/validate-expiry-fifo-allocation`, {
+        allocations,
+      });
+      
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Failed to validate expiry FIFO allocation:", error);
+      throw error;
+    } finally {
+      stopLoader("processes/validate-fifo-allocation");
+    }
+  },
+
+  // =====================================
+  // NEW: AUDIT TRAIL & REPORTING
+  // =====================================
+
+  /**
+   * Get departure order audit trail
+   */
+  getDepartureOrderAuditTrail: async (orderId: string) => {
+    try {
+      const response = await api.get(`${departureBaseURL}/departure-orders/${orderId}/audit-trail`);
+      const auditTrail: import("../types").DepartureApprovalStep[] = response.data.data || response.data;
+      return auditTrail;
+    } catch (error) {
+      console.error("Failed to fetch departure order audit trail:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get departure orders by status for workflow management
+   */
+  getDepartureOrdersByStatus: async (status: import("../types").DepartureOrderStatus) => {
+    const { startLoader, stopLoader } = ProcessesStore.getState();
+    startLoader("processes/fetch-orders-by-status");
+
+    try {
+      const organisationId = localStorage.getItem("organisation_id");
+      const params = new URLSearchParams();
+      if (organisationId) params.append("organisationId", organisationId);
+
+      const response = await api.get(`${departureBaseURL}/departure-orders/status/${status}?${params.toString()}`);
+      const orders: import("../types").DepartureOrder[] = response.data.data || response.data;
+      return orders;
+    } catch (error) {
+      console.error(`Failed to fetch departure orders with status ${status}:`, error);
+      throw error;
+    } finally {
+      stopLoader("processes/fetch-orders-by-status");
+    }
+  },
+
+  /**
+   * Export departure orders with comprehensive data
+   */
+  exportComprehensiveDepartureOrders: async (filters?: {
+    status?: import("../types").DepartureOrderStatus;
+    dateFrom?: string;
+    dateTo?: string;
+    warehouseId?: string;
+    customerId?: string;
+    priority?: string;
+  }) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.status) params.append("status", filters.status);
+      if (filters?.dateFrom) params.append("dateFrom", filters.dateFrom);
+      if (filters?.dateTo) params.append("dateTo", filters.dateTo);
+      if (filters?.warehouseId) params.append("warehouseId", filters.warehouseId);
+      if (filters?.customerId) params.append("customerId", filters.customerId);
+      if (filters?.priority) params.append("priority", filters.priority);
+
+      const response = await api.get(`${departureBaseURL}/export-comprehensive?${params.toString()}`, {
+        responseType: 'blob',
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `departure_orders_comprehensive_${new Date().toISOString().split('T')[0]}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+
+      return true;
+    } catch (error) {
+      console.error("Failed to export comprehensive departure orders:", error);
+      throw error;
+    }
+  },
+
+  // =====================================
+  // UTILITY FUNCTIONS FOR NEW WORKFLOW
+  // =====================================
+
+  /**
+   * Get expiry urgency color and message
+   */
+  getExpiryUrgencyInfo: (daysToExpiry: number): {
+    urgency: import("../types").ExpiryUrgency;
+    color: 'red' | 'orange' | 'yellow' | 'green';
+    icon: string;
+    message: string;
+  } => {
+    if (daysToExpiry < 0) {
+      return {
+        urgency: "EXPIRED",
+        color: 'red',
+        icon: '❌',
+        message: `Expired ${Math.abs(daysToExpiry)} days ago`
+      };
+    } else if (daysToExpiry <= 7) {
+      return {
+        urgency: "URGENT",
+        color: 'red',
+        icon: '⚠️',
+        message: `Expires in ${daysToExpiry} days - URGENT`
+      };
+    } else if (daysToExpiry <= 30) {
+      return {
+        urgency: "WARNING",
+        color: 'orange',
+        icon: '⚡',
+        message: `Expires in ${daysToExpiry} days - WARNING`
+      };
+    } else {
+      return {
+        urgency: "NORMAL",
+        color: 'green',
+        icon: '✅',
+        message: `Expires in ${daysToExpiry} days`
+      };
+    }
+  },
+
+  /**
+   * Check if user can perform action based on role and order status
+   */
+  canPerformAction: (action: string, orderStatus: import("../types").DepartureOrderStatus, userRole: import("../types").UserRole): boolean => {
+    const permissions = ProcessService.getDefaultPermissions(userRole);
+    
+    switch (action) {
+      case "approve":
+        return permissions.can_approve_order && orderStatus === "PENDING";
+      case "reject":
+        return permissions.can_reject_order && orderStatus === "PENDING";
+      case "request_revision":
+        return permissions.can_request_revision && orderStatus === "PENDING";
+      case "dispatch":
+        return permissions.can_dispatch_order && orderStatus === "APPROVED";
+      case "edit":
+        return permissions.can_edit_order && (orderStatus === "PENDING" || orderStatus === "REVISION");
+      case "delete":
+        return permissions.can_delete_order && orderStatus === "PENDING";
+      default:
+        return false;
     }
   },
 };

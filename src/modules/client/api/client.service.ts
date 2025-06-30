@@ -392,14 +392,38 @@ export const ClientService = {
   },
 
   // Fetch warehouses for cell assignment
-  fetchWarehouses: async () => {
+  fetchWarehouses: async (): Promise<{ warehouse_id: string; name: string }[]> => {
+    startLoader("clients/fetch-warehouses");
     try {
       const response = await api.get("/warehouse/warehouses");
-      const data = response.data.data || response.data;
-      return data;
-    } catch (error) {
-      console.error("Fetch warehouses error:", error);
-      throw error;
+      
+      console.log("Raw warehouse API response:", response.data);
+      
+      // Handle the nested response structure - warehouses are in response.data.data
+      let warehouseList: { warehouse_id: string; name: string }[] = [];
+      
+      if (response.data && Array.isArray(response.data.data)) {
+        // API returns { success, message, count, data: [...] }
+        warehouseList = response.data.data.map((warehouse: { warehouse_id: string; name: string; [key: string]: unknown }) => ({
+          warehouse_id: warehouse.warehouse_id,
+          name: warehouse.name,
+        }));
+      } else if (response.data && Array.isArray(response.data)) {
+        // Fallback: direct array response
+        warehouseList = response.data.map((warehouse: { warehouse_id: string; name: string; [key: string]: unknown }) => ({
+          warehouse_id: warehouse.warehouse_id,
+          name: warehouse.name,
+        }));
+      }
+      
+      console.log("Processed warehouse list for client module:", warehouseList);
+      
+      return warehouseList;
+    } catch (err) {
+      console.error("Fetch warehouses error:", err);
+      throw err;
+    } finally {
+      stopLoader("clients/fetch-warehouses");
     }
   },
 };

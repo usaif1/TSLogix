@@ -124,7 +124,7 @@
     "inactive": "Inactive"
   },
   "cell_assignment": {
-    "title": "Cell Assignment (Optional)",
+    "title": "Cell Assignment",
     "description": "Select a warehouse and assign cells to this client. This step is optional and can be done later.",
     "warehouse_label": "Select Warehouse",
     "warehouse_placeholder": "Choose a warehouse...",
@@ -135,11 +135,21 @@
     "assignment_notes": "Assignment Notes (Optional)",
     "notes_placeholder": "Add any notes about this cell assignment...",
     "no_cells_available": "No available cells in this warehouse",
+    "special_section": "Special Section",
+    "row": "Row",
+    "cells": "cells",
+    "available": "available",
+    "capacity": "Capacity",
+    "rejected": "Rejected",
+    "samples": "Samples",
+    "returns": "Returns",
     "legend": {
+      "title": "Color Legend",
       "available": "Available",
       "selected": "Selected",
       "occupied": "Occupied",
-      "damaged": "Damaged"
+      "damaged": "Damaged",
+      "expired": "Expired"
     }
   }
 } 

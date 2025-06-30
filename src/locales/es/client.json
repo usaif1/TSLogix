@@ -124,7 +124,7 @@
     "inactive": "Inactivo"
   },
   "cell_assignment": {
-    "title": "Asignación de Posiciones (Opcional)",
+    "title": "Asignación de Posiciones",
     "description": "Seleccione un almacén y asigne Posiciones a este cliente. Este paso es opcional y se puede hacer más tarde.",
     "warehouse_label": "Seleccionar Almacén",
     "warehouse_placeholder": "Elige un almacén...",
@@ -135,11 +135,21 @@
     "assignment_notes": "Notas de Asignación (Opcional)",
     "notes_placeholder": "Agregar notas sobre esta asignación de celda...",
     "no_cells_available": "No hay Posiciones disponibles en este almacén",
+    "special_section": "Sección Especial",
+    "row": "Fila",
+    "cells": "posiciones",
+    "available": "disponibles",
+    "capacity": "Capacidad",
+    "rejected": "Rechazados",
+    "samples": "Contramuestras",
+    "returns": "Devoluciones",
     "legend": {
+      "title": "Leyenda de Colores",
       "available": "Disponible",
       "selected": "Seleccionado",
       "occupied": "Ocupado",
-      "damaged": "Dañado"
+      "damaged": "Dañado",
+      "expired": "Vencido"
     }
   }
 } 

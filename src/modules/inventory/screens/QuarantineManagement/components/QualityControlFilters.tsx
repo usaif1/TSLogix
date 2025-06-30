@@ -51,18 +51,13 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
     : null;
 
   return (
-    <div className="space-y-6">
-      {/* Filter Controls - Fixed layout with proper z-index */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <div className="space-y-3">
+      {/* Compact Filter Controls */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
         {/* Status Filter */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs font-medium text-gray-600 mb-1">
             {t('inventory:status')}
-            {selectedStatus && (
-              <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                Active
-              </span>
-            )}
           </label>
           <Select
             options={statusOptions}
@@ -82,6 +77,7 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
               menu: (base: any) => ({ ...base, zIndex: 9999 }),
               control: (base: any, state: any) => ({
                 ...base,
+                minHeight: '32px',
                 borderColor: selectedStatus ? '#3B82F6' : state.isFocused ? '#3B82F6' : '#D1D5DB',
                 boxShadow: state.isFocused ? '0 0 0 1px #3B82F6' : 'none',
               }),
@@ -92,13 +88,8 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
 
         {/* Warehouse Filter */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs font-medium text-gray-600 mb-1">
             {t('inventory:warehouse')}
-            {selectedWarehouse && (
-              <span className="ml-2 px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full">
-                Selected
-              </span>
-            )}
           </label>
           <Select
             options={warehouseOptions}
@@ -112,6 +103,7 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
               menu: (base: any) => ({ ...base, zIndex: 9999 }),
               control: (base: any, state: any) => ({
                 ...base,
+                minHeight: '32px',
                 borderColor: selectedWarehouse ? '#10B981' : state.isFocused ? '#3B82F6' : '#D1D5DB',
                 boxShadow: state.isFocused ? '0 0 0 1px #3B82F6' : 'none',
               }),
@@ -123,7 +115,7 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
 
         {/* Search */}
         <div className="relative">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-xs font-medium text-gray-600 mb-1">
             {t('common:search')}
           </label>
           <input
@@ -131,51 +123,36 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
             placeholder={t('inventory:search_products')}
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full border border-gray-300 rounded-md px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
-      </div>
 
-      {/* Current Filter Summary */}
-      <div className="flex items-center justify-between bg-gray-50 px-4 py-2 rounded-lg">
-        <div className="flex items-center gap-4 text-sm text-gray-600">
-          <span>
-            <strong>{t('inventory:showing')}:</strong> {filteredItems} {t('inventory:of')} {totalItems} {t('inventory:items')}
-          </span>
-          {selectedStatus && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-              {statusOptions.find(opt => opt.value === selectedStatus)?.label}
-            </span>
-          )}
-          {selectedWarehouse && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              {selectedWarehouse.label}
-            </span>
-          )}
-          {searchTerm && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 bg-yellow-500 rounded-full"></span>
-              {t('inventory:search')}: "{searchTerm}"
-            </span>
-          )}
+        {/* Compact Stats */}
+        <div className="relative">
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            {t('inventory:items')}
+          </label>
+          <div className="flex items-center gap-2 h-8 px-2 bg-gray-50 rounded border text-sm">
+            <span className="text-gray-700">{filteredItems}</span>
+            <span className="text-gray-400">of</span>
+            <span className="text-gray-700">{totalItems}</span>
+          </div>
         </div>
       </div>
 
       {/* Single Item Actions */}
       {selectedItemId && (
-        <div className="border-t border-gray-200 bg-blue-50 p-4 rounded-lg">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="text-sm font-medium text-blue-900">
+        <div className="bg-blue-50 border border-blue-200 rounded p-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="text-xs font-medium text-blue-800">
               {t('common:item_selected')} - {t('inventory:choose_action')}
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1">
               <Button
                 variant="action"
                 onClick={() => onTransitionToStatus(QualityControlStatus.APROBADO)}
-                additionalClass="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm"
+                additionalClass="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs"
               >
                 {t('inventory:approve')}
               </Button>
@@ -183,7 +160,7 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
               <Button
                 variant="action"
                 onClick={() => onTransitionToStatus(QualityControlStatus.RECHAZADOS)}
-                additionalClass="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm"
+                additionalClass="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs"
               >
                 {t('inventory:reject')}
               </Button>
@@ -191,7 +168,7 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
               <Button
                 variant="action"
                 onClick={() => onTransitionToStatus(QualityControlStatus.CONTRAMUESTRAS)}
-                additionalClass="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md text-sm"
+                additionalClass="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1 rounded text-xs"
               >
                 {t('inventory:move_to_samples')}
               </Button>
@@ -199,7 +176,7 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
               <Button
                 variant="action"
                 onClick={() => onTransitionToStatus(QualityControlStatus.DEVOLUCIONES)}
-                additionalClass="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md text-sm"
+                additionalClass="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-xs"
               >
                 {t('inventory:move_to_returns')}
               </Button>

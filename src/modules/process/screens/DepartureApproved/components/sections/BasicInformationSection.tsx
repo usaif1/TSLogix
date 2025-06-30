@@ -58,16 +58,16 @@ const BasicInformationSection: React.FC<Props> = ({
   return (
     <div className="w-full flex items-center gap-x-6">
       <div className="w-full flex flex-col">
-        <label htmlFor="customer">{t('process:customer')}</label>
+        <label htmlFor="personnel">{t('process:personnel_in_charge')}</label>
         <Select
-          options={departureFormFields.customers}
+          options={departureFormFields.personnel}
           styles={reactSelectStyle}
-          inputId="customer"
-          name="customer"
-          value={formData.customer}
-          onChange={(selected) => handleSelectChange("customer", selected)}
+          inputId="personnel"
+          name="personnel"
+          value={formData.personnel}
+          onChange={(selected) => handleSelectChange("personnel", selected)}
           isDisabled={isSubmitting}
-          placeholder={t('process:select_customer')}
+          placeholder={t('process:select_personnel')}
         />
       </div>
 

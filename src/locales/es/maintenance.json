@@ -168,7 +168,8 @@
   
   "_comment_new_document_fields": "=== CAMPOS DE TIPO DE DOCUMENTO ===",
   "document_type": "Tipo de Documento",
-  "id_fiscal": "ID Fiscal",
+  "ruc": "RUC (Perú)",
+  "id_fiscal": "ID Fiscal (Otros Países)",
   "ruc_number": "Número de RUC",
   "id_fiscal_number": "Número de ID Fiscal",
   "select_document_type": "Seleccionar tipo de documento",

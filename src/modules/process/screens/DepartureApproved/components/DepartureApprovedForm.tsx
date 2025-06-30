@@ -29,6 +29,8 @@ const DepartureApprovedForm: React.FC = () => {
   const { t } = useTranslation(['process', 'common']);
   const navigate = useNavigate();
   
+  console.log("DepartureApprovedForm rendered");
+  
   const {
     departureFormFields,
     warehouses,
@@ -42,11 +44,13 @@ const DepartureApprovedForm: React.FC = () => {
   const [availableProducts, setAvailableProducts] = useState<FifoProductWithInventory[]>([]);
   const [productSelections, setProductSelections] = useState<ProductSelectionRow[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  console.log("Current state - availableProducts:", availableProducts.length, "productSelections:", productSelections.length);
 
   // Departure order form data
   const [formData, setFormData] = useState({
     departure_order_no: "",
-    customer_id: { option: "", value: "", label: "" },
+    personnel_in_charge_id: { option: "", value: "", label: "" },
     document_type_id: { option: "", value: "", label: "" },
     document_no: "",
     document_date: new Date(),
@@ -74,17 +78,23 @@ const DepartureApprovedForm: React.FC = () => {
 
   // Load FIFO products when warehouse is selected
   useEffect(() => {
+    console.log("useEffect triggered, selectedWarehouse:", selectedWarehouse);
     if (selectedWarehouse?.value) {
+      console.log("Loading products for warehouse:", selectedWarehouse.value);
       ProcessService.browseProductsWithInventory(selectedWarehouse.value)
         .then((products) => {
-          setAvailableProducts(products);
-          // Clear previous selections when warehouse changes
-          setProductSelections([]);
-          ProcessesStore.getState().clearFifoState();
+          console.log("Received products:", products);
+          setAvailableProducts(products || []);
+          // Only clear selections if it's a different warehouse, not on first load
+          if (productSelections.length > 0) {
+            setProductSelections([]);
+            ProcessesStore.getState().clearFifoState();
+          }
         })
         .catch((error) => {
           console.error("Failed to load FIFO products:", error);
           ProcessesStore.getState().setFifoError("Failed to load products for selected warehouse");
+          setAvailableProducts([]);
         });
     } else {
       setAvailableProducts([]);
@@ -94,10 +104,13 @@ const DepartureApprovedForm: React.FC = () => {
   }, [selectedWarehouse]);
 
   const handleWarehouseChange = (selectedOption: any) => {
+    console.log("Warehouse changed to:", selectedOption);
     setSelectedWarehouse(selectedOption);
   };
 
   const handleAddProduct = () => {
+    console.log("Adding product, current selections:", productSelections.length);
+    console.log("Available products:", availableProducts.length);
     setProductSelections(prev => [...prev, {
       product: {} as FifoProductWithInventory,
       requestedQuantity: 0,
@@ -267,9 +280,9 @@ const DepartureApprovedForm: React.FC = () => {
       return false;
     }
 
-    // 3. Customer selection
-    if (!formData.customer_id?.value) {
-      ProcessesStore.getState().setFifoError("Please select a customer");
+    // 3. Personnel in charge selection
+    if (!formData.personnel_in_charge_id?.value) {
+      ProcessesStore.getState().setFifoError("Please select personnel in charge");
       return false;
     }
 
@@ -393,7 +406,7 @@ const DepartureApprovedForm: React.FC = () => {
     return (
       formData.departure_order_no?.trim() &&
       selectedWarehouse?.value &&
-      formData.customer_id?.value &&
+      formData.personnel_in_charge_id?.value &&
       formData.document_type_id?.value &&
       formData.document_no?.trim() &&
       formData.departure_date &&
@@ -450,7 +463,7 @@ const DepartureApprovedForm: React.FC = () => {
 
       const departureOrderData = {
         departure_order_no: formData.departure_order_no,
-        customer_id: formData.customer_id.value,
+        personnel_in_charge_id: formData.personnel_in_charge_id.value,
         warehouse_id: selectedWarehouse.value,
         departure_date: formData.departure_date.toISOString().split('T')[0],
         document_type_id: formData.document_type_id.value,
@@ -621,13 +634,13 @@ const DepartureApprovedForm: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('customer')} *
+                  {t('personnel_in_charge')} *
                 </label>
                 <Select
-                  value={formData.customer_id}
-                  onChange={(option) => handleSelectChange('customer_id', option)}
-                  options={departureFormFields.customers}
-                  placeholder={t('select_customer')}
+                  value={formData.personnel_in_charge_id}
+                  onChange={(option) => handleSelectChange('personnel_in_charge_id', option)}
+                  options={departureFormFields.personnel}
+                  placeholder={t('select_personnel')}
                   styles={reactSelectStyle}
                 />
               </div>
@@ -694,9 +707,9 @@ const DepartureApprovedForm: React.FC = () => {
                   type="button"
                   onClick={handleAddProduct}
                   disabled={!selectedWarehouse}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md disabled:opacity-50"
                 >
-                  + {t('add_product')}
+                  + {t('add_product')} {!selectedWarehouse && "(Select warehouse first)"}
                 </Button>
               </div>
 
@@ -721,17 +734,22 @@ const DepartureApprovedForm: React.FC = () => {
                       <Select
                         value={selection.product.product_id ? selection.product : null}
                         onChange={(option) => handleProductChange(index, option)}
-                        options={availableProducts}
-                        placeholder={t('select_product')}
-                        getOptionLabel={(option) => option.label}
+                        options={availableProducts || []}
+                        placeholder={availableProducts?.length > 0 ? t('select_product') : "Loading products..."}
+                        getOptionLabel={(option) => {
+                          console.log("Rendering option:", option);
+                          return `${option.product_code || 'No Code'} - ${option.product_name || 'No Name'}`;
+                        }}
                         getOptionValue={(option) => option.product_id}
                         styles={reactSelectStyle}
+                        isLoading={loaders["processes/browse-products"]}
+                        noOptionsMessage={() => availableProducts?.length === 0 ? "No products available" : "Loading..."}
                       />
-                      {selection.product.inventory_summary && (
+                      {selection.product.product_id && (
                         <Text size="xs" additionalClass="text-gray-500 mt-1">
-                          {t('available')}: {selection.product.inventory_summary.total_quantity} {t('units')}, 
-                          {selection.product.inventory_summary.locations_count} {t('locations')}, 
-                          {t('age_span')}: {selection.product.inventory_summary.age_span_days} {t('days')}
+                          {t('available')}: {selection.product.total_quantity} {t('units')}, 
+                          {selection.product.location_count} {t('locations')}, 
+                          {t('age_span')}: {selection.product.days_to_earliest_expiry} {t('days')}
                         </Text>
                       )}
                     </div>

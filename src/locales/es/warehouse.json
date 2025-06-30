@@ -41,6 +41,8 @@
   "warehouse_layout": "Diseño del Almacén",
   "warehouse_overview": "Resumen del Almacén",
   "total_cells": "Total de Posiciones",
+  "rows": "Filas",
+  "bays": "Bahías",
   "available_cells": "Posiciones Disponibles",
   "occupied_cells": "Posiciones Ocupadas",
   "damaged_cells": "Posiciones Dañadas",

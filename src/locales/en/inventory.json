@@ -11,6 +11,7 @@
   "product_id": "Product ID",
   "quantity_change": "Quantity Change",
   "movement_type": "Movement Type",
+  "departure_order": "Departure Order",
   "notes": "Notes",
   "create": "Create",
   "update": "Update",
@@ -248,5 +249,8 @@
   "ready_for_departure": "Ready for departure",
   "customer_returns": "Customer returns",
   "quality_samples": "Quality samples",
-  "failed_quality_control": "Failed quality control"
+  "failed_quality_control": "Failed quality control",
+  "quarantine_to_approved_message": "Item will be approved in its current location.",
+  "quarantine_approval_info": "Quarantine to Approved Transition",
+  "item_will_remain_same_location": "The item will remain in the same cell and only the status will change to APPROVED."
 }

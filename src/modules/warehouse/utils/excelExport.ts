@@ -58,9 +58,29 @@ export const exportWarehouseGridToExcel = (
 
   // Extract rows, bays, and positions just like in the grid component
   const rows = Array.from(new Set(cells.map((c) => c.row))).sort((a, b) => {
-    if (a === "Q") return 1;
-    if (b === "Q") return -1;
-    return a.localeCompare(b);
+    // Special rows order: regular rows (A-P) first, then Q, then special rows (R, T, V)
+    const specialRows = ["Q", "R", "T", "V"];
+    const aIsSpecial = specialRows.includes(a);
+    const bIsSpecial = specialRows.includes(b);
+    
+    if (!aIsSpecial && !bIsSpecial) {
+      // Both are regular rows, sort alphabetically
+      return a.localeCompare(b);
+    }
+    
+    if (!aIsSpecial && bIsSpecial) {
+      // Regular row comes before special rows
+      return -1;
+    }
+    
+    if (aIsSpecial && !bIsSpecial) {
+      // Special row comes after regular rows
+      return 1;
+    }
+    
+    // Both are special rows, sort in specific order: Q, R, T, V
+    const specialOrder = { "Q": 0, "R": 1, "T": 2, "V": 3 };
+    return specialOrder[a as keyof typeof specialOrder] - specialOrder[b as keyof typeof specialOrder];
   });
 
   const bays = Array.from(new Set(cells.map((c) => c.bay))).sort(
@@ -122,19 +142,32 @@ export const exportWarehouseGridToExcel = (
             c: colIndex + 1,
           });
 
-          // Set background color based on cell status and role
+          // Set background color based on cell status and row (special row handling)
           if (cell.status === "OCCUPIED") {
-            cellStyles[cellRef] = { fill: { fgColor: { rgb: "0000FF" } } }; // Blue for occupied
+            cellStyles[cellRef] = { fill: { fgColor: { rgb: "D1D5DB" } } }; // Gray for occupied (all rows)
           } else if (cell.status === "AVAILABLE") {
-            switch (cell.cell_role) {
-              case "DAMAGED":
-                cellStyles[cellRef] = { fill: { fgColor: { rgb: "FFC0CB" } } }; // Light red (rose) for damaged
-                break;
-              case "EXPIRED":
-                cellStyles[cellRef] = { fill: { fgColor: { rgb: "FFE4B5" } } }; // Light amber for expired
-                break;
-              default:
-                cellStyles[cellRef] = { fill: { fgColor: { rgb: "FFFFFF" } } }; // White for available
+            // Special rows have their own color schemes for available cells
+            if (cell.row === "R") {
+              // R row (Rejected): Red-based colors
+              cellStyles[cellRef] = { fill: { fgColor: { rgb: "FCA5A5" } } }; // bg-red-300 equivalent
+            } else if (cell.row === "T") {
+              // T row (Samples/Contramuestras): Purple-based colors
+              cellStyles[cellRef] = { fill: { fgColor: { rgb: "D8B4FE" } } }; // bg-purple-300 equivalent
+            } else if (cell.row === "V") {
+              // V row (Returns/Devoluciones): Blue-based colors
+              cellStyles[cellRef] = { fill: { fgColor: { rgb: "93C5FD" } } }; // bg-blue-300 equivalent
+            } else {
+              // Regular rows and Q row use the original color scheme
+              switch (cell.cell_role) {
+                case "DAMAGED":
+                  cellStyles[cellRef] = { fill: { fgColor: { rgb: "FECACA" } } }; // bg-rose-200 equivalent
+                  break;
+                case "EXPIRED":
+                  cellStyles[cellRef] = { fill: { fgColor: { rgb: "FDE68A" } } }; // bg-amber-200 equivalent
+                  break;
+                default:
+                  cellStyles[cellRef] = { fill: { fgColor: { rgb: "6EE7B7" } } }; // bg-emerald-400 equivalent
+              }
             }
           } else {
             cellStyles[cellRef] = { fill: { fgColor: { rgb: "D3D3D3" } } }; // Light gray for other
@@ -182,17 +215,14 @@ export const exportWarehouseGridToExcel = (
   const legendData = [
     [i18next.t("warehouse:legend")],
     [i18next.t("warehouse:color"), i18next.t("warehouse:meaning")],
-    [i18next.t("warehouse:blue"), i18next.t("warehouse:occupied")],
-    [i18next.t("warehouse:white"), i18next.t("warehouse:available")],
-    [i18next.t("warehouse:light_red"), i18next.t("warehouse:damaged_section")],
-    [
-      i18next.t("warehouse:light_amber"),
-      i18next.t("warehouse:expired_section"),
-    ],
-    [
-      i18next.t("warehouse:light_gray"),
-      i18next.t("warehouse:empty_unavailable"),
-    ],
+    ["Gray", i18next.t("warehouse:occupied")],
+    ["Green", i18next.t("warehouse:available")],
+    ["Light Red (Rose)", i18next.t("warehouse:damaged_section")],
+    ["Light Amber", i18next.t("warehouse:expired_section")],
+    ["Red", `${i18next.t("warehouse:row")} R - ${i18next.t("warehouse:rechazados")}`],
+    ["Purple", `${i18next.t("warehouse:row")} T - ${i18next.t("warehouse:contramuestras")}`],
+    ["Blue", `${i18next.t("warehouse:row")} V - ${i18next.t("warehouse:devoluciones")}`],
+    ["Light Gray", i18next.t("warehouse:empty_unavailable")],
   ];
 
   const legendSheet = XLSX.utils.aoa_to_sheet(legendData);
