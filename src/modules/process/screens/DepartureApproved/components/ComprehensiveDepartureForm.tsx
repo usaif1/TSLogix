@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -246,11 +247,15 @@ const ComprehensiveDepartureForm: React.FC = () => {
             remainingQuantity -= allocatedFromThisLocation;
           }
 
+          // Get all unique entry order numbers and lot series
+          const uniqueEntryOrders = [...new Set(allocations.map(a => a.entry_order_no))];
+          const uniqueLotSeries = [...new Set(allocations.map(a => a.lot_series))];
+          
           updateDepartureFormProduct(productRowId, {
             fifo_allocations: allocations,
             isLoadingFifo: false,
-            lot_number: allocations[0]?.lot_series || "",
-            entry_order_no: allocations[0]?.entry_order_no || "",
+            lot_number: uniqueLotSeries.join(", "),
+            entry_order_no: uniqueEntryOrders.join(", "),
           });
         
           console.log("FIFO allocation completed successfully with real data:", allocations);
@@ -306,8 +311,8 @@ const ComprehensiveDepartureForm: React.FC = () => {
       setDepartureFormError("Please select personnel in charge");
       return;
     }
-    if (!formData.document_type_id?.value) {
-      setDepartureFormError("Please select document type");
+    if (!selectedDocumentTypes || selectedDocumentTypes.length === 0) {
+      setDepartureFormError("Please select at least one document type");
       return;
     }
     if (products.length === 0) {
@@ -325,7 +330,6 @@ const ComprehensiveDepartureForm: React.FC = () => {
         departure_order_code: formData.departure_order_code,
         customer_id: formData.personnel_in_charge_id.value,
         warehouse_id: selectedWarehouse.value,
-        document_type_id: formData.document_type_id.value,
         document_number: formData.document_number,
         document_date: formData.document_date,
         dispatch_document_number: formData.dispatch_document_number,
@@ -399,7 +403,7 @@ const ComprehensiveDepartureForm: React.FC = () => {
   };
 
   if (loaders["processes/load-departure-form-fields"]) {
-    return <div className="p-4">Loading...</div>;
+    return <div className="p-4">{t('process:loading')}</div>;
   }
 
   return (
@@ -420,7 +424,7 @@ const ComprehensiveDepartureForm: React.FC = () => {
               <td className="border border-gray-300 p-2">
                 <input
                   type="text"
-                  value={loaders["processes/get-departure-order-no"] ? "Loading..." : formData.departure_order_code}
+                  value={loaders["processes/get-departure-order-no"] ? t('process:loading') : formData.departure_order_code}
                   className="w-full border border-gray-300 p-1 bg-gray-100"
                   readOnly
                 />
@@ -452,16 +456,8 @@ const ComprehensiveDepartureForm: React.FC = () => {
                   placeholder={t('select_personnel')}
                 />
               </td>
-              <td className="border border-gray-300 p-2 bg-gray-100 font-medium">
-                {t('document_type')} *
-              </td>
-              <td className="border border-gray-300 p-2">
-                <Select
-                  value={formData.document_type_id}
-                  onChange={(option) => handleFormDataChange('document_type_id', option || { option: "", value: "", label: "" })}
-                  options={departureFormFields.documentTypes}
-                  placeholder={t('select_document_type')}
-                />
+              <td className="border border-gray-300 p-2 bg-gray-100 font-medium" colSpan={2}>
+                {/* Document Type field removed - using Document Upload section instead */}
               </td>
             </tr>
             <tr>
@@ -546,13 +542,13 @@ const ComprehensiveDepartureForm: React.FC = () => {
             weight="font-semibold"
             additionalClass="mb-3 text-gray-800"
           >
-            📎 {t("process:document_upload")} ({t("process:optional")})
+            📎 {t("process:document_upload")} *
           </Text>
           
           {/* Document Type Multi-Select */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t("process:select_departure_document_types")}
+              {t("process:document_type")} *
             </label>
             <Select
               isMulti
@@ -617,7 +613,7 @@ const ComprehensiveDepartureForm: React.FC = () => {
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
-              {loaders["processes/browse-products-inventory"] ? 'Loading Products...' : `+ ${t('add_product')}`}
+              {loaders["processes/browse-products-inventory"] ? t('process:loading_products') : `+ ${t('add_product')}`}
             </Button>
           </div>
 
@@ -635,9 +631,9 @@ const ComprehensiveDepartureForm: React.FC = () => {
                     <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '120px' }}>{t('packaging_type')}</th>
                     <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '120px' }}>{t('entry_order_no')}</th>
                     <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '120px' }}>{t('guide_number')}</th>
-                    <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '250px' }}>FIFO Info</th>
-                    <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '300px' }}>FIFO Allocation</th>
-                    <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '80px' }}>Action</th>
+                    <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '250px' }}>{t('process:fifo_info')}</th>
+                    <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '300px' }}>{t('process:fifo_allocation')}</th>
+                    <th className="border border-gray-300 p-2 text-left" style={{ minWidth: '80px' }}>{t('process:action')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -659,8 +655,8 @@ const ComprehensiveDepartureForm: React.FC = () => {
                           options={availableProducts}
                           getOptionLabel={(option) => `${option.product_code} - ${option.product_name}`}
                           getOptionValue={(option) => option.product_id}
-                          placeholder={loaders["processes/browse-products-inventory"] ? "Loading products..." : t('select_product')}
-                          noOptionsMessage={() => "No products available"}
+                          placeholder={loaders["processes/browse-products-inventory"] ? t('process:loading_products') : t('select_product')}
+                          noOptionsMessage={() => t('process:no_products_available')}
                           isLoading={loaders["processes/browse-products-inventory"]}
                           isDisabled={!selectedWarehouse || loaders["processes/browse-products-inventory"]}
                           isClearable={true}
@@ -685,7 +681,7 @@ const ComprehensiveDepartureForm: React.FC = () => {
                           value={product.product_code}
                           className="w-full border border-gray-300 p-1 text-sm bg-gray-100"
                           style={{ color: '#000000' }}
-                          placeholder="Auto-filled"
+                          placeholder={t('process:auto_filled')}
                           readOnly
                         />
                       </td>
@@ -745,13 +741,28 @@ const ComprehensiveDepartureForm: React.FC = () => {
                         />
                       </td>
                       <td className="border border-gray-300 p-1" style={{ minWidth: '120px' }}>
-                        <input
-                          type="text"
-                          value={product.entry_order_no}
-                          onChange={(e) => updateProduct(product.id, 'entry_order_no', e.target.value)}
-                          className="w-full border border-gray-300 p-1 text-sm"
-                          style={{ color: '#000000', backgroundColor: '#ffffff' }}
-                        />
+                        <div 
+                          className="w-full border border-gray-300 p-1 text-sm bg-gray-100 rounded"
+                          style={{ 
+                            color: '#000000',
+                            backgroundColor: '#f9fafb',
+                            minHeight: '32px',
+                            maxHeight: '80px',
+                            overflowY: 'auto',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            paddingTop: '6px'
+                          }}
+                          title={product.entry_order_no || t('process:auto_filled')}
+                        >
+                          {product.entry_order_no || (
+                            <span className="text-gray-500 italic">
+                              {t('process:auto_filled')}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="border border-gray-300 p-1" style={{ minWidth: '120px' }}>
                         <input
@@ -764,37 +775,37 @@ const ComprehensiveDepartureForm: React.FC = () => {
                       </td>
                       <td className="border border-gray-300 p-1" style={{ minWidth: '250px' }}>
                         <div className="text-xs">
-                          <div className="text-blue-600">{product.availability_info || "Select product first"}</div>
+                          <div className="text-blue-600">{product.availability_info || t('process:select_product_first')}</div>
                           <div className="text-green-600">{product.fifo_info || ""}</div>
                         </div>
                       </td>
                       <td className="border border-gray-300 p-1" style={{ minWidth: '300px' }}>
                         <div className="text-xs">
                           {product.isLoadingFifo && (
-                            <div className="text-blue-500">Loading FIFO allocation...</div>
+                            <div className="text-blue-500">{t('process:loading_fifo_allocation')}</div>
                           )}
                           {product.fifo_allocations && product.fifo_allocations.length > 0 ? (
                             <div>
                               <div className="font-semibold text-green-700 mb-1">
-                                Allocated from {product.fifo_allocations.length} location(s):
+                                {t('process:allocated_from_locations', { count: product.fifo_allocations.length })}
                               </div>
-                              {product.fifo_allocations.map((allocation, idx) => (
+                              {product.fifo_allocations.map((allocation: any, idx: number) => (
                                 <div key={idx} className="mb-1 p-1 bg-gray-50 rounded">
                                   <div className="text-blue-600">
-                                    📍 Cell: {allocation.cell_reference} | Order: {allocation.entry_order_no}
+                                    📍 {t('process:cell')}: {allocation.cell_reference} | {t('process:order')}: {allocation.entry_order_no}
                                   </div>
                                   <div className="text-gray-600">
-                                    Qty: {allocation.allocated_quantity} | Lot: {allocation.lot_series}
+                                    {t('process:qty')}: {allocation.allocated_quantity} | {t('process:lot')}: {allocation.lot_series}
                                   </div>
                                   <div className="text-orange-600">
-                                    {allocation.supplier_name} | Exp: {new Date(allocation.expiration_date).toLocaleDateString()}
+                                    {allocation.supplier_name} | {t('process:exp')}: {new Date(allocation.expiration_date).toLocaleDateString()}
                                   </div>
                                 </div>
                               ))}
                             </div>
                           ) : (
                             product.quantity && typeof product.quantity === 'number' && product.quantity > 0 && !product.isLoadingFifo && (
-                              <div className="text-gray-400">Enter quantity to see FIFO allocation</div>
+                              <div className="text-gray-400">{t('process:enter_quantity_to_see_fifo')}</div>
                             )
                           )}
                         </div>
@@ -805,7 +816,7 @@ const ComprehensiveDepartureForm: React.FC = () => {
                           onClick={() => removeProduct(product.id)}
                           className="text-red-600 hover:text-red-800 text-sm"
                         >
-                          Remove
+                          {t('process:remove')}
                         </button>
                       </td>
                     </tr>
@@ -833,14 +844,14 @@ const ComprehensiveDepartureForm: React.FC = () => {
             className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white"
             disabled={isSubmitting}
           >
-            Cancel
+            {t('process:cancel')}
           </Button>
           <Button
             type="submit"
             disabled={isSubmitting}
             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white"
           >
-            {isSubmitting ? "Creating..." : t('create_departure_order')}
+            {isSubmitting ? t('process:creating') : t('create_departure_order')}
           </Button>
         </div>
       </form>

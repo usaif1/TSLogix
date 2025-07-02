@@ -2,15 +2,12 @@
 import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, Text, LoaderSync } from "@/components";
-import ProcessesStore from "@/modules/process/store";
-import { ProcessService } from "@/modules/process/api/process.service";
-import { 
-  DepartureOrder, 
-  DepartureOrderStatus, 
-  UserRole, 
-  DepartureApprovalStep,
-  ExpiryUrgency 
+import {
+  DepartureOrder,
+  DepartureOrderStatus,
 } from "@/modules/process/types";
+import ProcessesStore from "@/modules/process/store";
+import { ProcessService } from "@/globalService";
 import { ExpiryUrgencyIndicator } from "@/modules/process/screens/DepartureApproved/components";
 
 interface DepartureWorkflowManagerProps {
@@ -250,7 +247,7 @@ const DepartureWorkflowManager: React.FC<DepartureWorkflowManagerProps> = ({
             {t('process:product_expiry_summary')} ({order.products.length} {t('process:products')})
           </Text>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {order.products.slice(0, 6).map((product, index) => (
+            {order.products.slice(0, 6).map((product: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
                 <div>
                   <Text size="xs" weight="font-medium">{product.product_code}</Text>

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Text } from "@/components";
@@ -121,14 +122,14 @@ const FifoAllocationSummary: React.FC<FifoAllocationSummaryProps> = ({
                   <div className="flex items-center space-x-2">
                     <span className={`
                       inline-block w-6 h-6 rounded-full text-xs font-bold flex items-center justify-center text-white
-                      ${location.fifo_rank <= 3 ? 'bg-red-500' : location.fifo_rank <= 7 ? 'bg-orange-500' : 'bg-green-500'}
+                      ${Number((location as any).fifo_rank) <= 3 ? 'bg-red-500' : Number((location as any).fifo_rank) <= 7 ? 'bg-orange-500' : 'bg-green-500'}
                     `}>
-                      {location.fifo_rank}
+                      {Number((location as any).fifo_rank)}
                     </span>
                     <ExpiryUrgencyIndicator
-                      urgency={location.expiry_urgency || location.urgency_level}
-                      daysToExpiry={location.days_to_expiry}
-                      expirationDate={location.expiration_date}
+                      urgency={(location as any).expiry_urgency || (location as any).urgency_level}
+                      daysToExpiry={(location as any).days_to_expiry}
+                      expirationDate={(location as any).expiration_date}
                       size="sm"
                       showDetails={false}
                     />
@@ -136,30 +137,34 @@ const FifoAllocationSummary: React.FC<FifoAllocationSummaryProps> = ({
 
                   {/* Location Information */}
                   <div>
-                    <Text size="xs" weight="font-medium">{location.cell_reference}</Text>
+                    <Text size="xs" weight="font-medium">{(location as any).cell_reference}</Text>
                     <Text size="xs" additionalClass="text-gray-500">
-                      {location.allocated_quantity || location.requested_qty || location.available_qty} {t('process:units')} • {location.supplier_name} • {t('process:lot')}: {location.lot_series}
+                      {(location as any).allocated_quantity || (location as any).requested_qty || (location as any).available_qty} {t('process:units')} • {(location as any).supplier_name} • {t('process:lot')}: {(location as any).lot_series}
                     </Text>
                   </div>
                 </div>
 
                 {/* Expiry Information */}
                 <div className="text-right">
-                  <Text size="xs" weight="font-medium" additionalClass={
-                    (location.expiry_urgency === "EXPIRED" || location.urgency_level === "EXPIRED" || location.is_expired) ? "text-red-600" :
-                    (location.expiry_urgency === "URGENT" || location.urgency_level === "URGENT") ? "text-orange-600" :
-                    (location.expiry_urgency === "WARNING" || location.urgency_level === "WARNING") ? "text-yellow-600" : "text-green-600"
-                  }>
-                    {location.days_to_expiry >= 0 ? 
-                      `${location.days_to_expiry}d` : 
-                      `${Math.abs(location.days_to_expiry)}d ago`
+                  <Text 
+                    size="xs" 
+                    weight="font-medium" 
+                    additionalClass={
+                      ((location as any).expiry_urgency === "EXPIRED" || (location as any).urgency_level === "EXPIRED" || (location as any).is_expired) ? "text-red-600" :
+                      ((location as any).expiry_urgency === "URGENT" || (location as any).urgency_level === "URGENT") ? "text-orange-600" :
+                      ((location as any).expiry_urgency === "WARNING" || (location as any).urgency_level === "WARNING") ? "text-yellow-600" : "text-green-600"
+                    }
+                  >
+                    {(location as any).days_to_expiry >= 0 ? 
+                      `${(location as any).days_to_expiry}d` : 
+                      `${Math.abs((location as any).days_to_expiry)}d ago`
                     }
                   </Text>
                   <Text size="xs" additionalClass="text-gray-500">
-                    {formatDate(location.expiration_date)}
+                    {formatDate((location as any).expiration_date)}
                   </Text>
                   <Text size="xs" additionalClass="text-gray-400">
-                    {location.entry_order_no}
+                    {(location as any).entry_order_no}
                   </Text>
                 </div>
               </div>

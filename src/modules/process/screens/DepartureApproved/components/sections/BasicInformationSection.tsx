@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from "react";
 import Select, { CSSObjectWithLabel } from "react-select";
 import { useTranslation } from "react-i18next";

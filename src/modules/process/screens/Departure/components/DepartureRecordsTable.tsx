@@ -57,9 +57,8 @@ const DepartureRecordsTable: React.FC = () => {
         }
       },
       { 
-        id: "status",
+        accessor: 'status',
         header: t('process:status'),
-        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
           return (

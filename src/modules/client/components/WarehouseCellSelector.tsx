@@ -297,7 +297,7 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
           ) : (
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="max-h-96 overflow-y-auto">
-                {sortedRows.map((row, index) => {
+                {sortedRows.map((row) => {
                   const cells = cellsByRow[row];
                   const isSpecialRow = ["R", "T", "V"].includes(row);
                   

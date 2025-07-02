@@ -823,24 +823,7 @@ export const ProcessService = {
     });
   },
 
-  /**
-   * Get current departure order number
-   */
-  getCurrentDepartureOrderNo: async () => {
-    const { startLoader, stopLoader } = ProcessesStore.getState();
-    startLoader("processes/get-departure-order-no");
 
-    try {
-      const response = await api.get(`${departureBaseURL}/current-departure-order-no`);
-      const orderNumber = response.data?.departure_order_no || response.data?.currentOrderNo;
-      return orderNumber;
-    } catch (error) {
-      console.error("Failed to get current departure order number:", error);
-      throw error;
-    } finally {
-      stopLoader("processes/get-departure-order-no");
-    }
-  },
 
   // =====================================
   // NEW: ENTRY ORDER-CENTRIC DEPARTURE WORKFLOW
@@ -953,7 +936,7 @@ export const ProcessService = {
 
     try {
       const response = await api.post(`${departureBaseURL}/validate-multiple-cells`, {
-        inventory_selections: inventorySelections,
+        inventory_selections,
       });
       return response.data.data || response.data;
     } catch (error) {
@@ -2384,19 +2367,7 @@ export const ProcessService = {
   // NEW: AUDIT TRAIL & REPORTING
   // =====================================
 
-  /**
-   * Get departure order audit trail
-   */
-  getDepartureOrderAuditTrail: async (orderId: string) => {
-    try {
-      const response = await api.get(`${departureBaseURL}/departure-orders/${orderId}/audit-trail`);
-      const auditTrail: import("../types").DepartureApprovalStep[] = response.data.data || response.data;
-      return auditTrail;
-    } catch (error) {
-      console.error("Failed to fetch departure order audit trail:", error);
-      throw error;
-    }
-  },
+
 
   /**
    * Get departure orders by status for workflow management
@@ -2686,6 +2657,71 @@ export const ProcessService = {
       throw new Error(errorMessage);
     } finally {
       stopLoader("processes/update-departure-order");
+    }
+  },
+
+  // ✅ NEW: Get approved departure orders ready for dispatch
+  getApprovedDepartureOrders: async (filters?: { organisationId?: string }) => {
+    try {
+      const params = new URLSearchParams();
+      if (filters?.organisationId) {
+        params.append('organisation_id', filters.organisationId);
+      }
+
+      const response = await api.get(`${departureBaseURL}/approved-departure-orders?${params.toString()}`);
+      return response.data.data || response.data || [];
+    } catch (error) {
+      console.error("Error fetching approved departure orders:", error);
+      throw error;
+    }
+  },
+
+  // ✅ NEW: Get products for a specific departure order
+  getDepartureOrderProducts: async (orderId: string) => {
+    try {
+      const response = await api.get(`${departureBaseURL}/departure-orders/${orderId}/products`);
+      return response.data.data || response.data || [];
+    } catch (error) {
+      console.error("Error fetching departure order products:", error);
+      throw error;
+    }
+  },
+
+  // ✅ NEW: Get recalculated FIFO for partial dispatch
+  getRecalculatedFifo: async (orderId: string, productId: string) => {
+    try {
+      const response = await api.get(`${departureBaseURL}/departure-orders/${orderId}/products/${productId}/recalculated-fifo`);
+      return response.data.data || response.data || [];
+    } catch (error) {
+      console.error("Error fetching recalculated FIFO:", error);
+      throw error;
+    }
+  },
+
+  // ✅ NEW: Execute dispatch with selected inventory
+  dispatchApprovedOrder: async (dispatchData: any) => {
+    try {
+      const response = await api.post(`${departureBaseURL}/dispatch-approved-order`, dispatchData);
+      return response.data;
+    } catch (error) {
+      console.error("Error executing dispatch:", error);
+      throw error;
+    }
+  },
+
+  // ✅ NEW: Get warehouse dispatch summary
+  getWarehouseDispatchSummary: async (warehouseId?: string) => {
+    try {
+      const params = new URLSearchParams();
+      if (warehouseId) {
+        params.append('warehouse_id', warehouseId);
+      }
+
+      const response = await api.get(`${departureBaseURL}/warehouse-dispatch-summary?${params.toString()}`);
+      return response.data.data || response.data || [];
+    } catch (error) {
+      console.error("Error fetching warehouse dispatch summary:", error);
+      throw error;
     }
   },
 };

@@ -193,8 +193,8 @@ const SimplifiedInventoryAllocation: React.FC = () => {
       const initialRows: AllocationRow[] = response.products.map((product: any, index: number) => ({
         id: `${product.entry_order_product_id}-${index}`,
         entry_order_product_id: product.entry_order_product_id,
-        product_name: product.product?.name || product.product_name || "Unknown Product",
-        product_code: product.product?.product_code || product.product_code || "Unknown Code",
+        product_name: product.product?.name || product.product_name || t('inventory:unknown_product'),
+        product_code: product.product?.product_code || product.product_code || t('inventory:unknown_code'),
         remaining_quantity: product.remaining_quantity || 0,
         remaining_packages: product.remaining_packages || 0,
         remaining_weight: product.remaining_weight || 0,
@@ -219,7 +219,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
       // Show validation issues
       if (!response.can_proceed) {
         const blockingIssues = response.validation_summary?.blocking_issues || [];
-        const errorMsg = `Cannot proceed: ${blockingIssues.join(", ")}`;
+        const errorMsg = t('inventory:validation.cannot_proceed') + `: ${blockingIssues.join(", ")}`;
         console.error("❌ Validation blocking issues:", blockingIssues);
         setError(errorMsg);
       }
@@ -254,26 +254,26 @@ const SimplifiedInventoryAllocation: React.FC = () => {
   const validateRow = useCallback((row: AllocationRow): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
 
-    if (!row.warehouse_id) errors.push("Warehouse required");
-    if (!row.cell_id) errors.push("Cell required");
-    if (row.inventory_quantity <= 0) errors.push("Quantity must be > 0");
-    if (row.inventory_quantity > row.remaining_quantity) errors.push("Quantity exceeds remaining");
-    if (row.package_quantity <= 0) errors.push("Packages must be > 0");
-    if (row.package_quantity > row.remaining_packages) errors.push("Packages exceed remaining");
-    if (row.weight_kg <= 0) errors.push("Weight must be > 0");
-    if (row.weight_kg > row.remaining_weight) errors.push("Weight exceeds remaining");
+    if (!row.warehouse_id) errors.push(t('inventory:validation.warehouse_required'));
+    if (!row.cell_id) errors.push(t('inventory:validation.position_required'));
+    if (row.inventory_quantity <= 0) errors.push(t('inventory:validation.quantity_required'));
+    if (row.inventory_quantity > row.remaining_quantity) errors.push(t('inventory:validation.quantity_exceeds_remaining'));
+    if (row.package_quantity <= 0) errors.push(t('inventory:validation.packages_required'));
+    if (row.package_quantity > row.remaining_packages) errors.push(t('inventory:validation.packages_exceed_remaining'));
+    if (row.weight_kg <= 0) errors.push(t('inventory:validation.weight_required'));
+    if (row.weight_kg > row.remaining_weight) errors.push(t('inventory:validation.weight_exceeds_remaining'));
 
     // Check cell capacity if we have the data
     if (allocationData && row.cell_id) {
       const warehouse = allocationData.warehouses.find(w => w.warehouse_id === row.warehouse_id);
       const cell = warehouse?.available_cells.find(c => c.id === row.cell_id);
       if (cell && row.inventory_quantity > cell.available_capacity) {
-        errors.push("Exceeds cell capacity");
+        errors.push(t('inventory:validation.exceeds_position_capacity'));
       }
     }
 
     return { isValid: errors.length === 0, errors };
-  }, [allocationData]);
+  }, [allocationData, t]);
 
   // ✅ Update a specific row
   const updateRow = useCallback((rowId: string, updates: Partial<AllocationRow>) => {
@@ -369,7 +369,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
     const validRows = allocationRows.filter(row => row.isValid && row.inventory_quantity > 0);
     
     if (validRows.length === 0) {
-      setError("No valid allocations to submit");
+      setError(t('inventory:validation.no_valid_allocations'));
       return;
     }
 
@@ -405,7 +405,11 @@ const SimplifiedInventoryAllocation: React.FC = () => {
       const allocationPercentage = response.allocation_percentage || 0;
       
       // Create simple success message
-      const successMessage = `${response.message || 'Allocation completed successfully'} - ${allocationsCount} allocations created in ${cellsOccupied} cells (${allocationPercentage}% complete)`;
+      const successMessage = t('inventory:allocation_success', {
+        allocationsCount,
+        cellsOccupied,
+        percentage: allocationPercentage
+      });
       
       setSuccess(successMessage);
       
@@ -416,9 +420,9 @@ const SimplifiedInventoryAllocation: React.FC = () => {
 
     } catch (error: any) {
       console.error("Bulk allocation error:", error);
-      setError(error.message || "Failed to submit allocation");
+      setError(error.message || t('inventory:allocation_failed'));
     }
-  }, [allocationData, selectedEntryOrder, allocationRows, notes, navigate]);
+  }, [allocationData, selectedEntryOrder, allocationRows, notes, navigate, t]);
 
   // ✅ Get warehouse and cell options for dropdowns
   const getWarehouseOptions = useCallback(() => {
@@ -429,7 +433,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
     
     const options = allocationData.warehouses.map(w => ({ 
       value: w.warehouse_id || '', 
-      label: w.name || 'Unknown' 
+      label: w.name || t('inventory:unknown_warehouse')
     }));
     console.log("🏪 Warehouse options:", options);
     return options;
@@ -447,7 +451,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
     }
     
     const warehouse = allocationData.warehouses.find(w => w.warehouse_id === warehouseId);
-    console.log("🏪 Looking for warehouse:", warehouseId, "Found:", warehouse?.name || 'Not found');
+    console.log("🏪 Looking for warehouse:", warehouseId, "Found:", warehouse?.name || t('inventory:warehouse_not_found'));
     
     if (!warehouse?.available_cells?.length) {
       console.log("🔍 No warehouse found or no available cells for warehouse:", warehouseId);
@@ -460,7 +464,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
     const options = warehouse.available_cells.map((cell: any, index) => {
       // Fix: Use 'id' instead of 'cell_id' based on the actual API response
       const cellId = cell.id || cell.cell_id || `temp-cell-${warehouseId}-${index}`;
-      const cellRef = cell.cell_reference || `Cell-${index + 1}`;
+      const cellRef = cell.cell_reference || `${t('inventory:position')}-${index + 1}`;
       const availableCap = cell.available_capacity || 0;
       const totalCap = Number(cell.capacity) || 100;
       
@@ -501,7 +505,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
         {t('inventory:simplified_allocation')}
       </Text>
       <Text size="sm" additionalClass="text-gray-600 mb-4">
-        Excel-like interface for streamlined inventory allocation
+        {t('inventory:excel_interface_description')}
       </Text>
       <Divider height="lg" />
 
@@ -532,7 +536,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
             options={entryOrderOptions}
             value={selectedEntryOrder}
             onChange={handleEntryOrderSelect}
-            placeholder={t('inventory:select_entry_order')}
+            placeholder={t('inventory:placeholders.select')}
             isClearable
             isSearchable
             className="mt-1"
@@ -549,17 +553,17 @@ const SimplifiedInventoryAllocation: React.FC = () => {
             </Text>
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
-                <Text size="xs" additionalClass="text-gray-500">Products</Text>
+                <Text size="xs" additionalClass="text-gray-500">{t('inventory:products')}</Text>
                 <Text weight="font-medium">{allocationData.products.length}</Text>
               </div>
               <div>
-                <Text size="xs" additionalClass="text-gray-500">Warehouses Available</Text>
+                <Text size="xs" additionalClass="text-gray-500">{t('inventory:warehouses_available')}</Text>
                 <Text weight="font-medium">{allocationData.warehouses.length}</Text>
               </div>
               <div>
-                <Text size="xs" additionalClass="text-gray-500">Can Proceed</Text>
+                <Text size="xs" additionalClass="text-gray-500">{t('inventory:can_proceed')}</Text>
                 <Text weight="font-medium" additionalClass={allocationData.can_proceed ? "text-green-600" : "text-red-600"}>
-                  {allocationData.can_proceed ? "Yes" : "No"}
+                  {allocationData.can_proceed ? t('inventory:yes') : t('inventory:no')}
                 </Text>
               </div>
             </div>
@@ -584,7 +588,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                   {t('inventory:step_2_allocation_planning')}
                 </Text>
                 <Text size="sm" additionalClass="text-gray-600">
-                  {validRowsCount} valid allocations • {totalAllocationQuantity} total units
+                  {validRowsCount} {t('inventory:valid_allocations')} • {totalAllocationQuantity} {t('inventory:total_units')}
                 </Text>
               </div>
               <div className="flex gap-2">
@@ -611,19 +615,19 @@ const SimplifiedInventoryAllocation: React.FC = () => {
             <table className="w-full border-collapse table-fixed" style={{ minWidth: '1400px' }}>
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
-                  <th className="w-8 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">#</th>
-                  <th className="w-48 p-2 border-r border-gray-200 text-left text-xs font-medium text-gray-600">Product</th>
-                  <th className="w-24 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Remaining</th>
-                  <th className="w-32 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Warehouse</th>
-                  <th className="w-32 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Cell</th>
-                  <th className="w-20 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Quantity</th>
-                  <th className="w-20 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Packages</th>
-                  <th className="w-20 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Weight</th>
-                  <th className="w-24 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Presentation</th>
-                  <th className="w-28 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Status</th>
-                  <th className="w-24 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Guide #</th>
-                  <th className="w-32 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">Notes</th>
-                  <th className="w-16 p-2 text-xs font-medium text-gray-600">Actions</th>
+                  <th className="w-8 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.number')}</th>
+                  <th className="w-48 p-2 border-r border-gray-200 text-left text-xs font-medium text-gray-600">{t('inventory:table_headers.product')}</th>
+                  <th className="w-24 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.remaining')}</th>
+                  <th className="w-32 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.warehouse')}</th>
+                  <th className="w-32 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.position')}</th>
+                  <th className="w-20 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.quantity')}</th>
+                  <th className="w-20 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.packages')}</th>
+                  <th className="w-20 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.weight')}</th>
+                  <th className="w-24 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.presentation')}</th>
+                  <th className="w-28 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.status')}</th>
+                  <th className="w-24 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.guide_number')}</th>
+                  <th className="w-32 p-2 border-r border-gray-200 text-xs font-medium text-gray-600">{t('inventory:table_headers.notes')}</th>
+                  <th className="w-16 p-2 text-xs font-medium text-gray-600">{t('inventory:table_headers.actions')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -658,7 +662,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                           console.log("🏪 Warehouse selected:", option);
                           updateRow(row.id, { warehouse_id: option?.value || '', cell_id: '' });
                         }}
-                        placeholder="Select..."
+                        placeholder={t('inventory:placeholders.select')}
                         isClearable
                         isSearchable={false}
                         className="text-xs"
@@ -681,7 +685,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                           console.log("🏠 Cell selected:", option);
                           updateRow(row.id, { cell_id: option?.value || '' });
                         }}
-                        placeholder="Select..."
+                        placeholder={t('inventory:placeholders.select')}
                         isClearable
                         isSearchable={false}
                         isDisabled={!row.warehouse_id}
@@ -775,7 +779,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                         value={row.guide_number}
                         onChange={(e) => updateRow(row.id, { guide_number: e.target.value })}
                         className="w-full text-xs border border-gray-300 rounded px-1 py-1"
-                        placeholder="Optional"
+                        placeholder={t('inventory:placeholders.optional')}
                       />
                     </td>
 
@@ -786,7 +790,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                         value={row.observations}
                         onChange={(e) => updateRow(row.id, { observations: e.target.value })}
                         className="w-full text-xs border border-gray-300 rounded px-1 py-1"
-                        placeholder="Notes..."
+                        placeholder={t('inventory:placeholders.notes')}
                       />
                     </td>
 
@@ -796,7 +800,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                         <button
                           onClick={() => addAllocationRow(row.id)}
                           className="text-xs text-blue-600 hover:text-blue-800"
-                          title="Split allocation"
+                          title={t('inventory:actions.split_allocation')}
                         >
                           +
                         </button>
@@ -804,7 +808,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                           <button
                             onClick={() => removeAllocationRow(row.id)}
                             className="text-xs text-red-600 hover:text-red-800"
-                            title="Remove allocation"
+                            title={t('inventory:actions.remove_allocation')}
                           >
                             ×
                           </button>
@@ -837,7 +841,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Optional notes for this allocation..."
+                  placeholder={t('inventory:placeholders.optional_allocation_notes')}
                   className="text-sm border border-gray-300 rounded px-3 py-1 w-64"
                 />
               </div>

@@ -6,7 +6,7 @@ import { Text, LoaderSync, Divider, Button } from "@/components";
 import ProcessesStore from "@/modules/process/store";
 import { ProcessService } from "@/globalService";
 import { formatDate } from "@/utils/dateUtils";
-import { DepartureOrder, UserRole } from "@/modules/process/types";
+import { UserRole } from "@/modules/process/types";
 
 const DepartureDispatch: React.FC = () => {
   const { t } = useTranslation(['process', 'common']);
@@ -23,7 +23,7 @@ const DepartureDispatch: React.FC = () => {
   } = ProcessesStore();
 
   const loading = loaders["processes/fetch-departure-orders"];
-  const isDispatching = loaders["processes/dispatch-departure-order"];
+  const isDispatching = loaders["processes/dispatch-departure-order"] || false;
 
   const [dispatchNotes, setDispatchNotes] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -73,10 +73,10 @@ const DepartureDispatch: React.FC = () => {
     }
   }, [order, dispatchNotes, orderNo, navigate, t]);
 
-  const canDispatch = order?.order_status === "APPROVED" && 
-                     userRole && 
-                     userRole !== "CLIENT" &&
-                     (departurePermissions?.can_dispatch_order || userRole === "WAREHOUSE_INCHARGE");
+    const canDispatch = (order as any)?.order_status === "APPROVED" &&
+                   userRole && 
+                   userRole !== "CLIENT" &&
+                   (departurePermissions?.can_dispatch_order || userRole === "WAREHOUSE_INCHARGE");
 
   if (loading) {
     return (
@@ -113,7 +113,7 @@ const DepartureDispatch: React.FC = () => {
     );
   }
 
-  if (order.order_status !== "APPROVED") {
+  if ((order as any).order_status !== "APPROVED") {
     return (
       <div className="flex flex-col h-full">
         <Text size="3xl" weight="font-bold">
@@ -141,26 +141,26 @@ const DepartureDispatch: React.FC = () => {
 
   const orderInfo = [
     { label: t('process:departure_order_no'), value: order.departure_order_no || order.departure_order_code },
-    { label: t('process:customer'), value: order.client?.company_name || order.customer?.name },
+    { label: t('process:customer'), value: (order as any).client?.company_name || (order as any).customer?.name },
     { label: t('process:warehouse'), value: order.warehouse?.name },
-    { label: t('process:destination_point'), value: order.destination_point || order.arrival_point },
+    { label: t('process:destination_point'), value: (order as any).destination_point || (order as any).arrival_point },
     { label: t('process:transport_type'), value: order.transport_type },
     { label: t('process:total_products'), value: order.products?.length || 0 },
     {
       label: t('process:total_quantity'),
-      value: order.comprehensive_summary?.total_quantity || 0,
+      value: (order as any).comprehensive_summary?.total_quantity || 0,
     },
     {
       label: t('process:total_weight'),
-      value: `${order.comprehensive_summary?.total_weight || order.total_weight || 0} kg`,
+      value: `${(order as any).comprehensive_summary?.total_weight || order.total_weight || 0} kg`,
     },
     {
       label: t('process:total_value'),
-      value: `$${order.comprehensive_summary?.total_value || order.total_value || 0}`,
+      value: `$${(order as any).comprehensive_summary?.total_value || (order as any).total_value || 0}`,
     },
     {
       label: t('process:departure_date'),
-      value: formatDate(order.departure_date_time || order.departure_date),
+      value: formatDate((order as any).departure_date_time || order.departure_date),
     },
   ];
 

@@ -17,7 +17,6 @@ import {
   FifoSelection,
   ProductInventorySummary,
   DepartureOrder,
-  DepartureOrderStatus,
   UserRole,
   DeparturePermissions,
   ExpiryFifoLocation,
@@ -25,6 +24,7 @@ import {
   DepartureApprovalStep,
   ProductFifoAnalysis,
   ExpiryUrgency,
+
 } from "@/modules/process/types";
 
 // ✅ NEW: Product Row interface for departure form
@@ -177,6 +177,13 @@ interface ProcessesStore {
     results: any[];
   };
 
+  // ✅ NEW: Warehouse Dispatch System
+  selectedDepartureOrder: any | null;
+  selectedDispatchProduct: any | null;
+  availableLocationsForDispatch: any[];
+  dispatchSelections: any[];
+  dispatchError: string;
+
   // Loading states
   loaders: {
     [K in ProcessLoaderTypes]: boolean;
@@ -270,6 +277,18 @@ interface ProcessesStoreActions {
     progress?: number;
     results?: any[];
   }) => void;
+
+  // ✅ NEW: Warehouse Dispatch Actions
+  setSelectedDepartureOrder: (order: any | null) => void;
+  setSelectedDispatchProduct: (product: any | null) => void;
+  setAvailableLocationsForDispatch: (locations: any[]) => void;
+  setDispatchSelections: (selections: any[]) => void;
+  addDispatchSelection: (selection: any) => void;
+  updateDispatchSelection: (inventoryId: string, updates: any) => void;
+  removeDispatchSelection: (inventoryId: string) => void;
+  clearDispatchSelections: () => void;
+  setDispatchError: (error: string) => void;
+  clearDispatchError: () => void;
 
   // Legacy Departure Orders (keeping for compatibility)
   setDepartureOrders: (orders: any[]) => void;
@@ -444,6 +463,13 @@ const processesInitialState: ProcessesStore = {
     results: [],
   },
 
+  // ✅ NEW: Warehouse Dispatch System
+  selectedDepartureOrder: null,
+  selectedDispatchProduct: null,
+  availableLocationsForDispatch: [],
+  dispatchSelections: [],
+  dispatchError: "",
+
   // Loading states
   loaders: {
     "processes/fetch-entry-orders": false,
@@ -474,6 +500,7 @@ const processesInitialState: ProcessesStore = {
     "processes/fetch-departure-inventory-summary": false,
     "processes/create-departure-from-entry": false,
     "processes/browse-products-inventory": false,
+    "processes/browse-products": false,
     "processes/get-fifo-allocation": false,
     "processes/create-fifo-departure": false,
     "processes/validate-fifo-allocation": false,
@@ -482,6 +509,14 @@ const processesInitialState: ProcessesStore = {
     "processes/approve-departure-order": false,
     "processes/reject-departure-order": false,
     "processes/request-departure-revision": false,
+    "processes/dispatch-departure-order": false,
+    "processes/batch-dispatch-orders": false,
+    "processes/get-fifo-locations": false,
+    "processes/get-product-fifo-analysis": false,
+    "processes/get-expiry-dashboard": false,
+    "processes/fetch-orders-by-status": false,
+    "warehouse-dispatch/load-approved-orders": false,
+    "warehouse-dispatch/execute-dispatch": false,
   },
 };
 
@@ -627,6 +662,26 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>((set, get)
   setBatchOperationStatus: (status) => set({ 
     batchOperationStatus: { ...get().batchOperationStatus, ...status } 
   }),
+
+  // ✅ NEW: Warehouse Dispatch Actions
+  setSelectedDepartureOrder: (order) => set({ selectedDepartureOrder: order }),
+  setSelectedDispatchProduct: (product) => set({ selectedDispatchProduct: product }),
+  setAvailableLocationsForDispatch: (locations) => set({ availableLocationsForDispatch: locations }),
+  setDispatchSelections: (selections) => set({ dispatchSelections: selections }),
+  addDispatchSelection: (selection) => set((state) => ({
+    dispatchSelections: [...state.dispatchSelections, selection]
+  })),
+  updateDispatchSelection: (inventoryId, updates) => set((state) => ({
+    dispatchSelections: state.dispatchSelections.map(s => 
+      s.inventory_id === inventoryId ? { ...s, ...updates } : s
+    )
+  })),
+  removeDispatchSelection: (inventoryId) => set((state) => ({
+    dispatchSelections: state.dispatchSelections.filter(s => s.inventory_id !== inventoryId)
+  })),
+  clearDispatchSelections: () => set({ dispatchSelections: [] }),
+  setDispatchError: (error) => set({ dispatchError: error }),
+  clearDispatchError: () => set({ dispatchError: "" }),
 
   // Legacy Departure Orders
   setDepartureOrders: (orders) => set({ departureOrders: orders }),

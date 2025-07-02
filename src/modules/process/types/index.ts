@@ -107,10 +107,23 @@ export type ProcessLoaderTypes =
   | "processes/fetch-departure-inventory-summary"
   | "processes/create-departure-from-entry"
   | "processes/browse-products-inventory"
+  | "processes/browse-products"
   | "processes/get-fifo-allocation"
   | "processes/create-fifo-departure"
   | "processes/validate-fifo-allocation"
-  | "processes/get-product-inventory-summary";
+  | "processes/get-product-inventory-summary"
+  | "processes/fetch-departure-audit-trail"
+  | "processes/approve-departure-order"
+  | "processes/reject-departure-order"
+  | "processes/request-departure-revision"
+  | "processes/dispatch-departure-order"
+  | "processes/batch-dispatch-orders"
+  | "processes/get-fifo-locations"
+  | "processes/get-product-fifo-analysis"
+  | "processes/get-expiry-dashboard"
+  | "processes/fetch-orders-by-status"
+  | "warehouse-dispatch/load-approved-orders"
+  | "warehouse-dispatch/execute-dispatch";
 
 // Legacy single-product fields (kept for backward compatibility if needed)
 export interface LegacyEntryFormData {

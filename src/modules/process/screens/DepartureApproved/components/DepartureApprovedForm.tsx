@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Select, { CSSObjectWithLabel, SingleValue } from "react-select";
@@ -463,7 +464,7 @@ const DepartureApprovedForm: React.FC = () => {
 
       const departureOrderData = {
         departure_order_no: formData.departure_order_no,
-        personnel_in_charge_id: formData.personnel_in_charge_id.value,
+        customer_id: formData.personnel_in_charge_id.value,
         warehouse_id: selectedWarehouse.value,
         departure_date: formData.departure_date.toISOString().split('T')[0],
         document_type_id: formData.document_type_id.value,
@@ -595,8 +596,6 @@ const DepartureApprovedForm: React.FC = () => {
                 <Text size="sm" additionalClass="text-red-700">{fifoError}</Text>
               </div>
             )}
-
-
 
             {/* Basic Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -747,9 +746,9 @@ const DepartureApprovedForm: React.FC = () => {
                       />
                       {selection.product.product_id && (
                         <Text size="xs" additionalClass="text-gray-500 mt-1">
-                          {t('available')}: {selection.product.total_quantity} {t('units')}, 
-                          {selection.product.location_count} {t('locations')}, 
-                          {t('age_span')}: {selection.product.days_to_earliest_expiry} {t('days')}
+                          {t('available')}: {(selection.product as any).total_quantity} {t('units')},
+                          {(selection.product as any).location_count} {t('locations')},
+                          {t('age_span')}: {(selection.product as any).days_to_earliest_expiry} {t('days')}
                         </Text>
                       )}
                     </div>
