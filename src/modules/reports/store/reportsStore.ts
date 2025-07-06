@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { reportsService, ReportFilters, WarehouseReport, ProductCategoryReport, ProductWiseReport, CardexReport, WarehouseReportResponse } from '../api/reportsService';
+import { reportsService, ReportFilters, WarehouseReportResponse, ProductCategoryReportResponse, ProductWiseReportResponse } from '../api/reportsService';
 
 interface ReportsState {
   // Loading states
@@ -8,9 +8,9 @@ interface ReportsState {
   
   // Report data
   warehouseReports: WarehouseReportResponse | null;
-  productCategoryReports: ProductCategoryReport[];
-  productWiseReports: ProductWiseReport[];
-  cardexReports: CardexReport[];
+  productCategoryReports: ProductCategoryReportResponse | null;
+  productWiseReports: ProductWiseReportResponse | null;
+  cardexReports: { success: boolean; message: string; data: any[]; summary: any; filters_applied: any; user_role: string; is_client_filtered: boolean; report_generated_at: string; processing_time_ms: number; } | null;
   
   // Filters
   filters: ReportFilters;
@@ -30,7 +30,7 @@ interface ReportsState {
   fetchCardexReports: (filters?: ReportFilters) => Promise<void>;
   
   // Export reports
-  exportReport: (reportType: string, format: 'excel' | 'pdf') => Promise<void>;
+  exportReport: (reportType: string, format: 'excel' | 'pdf') => Promise<boolean>;
   
   // Clear data
   clearReports: () => void;
@@ -41,9 +41,9 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   isLoading: false,
   loadingStates: {},
   warehouseReports: null,
-  productCategoryReports: [],
-  productWiseReports: [],
-  cardexReports: [],
+  productCategoryReports: null,
+  productWiseReports: null,
+  cardexReports: null,
   filters: {},
   selectedReportType: 'warehouse',
 
@@ -95,7 +95,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       set({ productCategoryReports: reports });
     } catch (error) {
       console.error('Error fetching product category reports:', error);
-      set({ productCategoryReports: [] });
+      set({ productCategoryReports: null });
     } finally {
       setLoading('product-category-reports', false);
     }
@@ -111,7 +111,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       set({ productWiseReports: reports });
     } catch (error) {
       console.error('Error fetching product wise reports:', error);
-      set({ productWiseReports: [] });
+      set({ productWiseReports: null });
     } finally {
       setLoading('product-wise-reports', false);
     }
@@ -127,7 +127,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       set({ cardexReports: reports });
     } catch (error) {
       console.error('Error fetching cardex reports:', error);
-      set({ cardexReports: [] });
+      set({ cardexReports: null });
     } finally {
       setLoading('cardex-reports', false);
     }
@@ -140,7 +140,11 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     
     try {
       const currentFilters = get().filters;
-      await reportsService.exportReport(reportType, currentFilters, format);
+      const success = await reportsService.exportReport(reportType, currentFilters, format);
+      if (success) {
+        console.log(`${reportType} report exported successfully as ${format}`);
+      }
+      return success || true;
     } catch (error) {
       console.error('Error exporting report:', error);
       throw error;
@@ -153,9 +157,9 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   clearReports: () => {
     set({
       warehouseReports: null,
-      productCategoryReports: [],
-      productWiseReports: [],
-      cardexReports: [],
+      productCategoryReports: null,
+      productWiseReports: null,
+      cardexReports: null,
       filters: {},
     });
   },

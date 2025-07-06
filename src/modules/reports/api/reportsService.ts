@@ -4,9 +4,12 @@ import api from "@/utils/api/axios.config";
 export interface ReportFilters {
   date_from?: string;
   date_to?: string;
+  customer_name?: string;
+  customer_code?: string;
+  product_name?: string;
   product_code?: string;
   warehouse_id?: string;
-  category_id?: string;
+  quality_status?: string;
 }
 
 export interface WarehouseReport {
@@ -20,51 +23,115 @@ export interface WarehouseReport {
 }
 
 export interface ProductCategoryReport {
-  id: string;
-  category_name: string;
-  product_count: number;
-  total_quantity: number;
-  total_weight: number;
-  total_value: number;
-}
-
-export interface ProductWiseReport {
-  id: string;
-  product_code: string;
-  product_name: string;
-  category_name: string;
-  total_quantity: number;
-  total_weight: number;
-  total_value: number;
-  locations_count: number;
-}
-
-export interface CardexReport {
-  id: string;
-  product_code: string;
-  product_name: string;
-  date: string;
-  transaction_type: 'IN' | 'OUT';
-  quantity: number;
-  weight: number;
-  balance_quantity: number;
-  balance_weight: number;
-  reference: string;
-}
-
-// New interface for the actual API response
-export interface WarehouseInventoryItem {
-  allocation_id: string;
-  inventory_id: string;
-  product_id: string;
   product_code: string;
   product_name: string;
   manufacturer: string;
-  warehouse_id: string;
-  warehouse_name: string;
-  warehouse_location: string;
-  warehouse_capacity: number;
-  warehouse_max_occupancy: number;
+  category: string;
+  subcategory1?: string;
+  subcategory2?: string;
+  client_id: string;
+  client_name: string;
+  customer_name: string;
+  customer_code: string;
+  approved_products: Array<{
+    lot_number: string;
+    quantity_units: number;
+    entry_date: string;
+    expiration_date: string;
+  }>;
+  sample_products: Array<{
+    lot_number: string;
+    quantity_units: number;
+    entry_date: string;
+    expiration_date: string;
+  }>;
+  quarantine_products: Array<{
+    lot_number: string;
+    quantity_units: number;
+    entry_date: string;
+    expiration_date: string;
+  }>;
+  return_products: Array<{
+    lot_number: string;
+    quantity_units: number;
+    entry_date: string;
+    expiration_date: string;
+  }>;
+  rejected_products: Array<{
+    lot_number: string;
+    quantity_units: number;
+    entry_date: string;
+    expiration_date: string;
+  }>;
+}
+
+export interface ProductWiseReport {
+  type: 'STOCK_IN' | 'STOCK_OUT';
+  product_code: string;
+  product_name: string;
+  manufacturer: string;
+  category: string;
+  client_id: string;
+  client_name: string;
+  customer_name: string;
+  customer_code: string;
+  entry_order_code?: string;
+  entry_date?: string;
+  departure_order_code?: string;
+  departure_date?: string;
+  lot_number?: string;
+  quantity_units: number;
+  package_quantity: number;
+  warehouse_quantity: number;
+  weight: string | number;
+  volume?: string | number;
+  financial_value?: string | number | null;
+  expiration_date?: string;
+  warehouse_name?: string;
+}
+
+export interface CardexMovement {
+  type: 'STOCK_IN' | 'STOCK_OUT';
+  date: string;
+  reference: string;
+  lot_number?: string;
+  quantity: number;
+  financial_value: number;
+  client_name: string;
+}
+
+export interface CardexReport {
+  product_code: string;
+  product_name: string;
+  manufacturer: string;
+  category: string;
+  subcategory1?: string;
+  subcategory2?: string;
+  client_id: string;
+  client_name: string;
+  opening_balance: {
+    quantity: number;
+    financial_value: number;
+  };
+  stock_in: {
+    quantity: number;
+    financial_value: number;
+  };
+  stock_out: {
+    quantity: number;
+    financial_value: number;
+  };
+  closing_balance: {
+    quantity: number;
+    financial_value: number;
+  };
+  movements: CardexMovement[];
+}
+
+// New interface for the actual API response
+export interface WarehousePosition {
+  allocation_id: string;
+  inventory_id: string;
   cell_id: string;
   position: string;
   cell_role: string;
@@ -76,9 +143,6 @@ export interface WarehouseInventoryItem {
   category: string;
   quality_status: string;
   inventory_status: string;
-  entry_order_id: string;
-  entry_order_no: string;
-  entry_date: string;
   lot_series: string;
   manufacturing_date: string;
   expiration_date: string;
@@ -88,23 +152,69 @@ export interface WarehouseInventoryItem {
   is_near_expiry: boolean;
   is_urgent: boolean;
   is_expired: boolean;
+  entry_order_id: string;
+  entry_order_no: string;
+  entry_date: string;
   created_at: string;
   last_updated: string;
+  warehouse_id: string;
+  warehouse_name: string;
+  warehouse_location: string;
+}
+
+export interface WarehouseProduct {
+  product_id: string;
+  product_code: string;
+  product_name: string;
+  manufacturer: string;
+  positions: WarehousePosition[];
+  location_count: number;
+  position_count: number;
+  total_quantity: number;
+  total_weight: number;
+  total_volume: number;
+}
+
+export interface WarehouseClient {
+  client_id: string;
+  client_name: string;
+  client_type: string;
+  client_email: string;
+  products: WarehouseProduct[];
+  total_positions: number;
+  total_quantity: number;
+  total_weight: number;
+  total_volume: number;
 }
 
 export interface WarehouseReportResponse {
   success: boolean;
   message: string;
-  data: WarehouseInventoryItem[];
+  data: WarehouseClient[];
   summary: {
-    total_records: number;
+    total_clients: number;
+    total_products: number;
+    total_positions: number;
     total_quantity: number;
     total_weight: number;
     total_volume: number;
-    warehouses_involved: number;
-    products_involved: number;
-    category_breakdown: Record<string, number>;
+    total_warehouse_cells: number;
+    total_vacant_cells: number;
+    total_occupied_cells: number;
+    client_breakdown: Array<{
+      client_id: string;
+      client_name: string;
+      client_type: string;
+      product_count: number;
+      position_count: number;
+      total_quantity: number;
+      total_weight: number;
+      total_volume: number;
+    }>;
+    product_distribution: Record<string, any>;
+    warehouse_breakdown: Record<string, any>;
     quality_status_breakdown: Record<string, number>;
+    category_breakdown: Record<string, number>;
     urgency_breakdown: {
       expired: number;
       urgent: number;
@@ -112,7 +222,48 @@ export interface WarehouseReportResponse {
       normal: number;
     };
   };
-  filters_applied: Record<string, any>;
+  filters_applied: Record<string, string | number | boolean | null | undefined>;
+  user_role: string;
+  is_client_filtered: boolean;
+  report_generated_at: string;
+  processing_time_ms: number;
+}
+
+export interface ProductCategoryReportResponse {
+  success: boolean;
+  message: string;
+  data: ProductCategoryReport[];
+  summary: {
+    total_products: number;
+    total_approved: number;
+    total_samples: number;
+    total_quarantine: number;
+    total_returns: number;
+    total_rejected: number;
+    categories_breakdown: Record<string, number>;
+  };
+  filters_applied: Record<string, string | number | boolean | null | undefined>;
+  user_role: string;
+  is_client_filtered: boolean;
+  report_generated_at: string;
+  processing_time_ms: number;
+}
+
+export interface ProductWiseReportResponse {
+  success: boolean;
+  message: string;
+  data: ProductWiseReport[];
+  summary: {
+    total_records: number;
+    stock_in_records: number;
+    stock_out_records: number;
+    total_stock_in_quantity: number;
+    total_stock_out_quantity: number;
+    total_stock_in_value: number;
+    total_stock_out_value: number;
+    products_breakdown: Record<string, { stock_in: number; stock_out: number }>;
+  };
+  filters_applied: Record<string, string | number | boolean | null | undefined>;
   user_role: string;
   is_client_filtered: boolean;
   report_generated_at: string;
@@ -136,16 +287,25 @@ class ReportsService {
       if (filters.product_code) {
         params.append('product_code', filters.product_code);
       }
+      if (filters.product_name) {
+        params.append('product_name', filters.product_name);
+      }
+      if (filters.customer_name) {
+        params.append('customer_name', filters.customer_name);
+      }
+      if (filters.customer_code) {
+        params.append('customer_code', filters.customer_code);
+      }
       if (filters.warehouse_id) {
         params.append('warehouse_id', filters.warehouse_id);
       }
-      if (filters.category_id) {
-        params.append('category_id', filters.category_id);
+      if (filters.quality_status) {
+        params.append('quality_status', filters.quality_status);
       }
 
-      const response = await api.get(`/warehouse/report?${params.toString()}`);
+      const response = await api.get(`/reports/warehouse?${params.toString()}`);
       
-      const data = response.data.data || response.data;
+      const data = response.data;
       return data;
     } catch (error) {
       console.error('Error in getWarehouseReport:', error);
@@ -154,7 +314,7 @@ class ReportsService {
   }
 
   // Product Category Report
-  async getProductCategoryReport(filters: ReportFilters = {}): Promise<ProductCategoryReport[]> {
+  async getProductCategoryReport(filters: ReportFilters = {}): Promise<ProductCategoryReportResponse> {
     try {
       const params = new URLSearchParams();
       
@@ -164,11 +324,23 @@ class ReportsService {
       if (filters.date_to) {
         params.append('date_to', filters.date_to);
       }
+      if (filters.customer_name) {
+        params.append('customer_name', filters.customer_name);
+      }
+      if (filters.customer_code) {
+        params.append('customer_code', filters.customer_code);
+      }
+      if (filters.product_name) {
+        params.append('product_name', filters.product_name);
+      }
+      if (filters.product_code) {
+        params.append('product_code', filters.product_code);
+      }
 
-      const response = await api.get(`/product-category/report?${params.toString()}`);
+      const response = await api.get(`/reports/product-category?${params.toString()}`);
       
-      const data = response.data.data || response.data;
-      return data || [];
+      const data = response.data;
+      return data;
     } catch (error) {
       console.error('Error in getProductCategoryReport:', error);
       throw error;
@@ -176,7 +348,7 @@ class ReportsService {
   }
 
   // Product Wise Report
-  async getProductWiseReport(filters: ReportFilters = {}): Promise<ProductWiseReport[]> {
+  async getProductWiseReport(filters: ReportFilters = {}): Promise<ProductWiseReportResponse> {
     try {
       const params = new URLSearchParams();
       
@@ -189,14 +361,20 @@ class ReportsService {
       if (filters.product_code) {
         params.append('product_code', filters.product_code);
       }
-      if (filters.category_id) {
-        params.append('category_id', filters.category_id);
+      if (filters.product_name) {
+        params.append('product_name', filters.product_name);
+      }
+      if (filters.customer_name) {
+        params.append('customer_name', filters.customer_name);
+      }
+      if (filters.customer_code) {
+        params.append('customer_code', filters.customer_code);
       }
 
-      const response = await api.get(`/product-wise/report?${params.toString()}`);
+      const response = await api.get(`/reports/product-wise?${params.toString()}`);
       
-      const data = response.data.data || response.data;
-      return data || [];
+      const data = response.data;
+      return data;
     } catch (error) {
       console.error('Error in getProductWiseReport:', error);
       throw error;
@@ -204,7 +382,7 @@ class ReportsService {
   }
 
   // Cardex Report
-  async getCardexReport(filters: ReportFilters = {}): Promise<CardexReport[]> {
+  async getCardexReport(filters: ReportFilters = {}): Promise<{ success: boolean; message: string; data: CardexReport[]; summary: any; filters_applied: any; user_role: string; is_client_filtered: boolean; report_generated_at: string; processing_time_ms: number; }> {
     try {
       const params = new URLSearchParams();
       
@@ -217,11 +395,19 @@ class ReportsService {
       if (filters.product_code) {
         params.append('product_code', filters.product_code);
       }
+      if (filters.product_name) {
+        params.append('product_name', filters.product_name);
+      }
+      if (filters.customer_name) {
+        params.append('customer_name', filters.customer_name);
+      }
+      if (filters.customer_code) {
+        params.append('customer_code', filters.customer_code);
+      }
 
-      const response = await api.get(`/cardex/report?${params.toString()}`);
+      const response = await api.get(`/reports/cardex?${params.toString()}`);
       
-      const data = response.data.data || response.data;
-      return data || [];
+      return response.data;
     } catch (error) {
       console.error('Error in getCardexReport:', error);
       throw error;
@@ -243,11 +429,37 @@ class ReportsService {
       if (filters.product_code) {
         params.append('product_code', filters.product_code);
       }
+      if (filters.product_name) {
+        params.append('product_name', filters.product_name);
+      }
+      if (filters.customer_name) {
+        params.append('customer_name', filters.customer_name);
+      }
+      if (filters.customer_code) {
+        params.append('customer_code', filters.customer_code);
+      }
 
-      const response = await api.get(`/${reportType}/export?${params.toString()}`);
+      const response = await api.get(`/reports/${reportType}/export?${params.toString()}`, {
+        responseType: 'blob', // Important for file downloads
+      });
       
-      const data = response.data.data || response.data;
-      return data;
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      // Set filename based on format
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `${reportType}-report-${timestamp}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+      link.setAttribute('download', filename);
+      
+      // Trigger download
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      return true;
     } catch (error) {
       console.error('Error in exportReport:', error);
       throw error;
@@ -255,4 +467,4 @@ class ReportsService {
   }
 }
 
-export const reportsService = new ReportsService(); 
+export const reportsService = new ReportsService();

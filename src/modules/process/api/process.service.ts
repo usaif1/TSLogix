@@ -936,7 +936,7 @@ export const ProcessService = {
 
     try {
       const response = await api.post(`${departureBaseURL}/validate-multiple-cells`, {
-        inventory_selections,
+        inventory_selections: inventorySelections,
       });
       return response.data.data || response.data;
     } catch (error) {

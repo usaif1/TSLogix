@@ -65,8 +65,8 @@ const BasicInformationSection: React.FC<Props> = ({
           styles={reactSelectStyle}
           inputId="personnel"
           name="personnel"
-          value={formData.personnel}
-          onChange={(selected) => handleSelectChange("personnel", selected)}
+          value={formData.personnel_incharge_id}
+          onChange={(selected) => handleSelectChange("personnel_incharge_id", selected)}
           isDisabled={isSubmitting}
           placeholder={t('process:select_personnel')}
         />
