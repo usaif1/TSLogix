@@ -225,64 +225,140 @@ const DepartureDispatch: React.FC = () => {
           >
             {t('process:products_to_dispatch')} ({order.products?.length || 0})
           </Text>
-          <div className="space-y-4">
-            {order.products?.map((product: any, index: number) => (
-              <div
-                key={product.departure_order_product_id || index}
-                className="rounded-lg p-4 border border-gray-200 bg-gray-50"
-              >
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <Text weight="font-semibold" additionalClass="text-gray-800">
-                      #{index + 1}: {product.product?.name || product.product_name}
-                    </Text>
-                    <Text size="sm" additionalClass="text-gray-600">
-                      {t('process:product_code')}: {product.product?.product_code || product.product_code}
-                    </Text>
-                  </div>
-                  <div className="bg-blue-100 px-3 py-1 rounded-full">
-                    <Text size="sm" additionalClass="text-blue-800 font-medium">
-                      {t('process:ready_for_dispatch')}
-                    </Text>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:quantity')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.requested_quantity || 0}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:weight')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.requested_weight || 0} kg
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:packages')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.requested_packages || 0}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-700 block mb-1">
-                      {t('process:lot_number')}:
-                    </span>
-                    <span className="text-gray-600">
-                      {product.lot_series || product.lot_number || '-'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+          
+          {/* Excel-like Table Header */}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse border border-gray-300">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.number')}
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.product')}
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.quantity')}
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.weight')}
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.packages')}
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.lot_series')}
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.fifo_cell_references')}
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.dispatch_priority')}
+                  </th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-700">
+                    {t('process:table_headers.expiry_status')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.products?.map((product: any, index: number) => {
+                  // Get FIFO dispatch plan
+                  const fifoPlan = product.fifo_dispatch_plan || [];
+                  const cellReferences = fifoPlan.map((item: any) => item.cell_reference).join(', ');
+                  
+                  // Get priority and expiry info
+                  const priority = product.dispatch_priority || 'NORMAL';
+                  const hasUrgent = product.has_urgent || false;
+                  const hasNearExpiry = product.has_near_expiry || false;
+                  const hasExpired = product.has_expired || false;
+                  
+                  return (
+                    <tr key={product.departure_order_product_id || index} className="hover:bg-gray-50">
+                      <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900">
+                        {index + 1}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {product.product?.name || product.product_name}
+                          </div>
+                          <div className="text-gray-500 text-xs">
+                            {product.product?.product_code || product.product_code}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900">
+                        {product.requested_quantity || 0}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900">
+                        {product.requested_weight || 0} kg
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900">
+                        {product.requested_packages || 0}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900">
+                        {product.lot_series || product.lot_number || '-'}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        {cellReferences ? (
+                          <div className="space-y-1">
+                            {fifoPlan.map((item: any, planIndex: number) => (
+                              <div key={planIndex} className="flex items-center space-x-2">
+                                <span className="inline-block w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center text-white bg-blue-600">
+                                  {planIndex + 1}
+                                </span>
+                                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                  {item.cell_reference}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  ({item.quantity_to_dispatch} {t('process:units')})
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">{t('process:no_fifo_plan_available')}</span>
+                        )}
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <span className={`px-2 py-1 text-xs font-medium rounded ${
+                          priority === 'URGENT' ? 'bg-red-100 text-red-800' :
+                          priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
+                          priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {priority}
+                        </span>
+                      </td>
+                      <td className="border border-gray-300 px-3 py-2 text-sm">
+                        <div className="space-y-1">
+                          {hasExpired && (
+                            <span className="inline-block px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-800">
+                              {t('process:expired')}
+                            </span>
+                          )}
+                          {hasUrgent && !hasExpired && (
+                            <span className="inline-block px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-800">
+                              {t('process:urgent')}
+                            </span>
+                          )}
+                          {hasNearExpiry && !hasUrgent && !hasExpired && (
+                            <span className="inline-block px-2 py-1 text-xs font-medium rounded bg-yellow-100 text-yellow-800">
+                              {t('process:near_expiry')}
+                            </span>
+                          )}
+                          {!hasExpired && !hasUrgent && !hasNearExpiry && (
+                            <span className="inline-block px-2 py-1 text-xs font-medium rounded bg-green-100 text-green-800">
+                              {t('process:normal')}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
 

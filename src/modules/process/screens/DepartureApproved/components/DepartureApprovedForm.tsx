@@ -734,7 +734,7 @@ const DepartureApprovedForm: React.FC = () => {
                         value={selection.product.product_id ? selection.product : null}
                         onChange={(option) => handleProductChange(index, option)}
                         options={availableProducts || []}
-                        placeholder={availableProducts?.length > 0 ? t('select_product') : "Loading products..."}
+                        placeholder={availableProducts?.length > 0 ? t('select_product') : t('process:loading_products')}
                         getOptionLabel={(option) => {
                           console.log("Rendering option:", option);
                           return `${option.product_code || 'No Code'} - ${option.product_name || 'No Name'}`;
@@ -742,7 +742,7 @@ const DepartureApprovedForm: React.FC = () => {
                         getOptionValue={(option) => option.product_id}
                         styles={reactSelectStyle}
                         isLoading={loaders["processes/browse-products"]}
-                        noOptionsMessage={() => availableProducts?.length === 0 ? "No products available" : "Loading..."}
+                        noOptionsMessage={() => availableProducts?.length === 0 ? t('process:no_products_available') : t('process:loading_products')}
                       />
                       {selection.product.product_id && (
                         <Text size="xs" additionalClass="text-gray-500 mt-1">

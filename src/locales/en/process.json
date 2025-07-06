@@ -198,7 +198,7 @@
   "not_reviewed": "Not reviewed",
   "departure_date": "Departure Date",
   "devolution": "Devolution",
-  "warehouse_dispatch_center": "Warehouse Dispatch Center",
+  "warehouse_dispatch_center": "Warehouse Dispatch",
   "dispatch_approved_orders_description": "Manage and execute dispatch operations for approved departure orders",
   "back_to_departure": "Back to Departure",
   "dispatch_summary": "Dispatch Summary",
@@ -215,6 +215,7 @@
   "dispatching": "Dispatching...",
   "no_approved_orders_available": "No Approved Orders Available",
   "no_orders_to_dispatch": "There are no approved orders available for dispatch",
+  "no_fifo_plan_available": "No FIFO plan available",
   "optional_notes": "Optional notes...",
   "table_headers": {
     "number": "#",
@@ -237,7 +238,13 @@
     "dispatch_weight": "Dispatch Weight",
     "notes": "Notes",
     "actions": "Actions",
-    "urgency": "Urgency"
+    "urgency": "Urgency",
+    "quantity": "Quantity",
+    "weight": "Weight",
+    "packages": "Packages",
+    "fifo_cell_references": "FIFO Cell References",
+    "dispatch_priority": "Dispatch Priority",
+    "expiry_status": "Expiry Status"
   },
   "approved_orders_available": "approved orders available",
   "select_approved_order_for_dispatch": "Select approved order for dispatch...",
@@ -569,6 +576,7 @@
   "warehouse_exit_note": "Warehouse Exit Note",
   "max_10_files_10mb_each": "Maximum 10 files, 10MB each",
   "select_document_types_placeholder": "Select document types...",
+  
   "fifo_info": "FIFO Info",
   "fifo_allocation": "FIFO Allocation",
   "select_product_first": "Select product first",
@@ -589,7 +597,7 @@
   "creating": "Creating...",
   "loading": "Loading...",
   
-  "warehouse_dispatch_center": "Warehouse Dispatch Center",
+  "warehouse_dispatch_center": "Warehouse Dispatch",
   "dispatch_approved_orders_description": "Execute FIFO-based dispatching for approved departure orders",
   "step_1_select_approved_order": "Step 1: Select Approved Order",
   "step_2_select_product_to_dispatch": "Step 2: Select Product to Dispatch",
@@ -648,5 +656,8 @@
   "inventory_exists_but_blocked_reasons": "Inventory exists in storage but is blocked for the following reasons:",
   "inventory_status_breakdown": "Inventory Status Breakdown",
   "storage_locations_detail": "Storage Locations Detail",
-  "blocking_reason": "Blocking Reason"
+  "blocking_reason": "Blocking Reason",
+  "no_fifo_plan_available": "No FIFO plan available",
+  "near_expiry": "Near Expiry",
+  "normal": "Normal"
 }

@@ -289,6 +289,7 @@ interface ProcessesStoreActions {
   clearDispatchSelections: () => void;
   setDispatchError: (error: string) => void;
   clearDispatchError: () => void;
+  clearAllDispatchState: () => void;
 
   // Legacy Departure Orders (keeping for compatibility)
   setDepartureOrders: (orders: any[]) => void;
@@ -682,6 +683,15 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>((set, get)
   clearDispatchSelections: () => set({ dispatchSelections: [] }),
   setDispatchError: (error) => set({ dispatchError: error }),
   clearDispatchError: () => set({ dispatchError: "" }),
+  
+  // ✅ NEW: Clear all dispatch-related state
+  clearAllDispatchState: () => set({
+    selectedDepartureOrder: null,
+    selectedDispatchProduct: null,
+    availableLocationsForDispatch: [],
+    dispatchSelections: [],
+    dispatchError: "",
+  }),
 
   // Legacy Departure Orders
   setDepartureOrders: (orders) => set({ departureOrders: orders }),

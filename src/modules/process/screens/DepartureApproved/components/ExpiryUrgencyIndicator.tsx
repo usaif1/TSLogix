@@ -141,7 +141,7 @@ const ExpiryUrgencyIndicator: React.FC<ExpiryUrgencyIndicatorProps> = ({
               size="xs" 
               additionalClass={`${config.textColor} opacity-75`}
             >
-              ({daysToExpiry >= 0 ? `${daysToExpiry}d` : `${Math.abs(daysToExpiry)}d ago`})
+              ({daysToExpiry >= 0 ? `${daysToExpiry}d` : `${Math.abs(daysToExpiry)}d ${t('process:days_ago')}`})
             </Text>
           )}
         </div>

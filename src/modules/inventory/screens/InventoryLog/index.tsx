@@ -9,42 +9,13 @@ import Spinner from "@/components/Spinner/index";
 import { InventoryTable } from "./components";
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 
-// ✅ NEW: Summary Stats Card Component
-const StatCard: React.FC<{
-  title: string;
-  value: number | string;
-  subtitle?: string;
-  icon?: string;
-  color?: 'blue' | 'green' | 'orange' | 'purple';
-}> = ({ title, value, subtitle, icon, color = 'blue' }) => {
-  const colorClasses = {
-    blue: 'bg-blue-50 border-blue-200 text-blue-900',
-    green: 'bg-green-50 border-green-200 text-green-900',
-    orange: 'bg-orange-50 border-orange-200 text-orange-900',
-    purple: 'bg-purple-50 border-purple-200 text-purple-900'
-  };
 
-  return (
-    <div className={`p-4 rounded-lg border ${colorClasses[color]} transition-all duration-200 hover:shadow-md`}>
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <p className="text-sm font-medium opacity-75">{title}</p>
-          <p className="text-2xl font-semibold mt-1">{value.toLocaleString()}</p>
-          {subtitle && <p className="text-xs opacity-60 mt-1">{subtitle}</p>}
-        </div>
-        {icon && <div className="text-2xl ml-2">{icon}</div>}
-      </div>
-    </div>
-  );
-};
 
 const InventoryLog: React.FC = () => {
   const { t } = useTranslation(['inventory', 'common']);
   const { 
     inventoryLogs, 
-    loaders, 
-    inventorySummaryStats, 
-    lastGeneratedAt 
+    loaders
   } = useInventoryLogStore();
   const navigate = useNavigate();
 
@@ -369,90 +340,7 @@ const InventoryLog: React.FC = () => {
         </div>
       </div>
 
-      {/* Summary Statistics */}
-      {inventorySummaryStats && (
-        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-6">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">{t('inventory:inventory_overview')}</h2>
-            {lastGeneratedAt && (
-              <span className="text-sm text-gray-500">
-                {t('inventory:last_updated')}: {new Date(lastGeneratedAt).toLocaleString()}
-              </span>
-            )}
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <StatCard
-              title={t('inventory:total_items')}
-              value={inventorySummaryStats.current_inventory.total_items}
-              subtitle={t('inventory:current_inventory')}
-              icon="📦"
-              color="blue"
-            />
-            <StatCard
-              title={t('inventory:total_quantity')}
-              value={inventorySummaryStats.current_inventory.total_quantity}
-              subtitle={t('inventory:units_in_stock')}
-              icon="📊"
-              color="green"
-            />
-            <StatCard
-              title={t('inventory:total_weight')}
-              value={`${inventorySummaryStats.current_inventory.total_weight} kg`}
-              subtitle={t('inventory:total_weight_stored')}
-              icon="⚖️"
-              color="orange"
-            />
-            <StatCard
-              title={t('inventory:warehouses')}
-              value={inventorySummaryStats.current_inventory.warehouses}
-              subtitle={t('inventory:active_locations')}
-              icon="🏢"
-              color="purple"
-            />
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Dispatch History Summary */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('inventory:dispatch_history')}</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('inventory:total_dispatches')}:</span>
-                  <span className="font-medium">{inventorySummaryStats.dispatch_history.total_dispatch_events}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('inventory:dispatched_quantity')}:</span>
-                  <span className="font-medium">{inventorySummaryStats.dispatch_history.total_dispatched_quantity}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('inventory:dispatched_weight')}:</span>
-                  <span className="font-medium">{inventorySummaryStats.dispatch_history.total_dispatched_weight} kg</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Completed Orders Summary */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">{t('inventory:completed_orders')}</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('inventory:total_orders')}:</span>
-                  <span className="font-medium">{inventorySummaryStats.completed_orders.total_orders}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('inventory:fully_completed')}:</span>
-                  <span className="font-medium text-green-600">{inventorySummaryStats.completed_orders.fully_completed}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">{t('inventory:partially_completed')}:</span>
-                  <span className="font-medium text-orange-600">{inventorySummaryStats.completed_orders.partially_completed}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Main Content - Proper overflow handling */}
       <div className="p-4 sm:p-6">

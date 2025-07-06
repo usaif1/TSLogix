@@ -1835,9 +1835,21 @@ export const ProcessService = {
       const orders: import("../types").DepartureOrder[] = response.data.data || response.data;
       
       if (orders && orders.length > 0) {
-        const order = orders[0]; // Get the first matching order
-        setCurrentDepartureOrder(order);
-        return order;
+        // Find the exact matching order by departure_order_no
+        const exactMatch = orders.find(order => 
+          order.departure_order_no === orderNo || 
+          (order as any).departure_order_code === orderNo
+        );
+        
+        if (exactMatch) {
+          setCurrentDepartureOrder(exactMatch);
+          return exactMatch;
+        } else {
+          // Fallback to first order if exact match not found
+          const order = orders[0];
+          setCurrentDepartureOrder(order);
+          return order;
+        }
       } else {
         throw new Error(`Departure order ${orderNo} not found`);
       }

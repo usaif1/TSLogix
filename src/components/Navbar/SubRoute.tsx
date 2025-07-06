@@ -12,7 +12,7 @@ type LinkProps = {
 const SubRoute: React.FC<LinkProps> = ({ item }) => {
   const location = useLocation();
 
-  const isActive = location.pathname.includes(item.route);
+  const isActive = location.pathname === item.route;
 
   return (
     <NavLink

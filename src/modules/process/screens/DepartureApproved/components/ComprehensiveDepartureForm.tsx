@@ -162,10 +162,16 @@ const ComprehensiveDepartureForm: React.FC = () => {
           fifo_locations?: unknown[];
         };
         
-        const availabilityInfo = `Available: ${productData.total_quantity || 0} units, ${productData.location_count || 0} locations`;
+        const availabilityInfo = t('process:available_units_locations', { 
+          units: productData.total_quantity || 0, 
+          locations: productData.location_count || 0 
+        });
         const daysToExpiry = productData.days_to_earliest_expiry || 0;
         const expiryStatus = productData.has_expired ? "EXPIRED" : productData.has_near_expiry ? "URGENT" : "NORMAL";
-        const fifoInfo = `${daysToExpiry} days to expiry (${expiryStatus}), FIFO ready`;
+        const fifoInfo = t('process:days_to_expiry_status', { 
+          days: daysToExpiry, 
+          status: expiryStatus 
+        });
 
         console.log("Updating product with:", {
           product_code: selectedProduct.product_code,

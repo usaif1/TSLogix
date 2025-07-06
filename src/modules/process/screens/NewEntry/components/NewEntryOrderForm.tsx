@@ -49,7 +49,6 @@ interface EntryFormData {
   // Entry Order Level Data
   origin: { option: string; value: string; label: string };
   entry_order_no: string;
-  document_type_id: { option: string; value: string; label: string };
   registration_date: Date;
   document_date: Date;
   admission_date_time: Date;
@@ -126,7 +125,6 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "", label: "" },
     entry_order_no: "",
-    document_type_id: { option: "", value: "", label: "" },
     registration_date: new Date(),
     document_date: new Date(),
     admission_date_time: new Date(),
@@ -406,7 +404,6 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         // Entry order level data
         entry_order_no: formData.entry_order_no,
         origin_id: formData.origin?.value || "",
-        document_type_id: formData.document_type_id?.value || "",
         registration_date: formData.registration_date,
         document_date: formData.document_date,
         entry_date_time: formData.admission_date_time,
@@ -553,23 +550,6 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
               onChange={handleEntryOrderNoChange}
               className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-gray-100"
               placeholder={t("process:loading_order_number")}
-            />
-          </div>
-
-          {/* document */}
-          <div className="w-full flex flex-col">
-            <label htmlFor="document">{t("process:document")} *</label>
-            <Select
-              options={dropdownOptions.documentTypes}
-              styles={reactSelectStyle}
-              inputId="document_type_id"
-              name="document_type_id"
-              value={formData.document_type_id.value ? formData.document_type_id : null}
-              onChange={(selectedOption) =>
-                handleSelectChange("document_type_id", selectedOption)
-              }
-              placeholder={t("process:select_document_type")}
-              isClearable
             />
           </div>
         </div>
@@ -751,7 +731,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
           </div>
         </div>
 
-        {/* ✅ NEW: Multi-Document Upload Section */}
+        {/* Document Upload Section */}
         {!shouldDisableFields && (
           <div className="mt-4">
             <Divider />
@@ -761,14 +741,11 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
                 weight="font-semibold"
                 additionalClass="mb-3 text-gray-800"
               >
-                📎 {t("process:document_upload")} ({t("process:optional")})
+                📎 {t("process:document_upload")}
               </Text>
               
               {/* Document Type Multi-Select */}
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t("process:select_document_types")}
-                </label>
                 <Select
                   isMulti
                   options={ENTRY_DOCUMENT_TYPES}

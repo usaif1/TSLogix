@@ -46,6 +46,21 @@ interface DispatchRow {
   selected_packages: number;
   selected_weight: number;
   dispatch_notes: string;
+  // FIFO dispatch information
+  fifo_dispatch_plan: Array<{
+    allocation_id: string;
+    inventory_id: string;
+    cell_reference: string;
+    warehouse_name: string;
+    quantity_to_dispatch: number;
+    weight_to_dispatch: number;
+    removal_priority: string;
+    removal_reason: string;
+    days_to_expiry: number;
+    is_urgent: boolean;
+    is_near_expiry: boolean;
+    is_expired: boolean;
+  }>;
   // UI state
   isSelected: boolean;
   isValid: boolean;
@@ -170,6 +185,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
         selected_packages: 0,
         selected_weight: 0,
         dispatch_notes: '',
+        fifo_dispatch_plan: product.fifo_dispatch_plan || [],
         isSelected: false,
         isValid: product.can_fulfill,
         errors: product.available_quantity === 0 ? (product.blocking_reasons || []) : [],
@@ -425,7 +441,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
 
           {/* Comprehensive Excel-like Table */}
           <div className="flex-1 overflow-auto">
-            <table className="w-full border-collapse table-fixed" style={{ minWidth: '2200px' }}>
+            <table className="w-full border-collapse table-fixed" style={{ minWidth: '2400px' }}>
               <thead className="bg-gray-50 sticky top-0 z-10">
                 <tr>
                   <th className="w-10 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.number')}</th>
@@ -445,6 +461,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
                   <th className="w-32 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.dispatch_packages')}</th>
                   <th className="w-36 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.dispatch_weight')}</th>
                   <th className="w-40 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.blocking_reasons')}</th>
+                  <th className="w-48 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.fifo_cell_references')}</th>
                   <th className="w-36 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.notes')}</th>
                 </tr>
               </thead>
@@ -563,10 +580,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 0;
                           updateDispatchRow(row.id, { 
-                            selected_quantity: value,
-                            // Auto-calculate proportional packages and weight
-                            selected_packages: row.available_quantity > 0 ? Math.round((value / row.available_quantity) * row.available_packages) : 0,
-                            selected_weight: row.available_quantity > 0 ? (value / row.available_quantity) * row.available_weight : 0
+                            selected_quantity: value
                           });
                         }}
                         disabled={!row.can_fulfill || !row.isSelected}
@@ -596,7 +610,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
                         step="0.1"
                         min="0"
                         max={row.available_weight}
-                        value={row.selected_weight.toFixed(1) || ''}
+                        value={row.selected_weight || ''}
                         onChange={(e) => updateDispatchRow(row.id, { selected_weight: parseFloat(e.target.value) || 0 })}
                         disabled={!row.can_fulfill || !row.isSelected}
                         className="w-full text-xs border border-gray-300 rounded px-2 py-1 text-center"
@@ -619,6 +633,26 @@ const DepartureWarehouseDispatch: React.FC = () => {
                         </div>
                       ) : (
                         <div className="text-green-600">No issues</div>
+                      )}
+                    </td>
+
+                    {/* FIFO Cell References */}
+                    <td className="p-2 text-xs">
+                      {row.fifo_dispatch_plan.length > 0 ? (
+                        <div className="space-y-1">
+                          {row.fifo_dispatch_plan.map((item, planIndex) => (
+                            <div key={planIndex} className="flex items-center space-x-2">
+                              <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                {item.cell_reference}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ({item.quantity_to_dispatch} {t('process:units')})
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">{t('process:no_fifo_plan_available')}</span>
                       )}
                     </td>
 

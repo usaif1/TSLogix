@@ -170,7 +170,7 @@
   "not_reviewed": "No revisado",
   "departure_date": "Fecha de Salida",
   "devolution": "Devolución",
-  "warehouse_dispatch_center": "Centro de Despacho de Almacén",
+  "warehouse_dispatch_center": "Despacho de Almacén",
   "dispatch_approved_orders_description": "Gestionar y ejecutar operaciones de despacho para órdenes de salida aprobadas",
   "back_to_departure": "Volver a Salida",
   "dispatch_summary": "Resumen de Despacho",
@@ -187,6 +187,7 @@
   "dispatching": "Despachando...",
   "no_approved_orders_available": "No Hay Órdenes Aprobadas Disponibles",
   "no_orders_to_dispatch": "No hay órdenes aprobadas disponibles para despacho",
+  "no_fifo_plan_available": "No hay plan FIFO disponible",
   "optional_notes": "Notas opcionales...",
   "table_headers": {
     "number": "#",
@@ -209,7 +210,13 @@
     "dispatch_weight": "Peso Despacho",
     "notes": "Notas",
     "actions": "Acciones",
-    "urgency": "Urgencia"
+    "urgency": "Urgencia",
+    "quantity": "Cantidad",
+    "weight": "Peso",
+    "packages": "Paquetes",
+    "fifo_cell_references": "Referencias de Celdas FIFO",
+    "dispatch_priority": "Prioridad de Despacho",
+    "expiry_status": "Estado de Vencimiento"
   },
   "approved_orders_available": "órdenes aprobadas disponibles",
   "select_approved_order_for_dispatch": "Seleccionar orden aprobada para despacho...",
@@ -691,5 +698,8 @@
   "inventory_exists_but_blocked_reasons": "Existe inventario en almacén pero está bloqueado por las siguientes razones:",
   "inventory_status_breakdown": "Desglose de Estado de Inventario",
   "storage_locations_detail": "Detalle de Ubicaciones de Almacén",
-  "blocking_reason": "Razón de Bloqueo"
+  "blocking_reason": "Razón de Bloqueo",
+  "no_fifo_plan_available": "No hay plan FIFO disponible",
+  "near_expiry": "Cerca del Vencimiento",
+  "normal": "Normal"
 }

@@ -535,7 +535,10 @@ export const InventoryLogService = {
     try {
       startLoader("inventoryLogs/fetch-cells-by-quality-status");
       
-      console.log("🔄 Fetching cells by quality status:", { qualityStatus, warehouseId, entryOrderId });
+      // Get user role for role-based filtering
+      const userRole = localStorage.getItem("role");
+      
+      console.log("🔄 Fetching cells by quality status:", { qualityStatus, warehouseId, entryOrderId, userRole });
       
       // For APROBADO status, fetch general available cells instead of special purpose cells
       const apiEndpoint = qualityStatus === QualityControlStatus.APROBADO 
@@ -549,7 +552,9 @@ export const InventoryLogService = {
           }
         : {
             quality_status: qualityStatus,
-            warehouse_id: warehouseId
+            warehouse_id: warehouseId,
+            // Add entry_order_id for warehouse incharge to fetch only client's assigned cells
+            ...(userRole === "WAREHOUSE_INCHARGE" && entryOrderId && { entry_order_id: entryOrderId })
           };
 
       const response = await api.get(apiEndpoint, {
@@ -586,6 +591,9 @@ export const InventoryLogService = {
       console.log("✅ Cells by quality status response:", {
         qualityStatus,
         warehouseId,
+        userRole,
+        entryOrderId,
+        apiParams,
         responseStructure: responseData,
         rawCellsCount: rawCells.length,
         transformedCellsCount: transformedCells.length,

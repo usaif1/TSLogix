@@ -157,7 +157,7 @@ const FifoAllocationSummary: React.FC<FifoAllocationSummaryProps> = ({
                   >
                     {(location as any).days_to_expiry >= 0 ? 
                       `${(location as any).days_to_expiry}d` : 
-                      `${Math.abs((location as any).days_to_expiry)}d ago`
+                      `${Math.abs((location as any).days_to_expiry)}d ${t('process:days_ago')}`
                     }
                   </Text>
                   <Text size="xs" additionalClass="text-gray-500">
