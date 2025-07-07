@@ -1,7 +1,7 @@
 {
   "welcome_message": "Bienvenido al Sistema de Control de Almacén",
   "logo_alt": "Logo de TSLogix",
-  "entry_order": "Orden de Entrada",
+  "entry_order": "Orden de Ingreso",
   "departure_order": "Orden de Salida",
   "suppliers": "Proveedores",
   "warehouse_management": "Gestión de Almacén",

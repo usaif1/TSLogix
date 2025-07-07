@@ -10,7 +10,6 @@ import { Button, Divider, Text } from "@/components";
 import FileUpload from "@/components/FileUpload";
 import { ProcessesStore } from "@/globalStore";
 import { ProcessService } from "@/modules/process/api/process.service";
-import { supabase } from "@/lib/supabase/supabaseClient";
 import ProductEntryCard from "./ProductEntryCard";
 
 const reactSelectStyle = {
@@ -20,7 +19,7 @@ const reactSelectStyle = {
   }),
 };
 
-// ✅ Updated ProductData interface to include product_code and guide_number
+// ✅ Updated ProductData interface to include product_code
 export interface ProductData {
   id: string;
   product_id: string;
@@ -28,7 +27,6 @@ export interface ProductData {
   supplier_id: string;
   serial_number: string;
   lot_series: string;
-  guide_number: string; // ✅ Added guide_number field for each product
 
   // Updated field names to match new backend schema
   inventory_quantity: string;
@@ -51,7 +49,6 @@ interface EntryFormData {
   // Entry Order Level Data
   origin: { option: string; value: string; label: string };
   entry_order_no: string;
-  document_type_id: { option: string; value: string; label: string };
   registration_date: Date;
   document_date: Date;
   admission_date_time: Date;
@@ -105,16 +102,29 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     };
   }, [origins, documentTypes, users, products, suppliers, temperatureRanges, entryOrderStatus, presentationOptions]);
 
+  // ✅ Document type options for Entry Orders
+  const ENTRY_DOCUMENT_TYPES = [
+    { value: 'LISTA_DE_EMPAQUE', label: t('process:lista_de_empaque') || 'Lista de Empaque' },
+    { value: 'FACTURA', label: t('process:factura') || 'Factura' },
+    { value: 'CERTIFICADO_DE_ANALISIS', label: t('process:certificado_de_analisis') || 'Certificado de Análisis' },
+    { value: 'RRSS', label: t('process:rrss') || 'RRSS' },
+    { value: 'PERMISO_ESPECIAL', label: t('process:permiso_especial') || 'Permiso Especial' },
+    { value: 'OTRO', label: t('process:otro') || 'Otro' }
+  ];
+
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
     success?: boolean;
     message?: string;
   }>({});
 
+  // ✅ Updated state for multi-select document types and files
+  const [selectedDocumentTypes, setSelectedDocumentTypes] = useState<Array<{value: string, label: string}>>([]);
+  const [documentFiles, setDocumentFiles] = useState<Record<string, File | null>>({});
+
   const [formData, setFormData] = useState<EntryFormData>({
     origin: { option: "", value: "", label: "" },
     entry_order_no: "",
-    document_type_id: { option: "", value: "", label: "" },
     registration_date: new Date(),
     document_date: new Date(),
     admission_date_time: new Date(),
@@ -134,8 +144,6 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     type: "",
     products: [],
   });
-
-  const [certificateFile, setCertificateFile] = useState<File | null>(null);
 
   // ✅ Load initial data and entry order number
   useEffect(() => {
@@ -172,7 +180,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     return isReturnOrigin || isReconditionedOrigin;
   }, [isReturnOrigin, isReconditionedOrigin]);
 
-  // ✅ Add product with product_code and guide_number fields
+  // ✅ Add product with product_code
   const addProduct = () => {
     const newProduct: ProductData = {
       id: Date.now().toString(),
@@ -181,7 +189,6 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       supplier_id: "",
       serial_number: "",
       lot_series: "",
-      guide_number: "", // ✅ Added guide_number field
       inventory_quantity: "",
       package_quantity: "",
       weight_kg: "",
@@ -295,6 +302,29 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     }));
   };
 
+  // ✅ Handle document type selection
+  const handleDocumentTypeChange = (selectedOptions: any) => {
+    const newTypes = selectedOptions || [];
+    setSelectedDocumentTypes(newTypes);
+    
+    // Clear files for unselected document types
+    const newDocumentFiles = { ...documentFiles };
+    Object.keys(newDocumentFiles).forEach(type => {
+      if (!newTypes.find((t: any) => t.value === type)) {
+        delete newDocumentFiles[type];
+      }
+    });
+    setDocumentFiles(newDocumentFiles);
+  };
+
+  // ✅ Handle file selection for specific document type
+  const handleFileSelection = (documentType: string, file: File | null) => {
+    setDocumentFiles(prev => ({
+      ...prev,
+      [documentType]: file
+    }));
+  };
+
   // Form submission logic
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -366,28 +396,14 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     setSubmitStatus({});
 
     try {
-      let certificateUrl = "";
-      if (certificateFile && !isReturnOrigin) {
-        const fileName = `${Date.now()}_${certificateFile.name.replace(
-          /[\s.]/g,
-          ""
-        )}`;
-        const { error } = await supabase.storage
-          .from("order")
-          .upload(fileName, certificateFile);
-        if (error) throw error;
-        const { data: urlData } = supabase.storage
-          .from("order")
-          .getPublicUrl(fileName);
-        certificateUrl = urlData.publicUrl;
-      }
+      // ✅ Use FormData for multipart upload with multiple documents
+      const formDataToSend = new FormData();
 
-      // Updated payload to match new backend schema
+      // ✅ Append form fields
       const submissionData = {
         // Entry order level data
         entry_order_no: formData.entry_order_no,
         origin_id: formData.origin?.value || "",
-        document_type_id: formData.document_type_id?.value || "",
         registration_date: formData.registration_date,
         document_date: formData.document_date,
         entry_date_time: formData.admission_date_time,
@@ -399,16 +415,15 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         cif_value: parseFloat(formData.cif_value) || null,
         total_pallets: formData.products.reduce((sum, p) => sum + parseInt(p.quantity_pallets || "0"), 0),
         observation: formData.observation,
-        uploaded_documents: certificateUrl || null,
 
-        // ✅ Products array with product_code and guide_number included
+        // ✅ Products array with product_code included
         products: formData.products.map((product) => ({
           serial_number: product.serial_number,
           supplier_id: product.supplier_id,
-          product_code: product.product_code, // ✅ Include product_code in submission
+          product_code: product.product_code,
           product_id: product.product_id,
           lot_series: product.lot_series,
-          guide_number: product.guide_number || formData.guide_number || "", // ✅ Include guide_number from product or fallback to form level
+          guide_number: formData.guide_number || "",
           manufacturing_date: product.manufacturing_date,
           expiration_date: product.expiration_date,
           inventory_quantity: parseInt(product.inventory_quantity),
@@ -424,13 +439,57 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         })),
       };
 
-      // ✅ Always create new entry order
-      await ProcessService.createNewEntryOrder(submissionData);
+      // ✅ Append non-product form data
+      Object.keys(submissionData).forEach(key => {
+        if (key !== 'products') {
+          formDataToSend.append(key, String(submissionData[key as keyof typeof submissionData]));
+        }
+      });
+
+      // ✅ Append products array - Send each product individually
+      submissionData.products.forEach((product, index) => {
+        Object.keys(product).forEach(productKey => {
+          const value = product[productKey as keyof typeof product];
+          if (value !== null && value !== undefined) {
+            formDataToSend.append(`products[${index}][${productKey}]`, String(value));
+          }
+        });
+      });
+
+      // ✅ Append document types
+      const documentTypesArray = selectedDocumentTypes.map(type => type.value);
+      formDataToSend.append('document_types', JSON.stringify(documentTypesArray));
+
+      // ✅ Append files
+      selectedDocumentTypes.forEach(docType => {
+        const file = documentFiles[docType.value];
+        if (file) {
+          formDataToSend.append('documents', file);
+        }
+      });
+
+      // ✅ Debug log to check FormData structure
+      console.log('📋 FormData being sent:');
+      for (const [key, value] of formDataToSend.entries()) {
+        if (value instanceof File) {
+          console.log(`${key}:`, `File - ${value.name} (${value.size} bytes)`);
+        } else {
+          console.log(`${key}:`, value);
+        }
+      }
+
+      // ✅ Submit using new ProcessService method for document uploads
+      const result = await ProcessService.createNewEntryOrderWithDocuments(formDataToSend);
 
       setSubmitStatus({
         success: true,
         message: "Entry order created successfully and sent for admin review",
       });
+
+      // Log document upload results if available
+      if (result.document_uploads) {
+        console.log('📎 Document upload results:', result.document_uploads);
+      }
 
       // Show success message briefly, then redirect
       setTimeout(() => {
@@ -491,23 +550,6 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
               onChange={handleEntryOrderNoChange}
               className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-1 focus-visible:outline-primary-500 bg-gray-100"
               placeholder={t("process:loading_order_number")}
-            />
-          </div>
-
-          {/* document */}
-          <div className="w-full flex flex-col">
-            <label htmlFor="document">{t("process:document")} *</label>
-            <Select
-              options={dropdownOptions.documentTypes}
-              styles={reactSelectStyle}
-              inputId="document_type_id"
-              name="document_type_id"
-              value={formData.document_type_id.value ? formData.document_type_id : null}
-              onChange={(selectedOption) =>
-                handleSelectChange("document_type_id", selectedOption)
-              }
-              placeholder={t("process:select_document_type")}
-              isClearable
             />
           </div>
         </div>
@@ -689,16 +731,73 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
           </div>
         </div>
 
-        {/* Document upload based on selected document type */}
-        {!shouldDisableFields && formData.document_type_id?.value && (
+        {/* Document Upload Section */}
+        {!shouldDisableFields && (
           <div className="mt-4">
             <Divider />
             <div className="mt-4">
-              <FileUpload
-                id="document_upload"
-                label={`${t("process:upload")} ${formData.document_type_id.label || t("process:document")}`}
-                onFileSelected={(file: File) => setCertificateFile(file)}
-              />
+              <Text
+                size="sm"
+                weight="font-semibold"
+                additionalClass="mb-3 text-gray-800"
+              >
+                📎 {t("process:document_upload")}
+              </Text>
+              
+              {/* Document Type Multi-Select */}
+              <div className="mb-4">
+                <Select
+                  isMulti
+                  options={ENTRY_DOCUMENT_TYPES}
+                  value={selectedDocumentTypes}
+                  onChange={handleDocumentTypeChange}
+                  placeholder={t("process:select_document_types_placeholder")}
+                  className="text-sm"
+                  styles={{
+                    ...reactSelectStyle,
+                    container: (style) => ({ ...style, height: "auto" })
+                  }}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  {t("process:max_10_files_10mb_each")}
+                </p>
+              </div>
+
+              {/* Document Upload Areas */}
+              {selectedDocumentTypes.length > 0 && (
+                <div className="space-y-4">
+                  {selectedDocumentTypes.map((docType) => (
+                    <div key={docType.value} className="bg-white border border-gray-300 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <Text
+                          size="sm"
+                          weight="font-medium"
+                          additionalClass="text-gray-700"
+                        >
+                          📄 {docType.label}
+                        </Text>
+                        {documentFiles[docType.value] && (
+                          <span className="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">
+                            ✅ {t("process:file_selected")}
+                          </span>
+                        )}
+                      </div>
+                      <FileUpload
+                        id={`document_upload_${docType.value}`}
+                        label={`${t("process:upload")} ${docType.label}`}
+                        onFileSelected={(file: File) => handleFileSelection(docType.value, file)}
+                        accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
+                      />
+                      {documentFiles[docType.value] && (
+                        <div className="mt-2 text-xs text-gray-600">
+                          📎 {documentFiles[docType.value]?.name} 
+                          ({Math.round((documentFiles[docType.value]?.size || 0) / 1024)} KB)
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

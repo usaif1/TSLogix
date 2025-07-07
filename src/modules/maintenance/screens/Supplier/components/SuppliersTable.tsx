@@ -136,7 +136,6 @@ const SuppliersTable: React.FC = () => {
       {/* Search field for supplier name or company */}
       <div className="w-full flex items-end gap-x-6">
         <div className="w-1/2 flex flex-col">
-          <label htmlFor="searchText">{t('supplier_name')}</label>
           <input
             type="text"
             id="searchText"

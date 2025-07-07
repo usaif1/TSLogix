@@ -175,31 +175,44 @@ export const ProductService = {
   fetchProductFormFields: async () => {
     try {
       startLoader("products/fetch-form-fields");
+      
+      // Try to get temperature ranges from the same endpoint that provides categories
       const response = await api.get(`${productBaseURL}/form-fields`);
 
-      const productLines = response.data.productLines.map((pl: any) => ({
+      console.log("Full API response:", response.data);
+
+      const productLines = response.data.productLines?.map((pl: any) => ({
         value: pl.product_line_id,
         label: pl.name,
-      }));
+      })) || [];
 
-      const groups = response.data.groups.map((g: any) => ({
+      const groups = response.data.groups?.map((g: any) => ({
         value: g.group_id,
         label: g.name,
-      }));
+      })) || [];
 
-      const temperatureRanges = response.data.temperatureRanges.map(
-        (tr: any) => ({
-          value: tr.temperature_range_id,
-          label: `${tr.min_celsius}°C to ${tr.max_celsius}°C`, // Combine min/max
-          // Optional: Keep original range name for reference
-          meta: {
-            rangeName: tr.range,
-            min: tr.min_celsius,
-            max: tr.max_celsius,
-          },
-        })
-      );
+      // Check if temperatureRanges exists in the response
+      let temperatureRanges = [];
+      if (response.data.temperatureRanges) {
+        temperatureRanges = response.data.temperatureRanges.map(
+          (tr: any) => ({
+            value: tr.temperature_range_id,
+            label: tr.range || `${tr.min_celsius}°C to ${tr.max_celsius}°C`, // Use range field first, fallback to min/max
+            // Optional: Keep original range name for reference
+            meta: {
+              rangeName: tr.range,
+              min: tr.min_celsius,
+              max: tr.max_celsius,
+            },
+          })
+        );
+      } else {
+        console.warn("No temperatureRanges found in form-fields response");
+      }
 
+      console.log("Raw temperature ranges from API:", response.data.temperatureRanges);
+      console.log("Processed temperature ranges:", temperatureRanges);
+      
       setProductLineOptions(productLines);
       setGroupOptions(groups);
       setTemperatureRangeOptions(temperatureRanges);
@@ -207,6 +220,123 @@ export const ProductService = {
       return response.data;
     } catch (err) {
       console.error("Fetch product form fields error:", err);
+      throw err;
+    } finally {
+      stopLoader("products/fetch-form-fields");
+    }
+  },
+
+  // Fetch all product form fields in a single call
+  fetchAllProductFormFields: async () => {
+    try {
+      // Check if data is already loaded to prevent duplicate calls
+      const currentState = MaintenanceStore.getState();
+      if (currentState.temperatureRangeOptions.length > 0 && currentState.categoryOptions.length > 0) {
+        console.log("Form fields already loaded, skipping fetch");
+        return;
+      }
+      
+      startLoader("products/fetch-form-fields");
+      console.log("Fetching all product form fields...");
+      
+      // Fetch form fields (includes product lines, groups, temperature ranges)
+      const formFieldsResponse = await api.get(`${productBaseURL}/form-fields`);
+      console.log("Form fields response:", formFieldsResponse.data);
+      
+      // Fetch categories
+      const categoriesResponse = await api.get(`${productBaseURL}/categories`);
+      console.log("Categories response:", categoriesResponse.data);
+      
+      // Process form fields data
+      const productLines = formFieldsResponse.data.productLines?.map((pl: any) => ({
+        value: pl.product_line_id,
+        label: pl.name,
+      })) || [];
+
+      const groups = formFieldsResponse.data.groups?.map((g: any) => ({
+        value: g.group_id,
+        label: g.name,
+      })) || [];
+
+      // Process temperature ranges from form fields or create empty array
+      let temperatureRanges = [];
+      if (formFieldsResponse.data.temperatureRanges) {
+        temperatureRanges = formFieldsResponse.data.temperatureRanges.map(
+          (tr: any) => ({
+            value: tr.temperature_range_id,
+            label: tr.range || `${tr.min_celsius}°C to ${tr.max_celsius}°C`,
+            meta: {
+              rangeName: tr.range,
+              min: tr.min_celsius,
+              max: tr.max_celsius,
+            },
+          })
+        );
+      } else {
+        console.warn("No temperatureRanges found in form-fields response");
+      }
+
+      // Process categories data
+      const categories = categoriesResponse.data.map((cat: any) => ({
+        value: cat.category_id,
+        label: cat.name,
+      }));
+      
+      console.log("Processed data:", {
+        productLines: productLines.length,
+        groups: groups.length,
+        temperatureRanges: temperatureRanges.length,
+        categories: categories.length
+      });
+      
+      // Set all options in store
+      setProductLineOptions(productLines);
+      setGroupOptions(groups);
+      setTemperatureRangeOptions(temperatureRanges);
+      
+      const state = MaintenanceStore.getState();
+      state.setCategoryOptions(categories);
+      
+      return {
+        productLines,
+        groups,
+        temperatureRanges,
+        categories
+      };
+    } catch (err) {
+      console.error("Fetch all product form fields error:", err);
+      throw err;
+    } finally {
+      stopLoader("products/fetch-form-fields");
+    }
+  },
+
+  // Fetch temperature ranges separately if not available in form-fields
+  fetchTemperatureRanges: async () => {
+    try {
+      startLoader("products/fetch-form-fields");
+      const response = await api.get(`${productBaseURL}/temperature-ranges`);
+      
+      console.log("Temperature ranges API response:", response.data);
+      
+      const temperatureRanges = response.data.map(
+        (tr: any) => ({
+          value: tr.temperature_range_id,
+          label: tr.range || `${tr.min_celsius}°C to ${tr.max_celsius}°C`,
+          meta: {
+            rangeName: tr.range,
+            min: tr.min_celsius,
+            max: tr.max_celsius,
+          },
+        })
+      );
+      
+      console.log("Processed temperature ranges:", temperatureRanges);
+      setTemperatureRangeOptions(temperatureRanges);
+      
+      return temperatureRanges;
+    } catch (err) {
+      console.error("Fetch temperature ranges error:", err);
       throw err;
     } finally {
       stopLoader("products/fetch-form-fields");
@@ -330,6 +460,58 @@ export const ProductService = {
       return response.data;
     } catch (err) {
       console.error("Create product error:", err);
+      throw err;
+    } finally {
+      stopLoader("products/create-product");
+    }
+  },
+
+  // ✅ New method for creating products with document uploads
+  createProductWithDocuments: async (productData: any, documents?: File) => {
+    try {
+      startLoader("products/create-product");
+      
+      // Create FormData for multipart upload
+      const formData = new FormData();
+      
+      // Add all product fields to FormData
+      formData.append("name", productData.name || "");
+      formData.append("product_code", productData.product_code || "");
+      formData.append("manufacturer", productData.manufacturer || "");
+      formData.append("humidity", productData.humidity || "");
+      formData.append("observations", productData.observations || "");
+      formData.append("organisation_id", localStorage.getItem("organisation_id") || "");
+      formData.append("created_by", localStorage.getItem("id") || "");
+      
+      // Add optional fields if they exist
+      if (productData.temperature_range_id) {
+        formData.append("temperature_range_id", productData.temperature_range_id);
+      }
+      if (productData.category_id) {
+        formData.append("category_id", productData.category_id);
+      }
+      if (productData.subcategory1_id) {
+        formData.append("subcategory1_id", productData.subcategory1_id);
+      }
+      if (productData.subcategory2_id) {
+        formData.append("subcategory2_id", productData.subcategory2_id);
+      }
+      
+      // Add document if provided
+      if (documents) {
+        formData.append("uploaded_documents", documents);
+      }
+    
+    const response = await api.post(productBaseURL, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+      
+      addProduct(response.data);
+      return response.data;
+    } catch (err) {
+      console.error("Create product with documents error:", err);
       throw err;
     } finally {
       stopLoader("products/create-product");

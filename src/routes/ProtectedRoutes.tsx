@@ -17,7 +17,10 @@ import {
   DepartureApproved,
   DepartureCounter,
   DepartureReturned,
+  DepartureDispatch,
+  DepartureWarehouseDispatch,
   Audit,
+  DepartureAudit,
 } from "@/modules/process/screens";
 
 import {
@@ -50,6 +53,33 @@ import {
   EventLogsPage,
 } from "@/modules/eventLogs/screens";
 
+import {
+  // reports
+  Reports,
+} from "@/modules/reports/screens";
+
+// Role-based route wrapper component
+const RoleProtectedRoute: React.FC<{
+  element: React.ReactElement;
+  allowedRoles: string[];
+  fallback?: React.ReactElement;
+}> = ({ element, allowedRoles, fallback }) => {
+  const userRole = localStorage.getItem("role");
+  
+  if (!userRole || !allowedRoles.includes(userRole)) {
+    return fallback || (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Access Denied</h1>
+          <p className="text-gray-600">You don't have permission to access this page.</p>
+        </div>
+      </div>
+    );
+  }
+  
+  return element;
+};
+
 const ProtectedRoutes: React.FC = () => {
   return (
     <Routes>
@@ -68,6 +98,17 @@ const ProtectedRoutes: React.FC = () => {
             <Route path="approved" element={<DepartureApproved />} />
             <Route path="returned" element={<DepartureReturned />} />
             <Route path="counter" element={<DepartureCounter />} />
+            <Route path="dispatch" element={<DepartureDispatch />} />
+            <Route 
+              path="warehouse-dispatch" 
+              element={
+                <RoleProtectedRoute 
+                  element={<DepartureWarehouseDispatch />} 
+                  allowedRoles={["ADMIN", "WAREHOUSE_INCHARGE"]}
+                />
+              } 
+            />
+            <Route path="audit" element={<DepartureAudit />} />
           </Route>
         </Route>
         <Route path="maintenance">
@@ -96,6 +137,9 @@ const ProtectedRoutes: React.FC = () => {
         </Route>
         <Route path="system-logs">
           <Route path="events" element={<EventLogsPage />} />
+        </Route>
+        <Route path="reports">
+          <Route index element={<Reports />} />
         </Route>
       </Route>
     </Routes>

@@ -228,8 +228,8 @@ const SupplierRegistration: React.FC = () => {
             className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500"
           >
             <option value="">{t('select_document_type')}</option>
-            <option value="RUC">{t('ruc')} (Peru)</option>
-            <option value="ID_FISCAL">{t('id_fiscal')} (Other Countries)</option>
+            <option value="RUC">{t('ruc')}</option>
+            <option value="ID_FISCAL">{t('id_fiscal')}</option>
           </select>
         </div>
         <div className="w-full"></div> {/* Empty div to maintain layout */}

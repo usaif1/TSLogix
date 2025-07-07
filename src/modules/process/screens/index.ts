@@ -8,4 +8,7 @@ export { default as MassEntry } from "./MassEntry";
 export { default as DepartureApproved } from "./DepartureApproved";
 export { default as DepartureReturned } from "./DepartureReturned";
 export { default as DepartureCounter } from "./DepartureCounter";
+export { default as DepartureDispatch } from "./DepartureDispatch";
+export { default as DepartureWarehouseDispatch } from "./DepartureWarehouseDispatch";
 export { default as Audit } from "./Audit";
+export { default as DepartureAudit } from "./DepartureAudit";

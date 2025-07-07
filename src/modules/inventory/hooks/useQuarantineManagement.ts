@@ -191,13 +191,17 @@ export const useQuarantineManagement = () => {
       return;
     }
 
+    // Check if this is quarantine to approved flow (special case - keeps same cell)
+    const isQuarantineToApproved = selectedItems.length === 1 && 
+      quarantineInventory.find(inv => inv.allocation_id === selectedItems[0])?.quality_status === QualityControlStatus.CUARENTENA &&
+      status === QualityControlStatus.APROBADO;
+    
     // Check if transition requires cell selection
     const requiresCellSelection = [
-      QualityControlStatus.APROBADO,        // General cells - Approved
       QualityControlStatus.DEVOLUCIONES,    // V row - Returns
       QualityControlStatus.CONTRAMUESTRAS,  // T row - Samples  
       QualityControlStatus.RECHAZADOS       // R row - Rejected
-    ].includes(status);
+    ].includes(status) && !isQuarantineToApproved;
 
     // Check if transition requires special purpose cells (V, T, R rows)
     const requiresSpecialCells = [
@@ -229,7 +233,9 @@ export const useQuarantineManagement = () => {
         });
         
         // Show info about cell requirements
-        if (requiresCellSelection) {
+        if (isQuarantineToApproved) {
+          toast.success(`Item will be approved in its current location. No cell change required.`);
+        } else if (requiresCellSelection) {
           if (requiresSpecialCells) {
             toast.info(`This transition requires moving to ${status.toLowerCase()} area. Cells will be loaded automatically.`);
           } else {
@@ -393,12 +399,17 @@ export const useQuarantineManagement = () => {
       }
     }
 
+    // Check if this is quarantine to approved flow (special case - keeps same cell)
+    const isQuarantineToApproved = selectedItems.length === 1 && selectedItem &&
+      selectedItem.quality_status === QualityControlStatus.CUARENTENA &&
+      transitionStatus === QualityControlStatus.APROBADO;
+    
     // ✅ Enhanced: Check for cell selection requirement
     const requiresCellSelection = [
       QualityControlStatus.DEVOLUCIONES,
       QualityControlStatus.CONTRAMUESTRAS,
       QualityControlStatus.RECHAZADOS
-    ].includes(transitionStatus);
+    ].includes(transitionStatus) && !isQuarantineToApproved;
 
     if (requiresCellSelection && !selectedCellId) {
       toast.error('Please select a destination cell');

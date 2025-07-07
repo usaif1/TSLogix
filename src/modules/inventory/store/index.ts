@@ -231,6 +231,88 @@ export interface QuarantineInventoryItem {
   };
 }
 
+// ✅ NEW: Enhanced data structures for comprehensive inventory logs
+export interface InventorySummaryStats {
+  current_inventory: {
+    total_items: number;
+    total_quantity: number;
+    total_weight: number;
+    unique_products: number;
+    warehouses: number;
+  };
+  dispatch_history: {
+    total_dispatch_events: number;
+    total_dispatched_quantity: number;
+    total_dispatched_weight: number;
+    unique_departure_orders: number;
+    unique_dispatched_products: number;
+  };
+  completed_orders: {
+    total_orders: number;
+    fully_completed: number;
+    partially_completed: number;
+    total_order_quantity: number;
+  };
+}
+
+export interface CompletedDepartureOrder {
+  departure_order_id: string;
+  departure_order_no: string;
+  order_status: string;
+  dispatch_status: string;
+  registration_date: string;
+  departure_date_time: string;
+  dispatched_at: string;
+  destination_point: string;
+  transport_type: string;
+  carrier_name?: string;
+  total_weight: string;
+  total_volume?: string;
+  total_pallets: number;
+  customer?: any;
+  client: {
+    company_name: string;
+    first_names?: string;
+    last_name?: string;
+  };
+  warehouse: {
+    warehouse_id: string;
+    name: string;
+  };
+  dispatcher: {
+    first_name: string;
+    last_name: string;
+  };
+  products: Array<{
+    departure_order_product_id: string;
+    product_code: string;
+    requested_quantity: number;
+    requested_packages: number;
+    requested_weight: string;
+    dispatched_quantity: number;
+    dispatched_packages: number;
+    dispatched_weight: string;
+    remaining_quantity: number;
+    remaining_packages: number;
+    remaining_weight: string;
+    product: {
+      product_id: string;
+      product_code: string;
+      name: string;
+      manufacturer: string;
+    };
+  }>;
+  dispatcher_name: string;
+  customer_name: string;
+  client_name: string;
+  total_products: number;
+  total_requested_quantity: number;
+  total_dispatched_quantity: number;
+  total_remaining_quantity: number;
+  is_fully_dispatched: boolean;
+  is_partially_dispatched: boolean;
+}
+
 export interface InventoryLogStore {
   inventoryLogs: InventoryLog[];
   currentInventoryLog: InventoryLog | null;
@@ -251,6 +333,13 @@ export interface InventoryLogStore {
   auditTrail: SystemAuditLog[];
   // ✅ NEW: Quality control cells by status
   qualityControlCells: Record<QualityControlStatus, Cell[]>;
+  // ✅ NEW: Enhanced inventory logs data
+  inventorySummaryStats: InventorySummaryStats | null;
+  currentInventoryItems: any[];
+  dispatchHistoryLogs: any[];
+  completedDepartureOrders: CompletedDepartureOrder[];
+  filtersApplied: Record<string, any>;
+  lastGeneratedAt: string | null;
   
   // ✅ NEW: Quarantine Management State
   quarantineFilters: {
@@ -302,6 +391,13 @@ export interface InventoryLogStoreActions {
   setAuditTrail: (logs: SystemAuditLog[]) => void;
   setQualityControlCells: (status: QualityControlStatus, cells: Cell[]) => void;
   clearQualityControlCells: () => void;
+  // ✅ NEW: Enhanced inventory logs actions
+  setInventorySummaryStats: (stats: InventorySummaryStats) => void;
+  setCurrentInventoryItems: (items: any[]) => void;
+  setDispatchHistoryLogs: (logs: any[]) => void;
+  setCompletedDepartureOrders: (orders: CompletedDepartureOrder[]) => void;
+  setFiltersApplied: (filters: Record<string, any>) => void;
+  setLastGeneratedAt: (timestamp: string) => void;
   
   // ✅ NEW: Quarantine Management Actions
   setQuarantineFilters: (filters: Partial<{ selectedWarehouse: { value: string; label: string } | null; searchTerm: string; selectedStatus: QualityControlStatus | null }>) => void;
@@ -356,6 +452,13 @@ const initialState: InventoryLogStore = {
     [QualityControlStatus.CONTRAMUESTRAS]: [],
     [QualityControlStatus.RECHAZADOS]: [],
   },
+  // ✅ NEW: Enhanced inventory logs data
+  inventorySummaryStats: null,
+  currentInventoryItems: [],
+  dispatchHistoryLogs: [],
+  completedDepartureOrders: [],
+  filtersApplied: {},
+  lastGeneratedAt: null,
   
   // ✅ NEW: Quarantine Management State
   quarantineFilters: {
@@ -502,6 +605,14 @@ export const useInventoryLogStore = create<
     set((state) => ({
       availableFilters: { ...state.availableFilters, ...filters }
     })),
+
+  // ✅ NEW: Enhanced inventory logs actions
+  setInventorySummaryStats: (stats) => set({ inventorySummaryStats: stats }),
+  setCurrentInventoryItems: (items) => set({ currentInventoryItems: items }),
+  setDispatchHistoryLogs: (logs) => set({ dispatchHistoryLogs: logs }),
+  setCompletedDepartureOrders: (orders) => set({ completedDepartureOrders: orders }),
+  setFiltersApplied: (filters) => set({ filtersApplied: filters }),
+  setLastGeneratedAt: (timestamp) => set({ lastGeneratedAt: timestamp }),
 
   // Loader controls
   startLoader: (loader) =>

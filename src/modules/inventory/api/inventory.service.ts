@@ -23,6 +23,12 @@ const {
   setQuarantineInventory,
   setAvailableInventoryForDeparture,
   setAuditTrail,
+  setInventorySummaryStats,
+  setCurrentInventoryItems,
+  setDispatchHistoryLogs,
+  setCompletedDepartureOrders,
+  setFiltersApplied,
+  setLastGeneratedAt,
   startLoader,
   stopLoader,
 } = useInventoryLogStore.getState();
@@ -62,50 +68,132 @@ export const InventoryLogService = {
     }
   },
 
-  // ✅ UPDATED: Fetch inventory logs (using summary for now)
+  // ✅ UPDATED: Fetch inventory logs with comprehensive data structure
   fetchAllLogs: async (filters?: Filters) => {
     try {
       startLoader("inventoryLogs/fetch-logs");
       const response = await api.get(`${baseURL}/summary`, { params: filters });
-      const data = response.data.data || response.data;
+      const responseData = response.data.data || response.data;
 
-      // ✅ Map inventory summary to logs format for display
-      const logsData = data.map((item: any) => ({
-        log_id: item.inventory_id,
+      // ✅ Handle new API response structure
+      const summaryStats = responseData.summary_stats || {};
+      const currentInventory = responseData.current_inventory || [];
+      const dispatchHistory = responseData.dispatch_history || [];
+      const completedOrders = responseData.completed_departure_orders || [];
+
+      // ✅ Extract movement logs from current inventory items
+      const inventoryMovementLogs: any[] = [];
+      
+      currentInventory.forEach((item: any) => {
+        if (item.movement_logs && Array.isArray(item.movement_logs)) {
+          item.movement_logs.forEach((log: any) => {
+            inventoryMovementLogs.push({
+              log_id: log.log_id,
+              inventory_id: item.inventory_id,
+              user: log.user_id ? {
+                first_name: log.user?.first_name || "User",
+                last_name: log.user?.last_name || "",
+              } : {
+                first_name: "System",
+                last_name: "",
+              },
+              product: {
+                product_id: item.product.product_id,
+                product_code: item.product.product_code,
+                name: item.product.name,
+                manufacturer: item.product.manufacturer,
+              },
+              movement_type: log.movement_type,
+              quantity_change: log.quantity_change,
+              package_change: log.package_change,
+              weight_change: log.weight_change,
+              volume_change: log.volume_change,
+              warehouseCell: item.cell ? {
+                row: item.cell.row,
+                bay: item.cell.bay,
+                position: item.cell.position,
+              } : null,
+              warehouse: item.warehouse,
+              entry_order: log.entry_order,
+              departure_order: log.departure_order,
+              departure_order_id: log.departure_order_id,
+              entry_order_id: log.entry_order_id,
+              product_status: log.product_status,
+              status_code: log.status_code,
+              quality_status: item.allocation?.quality_status,
+              timestamp: log.timestamp,
+              notes: log.notes || item.allocation?.observations || null,
+              cell_reference: item.cell_reference,
+            });
+          });
+        }
+      });
+
+      // ✅ Add dispatch history as movement logs
+      const dispatchMovementLogs: any[] = dispatchHistory.map((log: any) => ({
+        log_id: log.log_id,
+        inventory_id: null, // Dispatch logs might not have inventory_id
         user: {
-          first_name: "System",
-          last_name: "User",
+          first_name: log.user?.first_name || log.dispatched_by_name?.split(' ')[0] || "User",
+          last_name: log.user?.last_name || log.dispatched_by_name?.split(' ').slice(1).join(' ') || "",
         },
-        product: {
-          product_id: item.product.product_id,
-          product_code: item.product.product_code,
-          name: item.product.name,
-        },
-        movement_type: "ENTRY",
-        quantity_change: item.current_quantity,
-        package_change: item.current_package_quantity,
-        weight_change: item.current_weight,
-        volume_change: item.current_volume,
-        warehouseCell: {
-          row: item.cell.row,
-          bay: item.cell.bay,
-          position: item.cell.position,
-        },
-        warehouse: item.warehouse,
-        entry_order: item.allocation?.entry_order_no
-          ? {
-              entry_order_no: item.allocation.entry_order_no,
-            }
-          : null,
-        product_status: item.product_status,
-        status_code: item.status_code,
-        quality_status: item.quality_status,
-        timestamp: item.allocation?.allocated_at || new Date().toISOString(),
-        notes: item.allocation?.observations || "Current inventory",
+        product: log.product,
+        movement_type: log.movement_type,
+        quantity_change: log.quantity_change,
+        package_change: log.package_change,
+        weight_change: log.weight_change,
+        volume_change: log.volume_change,
+        warehouseCell: log.cell ? {
+          row: log.cell.row,
+          bay: log.cell.bay,
+          position: log.cell.position,
+        } : null,
+        warehouse: log.warehouse,
+        entry_order: null,
+        departure_order: log.departure_order,
+        departure_order_id: log.departure_order_id,
+        entry_order_id: null,
+        product_status: log.product_status,
+        status_code: log.status_code,
+        quality_status: null,
+        timestamp: log.timestamp,
+        notes: log.notes || null,
+        cell_reference: log.cell_reference,
+        // Additional dispatch-specific data
+        dispatched_quantity: log.dispatched_quantity,
+        dispatched_weight: log.dispatched_weight,
+        dispatcher_name: log.dispatcher_name,
+        customer_name: log.customer_name,
+        client_name: log.client_name,
       }));
 
-      setInventoryLogs(logsData);
-      return logsData;
+      // ✅ Combine all movement logs
+      const allMovementLogs = [...inventoryMovementLogs, ...dispatchMovementLogs];
+
+      // Sort by timestamp (newest first)
+      allMovementLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+      setInventoryLogs(allMovementLogs);
+
+      // ✅ Store additional data in state for enhanced UI
+      setInventorySummaryStats(summaryStats);
+      setCurrentInventoryItems(currentInventory);
+      setDispatchHistoryLogs(dispatchHistory);
+      setCompletedDepartureOrders(completedOrders);
+      setFiltersApplied(responseData.filters_applied || {});
+      setLastGeneratedAt(responseData.generated_at || new Date().toISOString());
+
+      const enhancedData = {
+        logs: allMovementLogs,
+        summaryStats,
+        currentInventory,
+        dispatchHistory,
+        completedOrders,
+        filtersApplied: responseData.filters_applied || {},
+        generatedAt: responseData.generated_at || new Date().toISOString(),
+      };
+
+      return enhancedData;
     } catch (error) {
       console.error("Fetch inventory logs error:", error);
       throw error;
@@ -447,7 +535,10 @@ export const InventoryLogService = {
     try {
       startLoader("inventoryLogs/fetch-cells-by-quality-status");
       
-      console.log("🔄 Fetching cells by quality status:", { qualityStatus, warehouseId, entryOrderId });
+      // Get user role for role-based filtering
+      const userRole = localStorage.getItem("role");
+      
+      console.log("🔄 Fetching cells by quality status:", { qualityStatus, warehouseId, entryOrderId, userRole });
       
       // For APROBADO status, fetch general available cells instead of special purpose cells
       const apiEndpoint = qualityStatus === QualityControlStatus.APROBADO 
@@ -461,7 +552,9 @@ export const InventoryLogService = {
           }
         : {
             quality_status: qualityStatus,
-            warehouse_id: warehouseId
+            warehouse_id: warehouseId,
+            // Add entry_order_id for warehouse incharge to fetch only client's assigned cells
+            ...(userRole === "WAREHOUSE_INCHARGE" && entryOrderId && { entry_order_id: entryOrderId })
           };
 
       const response = await api.get(apiEndpoint, {
@@ -498,6 +591,9 @@ export const InventoryLogService = {
       console.log("✅ Cells by quality status response:", {
         qualityStatus,
         warehouseId,
+        userRole,
+        entryOrderId,
+        apiParams,
         responseStructure: responseData,
         rawCellsCount: rawCells.length,
         transformedCellsCount: transformedCells.length,

@@ -20,6 +20,8 @@ import clientEn from './locales/en/client.json';
 import clientEs from './locales/es/client.json';
 import eventLogsEn from './locales/en/eventLogs.json';
 import eventLogsEs from './locales/es/eventLogs.json';
+import reportsEn from './locales/en/reports.json';
+import reportsEs from './locales/es/reports.json';
 
 const resources = {
   en: {
@@ -32,6 +34,7 @@ const resources = {
     components: componentsEn,
     client: clientEn,
     eventLogs: eventLogsEn,
+    reports: reportsEn,
   },
   es: {
     common: commonEs,
@@ -43,6 +46,7 @@ const resources = {
     components: componentsEs,
     client: clientEs,
     eventLogs: eventLogsEs,
+    reports: reportsEs,
   },
 };
 
@@ -55,7 +59,7 @@ i18n
     debug: process.env.NODE_ENV === 'development',
     
     // Have a common namespace used around the app
-    ns: ['common', 'home', 'warehouse', 'inventory', 'process', 'maintenance', 'components', 'client', 'eventLogs'],
+    ns: ['common', 'home', 'warehouse', 'inventory', 'process', 'maintenance', 'components', 'client', 'eventLogs', 'reports'],
     defaultNS: 'common',
     
     interpolation: {

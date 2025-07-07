@@ -9,9 +9,14 @@ import Spinner from "@/components/Spinner/index";
 import { InventoryTable } from "./components";
 import { CellContext, ColumnDef } from "@tanstack/react-table";
 
+
+
 const InventoryLog: React.FC = () => {
   const { t } = useTranslation(['inventory', 'common']);
-  const { inventoryLogs, loaders } = useInventoryLogStore();
+  const { 
+    inventoryLogs, 
+    loaders
+  } = useInventoryLogStore();
   const navigate = useNavigate();
 
   const loadLogs = useCallback(() => {
@@ -168,6 +173,40 @@ const InventoryLog: React.FC = () => {
         size: 140,
       },
       {
+        header: t('inventory:departure_order'),
+        accessorFn: (row: any) => ({
+          order_no: row.departure_order?.departure_order_no || null,
+          order_status: row.departure_order?.order_status || null,
+          is_departure: row.movement_type === "DEPARTURE"
+        }),
+        id: "departureOrder",
+        cell: (info: CellContext<any, any>) => {
+          const data = info.getValue<{order_no: string | null, order_status: string | null, is_departure: boolean}>();
+          
+          if (!data.order_no || !data.is_departure) {
+            return <span className="text-gray-400">-</span>;
+          }
+
+          const statusColor = 
+            data.order_status === "DISPATCHED" ? "bg-red-100 text-red-800 border-red-200" :
+            data.order_status === "PENDING" ? "bg-yellow-100 text-yellow-800 border-yellow-200" :
+            data.order_status === "COMPLETED" ? "bg-green-100 text-green-800 border-green-200" :
+            "bg-gray-100 text-gray-800 border-gray-200";
+
+          return (
+            <div className="text-xs space-y-1">
+              <div className="font-mono font-medium text-red-700" title={data.order_no}>
+                {data.order_no}
+              </div>
+              <span className={`inline-block px-2 py-0.5 rounded-full text-xs border ${statusColor}`}>
+                {data.order_status}
+              </span>
+            </div>
+          );
+        },
+        size: 130,
+      },
+      {
         header: t('inventory:status'),
         accessorFn: (row: any) => ({
           product: row.product_status || "GOOD_CONDITION",
@@ -207,15 +246,15 @@ const InventoryLog: React.FC = () => {
         cell: (info: CellContext<any, any>) => {
           const type = info.getValue<string>();
           const config = {
-            "ENTRY": { color: "text-green-600 bg-green-50", text: t('inventory:entry') },
-            "DEPARTURE": { color: "text-red-600 bg-red-50", text: t('inventory:departure') },
-            "TRANSFER": { color: "text-blue-600 bg-blue-50", text: t('inventory:transfer') },
-            "ADJUSTMENT": { color: "text-purple-600 bg-purple-50", text: t('inventory:adjustment') }
+            "ENTRY": { color: "text-green-600 bg-green-50 border-green-200", text: t('inventory:entry') },
+            "DEPARTURE": { color: "text-red-600 bg-red-50 border-red-200", text: t('inventory:departure') },
+            "TRANSFER": { color: "text-blue-600 bg-blue-50 border-blue-200", text: t('inventory:transfer') },
+            "ADJUSTMENT": { color: "text-purple-600 bg-purple-50 border-purple-200", text: t('inventory:adjustment') }
           };
-          const typeConfig = config[type as keyof typeof config] || { color: "text-gray-600 bg-gray-50", text: type };
+          const typeConfig = config[type as keyof typeof config] || { color: "text-gray-600 bg-gray-50 border-gray-200", text: type };
           
           return (
-            <span className={`px-2 py-1 rounded-md text-xs font-medium ${typeConfig.color}`}>
+            <span className={`px-2 py-1 rounded-md text-xs font-medium border ${typeConfig.color}`}>
               {typeConfig.text}
             </span>
           );
@@ -243,7 +282,26 @@ const InventoryLog: React.FC = () => {
         header: t('inventory:notes'),
         accessorKey: "notes",
         cell: (info) => {
+          const row = info.row.original;
           const notes = info.getValue<string>();
+          
+          // ✅ Enhanced notes display for dispatch logs
+          if (row.movement_type === 'DEPARTURE' && row.dispatcher_name) {
+            const dispatchInfo = [
+              row.dispatcher_name && `${t('inventory:dispatcher')}: ${row.dispatcher_name}`,
+              row.client_name && `${t('inventory:client')}: ${row.client_name}`,
+              notes
+            ].filter(Boolean).join(' | ');
+            
+            return dispatchInfo ? (
+              <div className="text-sm text-gray-600 max-w-32 truncate" title={dispatchInfo}>
+                {dispatchInfo}
+              </div>
+            ) : (
+              <span className="text-gray-400">-</span>
+            );
+          }
+          
           return notes ? (
             <div className="text-sm text-gray-600 max-w-32 truncate" title={notes}>
               {notes}
@@ -252,7 +310,7 @@ const InventoryLog: React.FC = () => {
             <span className="text-gray-400">-</span>
           );
         },
-        size: 130,
+        size: 150,
       },
     ],
     [t, getMovementTypeText, getProductStatusText, getQualityStatusInfo]
@@ -281,6 +339,8 @@ const InventoryLog: React.FC = () => {
           </div>
         </div>
       </div>
+
+
 
       {/* Main Content - Proper overflow handling */}
       <div className="p-4 sm:p-6">

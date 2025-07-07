@@ -77,6 +77,58 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
           cell: (info) => info.getValue() || "N/A",
         },
         {
+          accessor: "uploaded_documents",
+          header: t('documents'),
+          cell: (info) => {
+            const documents = info.getValue();
+            
+            if (!documents) {
+              return (
+                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                  {t('no_documents')}
+                </span>
+              );
+            }
+            
+            // Handle new format (array of document objects)
+            if (Array.isArray(documents)) {
+              return (
+                <div className="flex flex-col space-y-1">
+                  {documents.map((doc: any, index: number) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <button
+                        onClick={() => window.open(doc.public_url, '_blank')}
+                        className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
+                        title={`${doc.file_name} (${doc.document_type})`}
+                      >
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                        </svg>
+                        {doc.file_name?.length > 15 ? `${doc.file_name.substring(0, 15)}...` : doc.file_name}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+            
+            // Handle old format (string filename)
+            if (typeof documents === 'string') {
+              const fileName = documents.split('/').pop() || documents;
+              return (
+                <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded bg-green-100 text-green-800">
+                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                  </svg>
+                  {fileName.length > 15 ? `${fileName.substring(0, 15)}...` : fileName}
+                </span>
+              );
+            }
+            
+            return "N/A";
+          },
+        },
+        {
           accessor: "created_at",
           header: t('common:created_at'),
           cell: (info) => {

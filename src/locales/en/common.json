@@ -108,5 +108,6 @@
   "warehouse_manager": "Warehouse Manager",
   "warehouse_assistant": "Warehouse Assistant",
   "user": "User",
-  "allocate": "Allocate"
+  "allocate": "Allocate",
+  "item_selected": "Item Selected"
 }

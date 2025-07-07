@@ -2,7 +2,6 @@ import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, Divider } from '@/components';
 import { useQuarantineManagement } from '../../hooks/useQuarantineManagement';
-import { QualityControlStatus } from '../../store';
 import { 
   QualityControlFilters, 
   QualityControlInventoryTable, 
@@ -46,60 +45,35 @@ const QuarantineManagement: React.FC = () => {
     );
   }
 
-  // ✅ NEW: Quality Control System Status Indicator
-  const getQualityControlInfo = () => {
-    const statusInfo = {
-      [QualityControlStatus.CUARENTENA]: { 
-        cells: 'A-Q rows (Standard warehouse)', 
-        description: 'Initial quarantine state' 
-      },
-      [QualityControlStatus.APROBADO]: { 
-        cells: 'A-Q rows (Standard warehouse)', 
-        description: 'Ready for departure' 
-      },
-      [QualityControlStatus.DEVOLUCIONES]: { 
-        cells: 'V row (Returns area)', 
-        description: 'Customer returns' 
-      },
-      [QualityControlStatus.CONTRAMUESTRAS]: { 
-        cells: 'T row (Samples area)', 
-        description: 'Quality samples' 
-      },
-      [QualityControlStatus.RECHAZADOS]: { 
-        cells: 'R row (Rejected area)', 
-        description: 'Failed quality control' 
-      },
-    };
-    return statusInfo[filters.selectedStatus || QualityControlStatus.CUARENTENA];
-  };
-
   
 
   return (
-    <div className="flex flex-col overflow-hidden pb-4" style={{ height: 'calc(100vh - 100px)' }}>
-      {/* Header - Fixed height */}
-      <div className="flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <Text size="3xl" weight="font-bold">
+    <div className="flex flex-col overflow-hidden" style={{ height: 'calc(100vh - 80px)' }}>
+      {/* Compact Header */}
+      <div className="flex-shrink-0 flex items-center justify-between py-2 px-1">
+        <div className="flex items-center gap-4">
+          <Text size="2xl" weight="font-bold">
             {t('inventory:quality_control')}
           </Text>
-          {/* Quality Control System Status */}
           {filters.selectedStatus && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-2">
-              <Text size="sm" weight="font-medium" additionalClass="text-blue-900">
-                {filters.selectedStatus} System
-              </Text>
-              <Text size="xs" additionalClass="text-blue-700">
-                {getQualityControlInfo().cells} • {getQualityControlInfo().description}
+            <div className="bg-blue-50 border border-blue-200 rounded px-3 py-1">
+              <Text size="xs" weight="font-medium" additionalClass="text-blue-800">
+                {filters.selectedStatus}
               </Text>
             </div>
           )}
         </div>
-        <Divider height="lg" />
+        {selection.selectedItems.length > 0 && (
+          <div className="flex items-center gap-2 px-2 py-1 bg-blue-50 border border-blue-200 rounded">
+            <Text size="xs" additionalClass="text-blue-700 font-medium">
+              {selection.selectedItems.length} {t('common:selected')}
+            </Text>
+          </div>
+        )}
       </div>
 
-      {/* Filters - Fixed height container */}
-      <div className="flex-shrink-0 relative z-20 bg-white rounded-lg border border-gray-200 p-4 mb-6 shadow-sm">
+      {/* Compact Filters */}
+      <div className="flex-shrink-0 bg-white border border-gray-200 rounded p-3 mb-3 shadow-sm">
         <QualityControlFilters
           warehouses={warehouses}
           selectedWarehouse={filters.selectedWarehouse}
@@ -115,51 +89,25 @@ const QuarantineManagement: React.FC = () => {
         />
       </div>
 
-      {/* Main Table - Takes remaining height */}
-      <div className="flex-1 min-h-0 relative z-10 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col">
-        {/* Table Header - Fixed */}
-        <div className="flex-shrink-0 p-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <Text size="lg" weight="font-semibold">
-                {t('inventory:inventory_items')}
-              </Text>
-              <Text size="sm" additionalClass="text-gray-600">
-                {filteredInventory.length} {t('inventory:items_found')}
-              </Text>
-            </div>
-            
-            {selection.selectedItems.length > 0 && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-200 rounded">
-                <Text size="sm" additionalClass="text-blue-700 font-medium">
-                  {selection.selectedItems.length} {t('common:selected')}
-                </Text>
-              </div>
-            )}
-
-          </div>
-        </div>
-
-        {/* Table Content - Properly sized container to ensure pagination visibility */}
-        <div className="flex-1 min-h-0 flex flex-col">
-          <QualityControlInventoryTable
-            data={filteredInventory}
-            selectedItemId={selection.selectedItems.length > 0 ? selection.selectedItems[0] : null}
-            onItemSelect={(itemId) => {
-              if (itemId) {
-                handlers.onToggleItemSelection(itemId);
-              } else {
-                handlers.onClearSelection();
-              }
-            }}
-            pageSize={50}
-            emptyMessage={
-              inventory.length === 0
-                ? t('inventory:no_items_found')
-                : t('inventory:no_items_match_filters')
+      {/* Main Table - Maximum space */}
+      <div className="flex-1 min-h-0 bg-white rounded border border-gray-200 shadow-sm flex flex-col">
+        <QualityControlInventoryTable
+          data={filteredInventory}
+          selectedItemId={selection.selectedItems.length > 0 ? selection.selectedItems[0] : null}
+          onItemSelect={(itemId) => {
+            if (itemId) {
+              handlers.onToggleItemSelection(itemId);
+            } else {
+              handlers.onClearSelection();
             }
-          />
-        </div>
+          }}
+          pageSize={15}
+          emptyMessage={
+            inventory.length === 0
+              ? t('inventory:no_items_found')
+              : t('inventory:no_items_match_filters')
+          }
+        />
       </div>
 
       {/* Status Transition Modal */}

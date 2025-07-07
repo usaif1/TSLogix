@@ -8,6 +8,7 @@ import { Button, Text } from "@/components";
 
 // Store and Services
 import { ClientService } from "@/modules/client/api/client.service";
+import { ClientStore } from "@/modules/client/store";
 
 interface Cell {
   id: string;
@@ -46,23 +47,26 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
 }) => {
   const { t } = useTranslation(['client', 'common']);
   
+  // Use store loaders instead of local state
+  const isLoadingWarehouses = ClientStore.use.loaders()['clients/fetch-warehouses'];
+  const isLoadingCells = ClientStore.use.loaders()['clients/fetch-available-cells'];
+  
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
   const [availableCells, setAvailableCells] = useState<Cell[]>([]);
-  const [isLoadingWarehouses, setIsLoadingWarehouses] = useState(false);
-  const [isLoadingCells, setIsLoadingCells] = useState(false);
 
   // Load warehouses on component mount
   useEffect(() => {
     const loadWarehouses = async () => {
       try {
-        setIsLoadingWarehouses(true);
         const data = await ClientService.fetchWarehouses();
-        setWarehouses(data || []);
+        // Ensure data is always an array
+        const warehouseList = Array.isArray(data) ? data : [];
+        setWarehouses(warehouseList);
       } catch (error) {
         console.error("Error loading warehouses:", error);
         toast.error("Failed to load warehouses");
-      } finally {
-        setIsLoadingWarehouses(false);
+        // Set empty array on error to prevent map errors
+        setWarehouses([]);
       }
     };
 
@@ -78,15 +82,12 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
 
     const loadAvailableCells = async () => {
       try {
-        setIsLoadingCells(true);
         const response = await ClientService.fetchAvailableCells(warehouseId);
         setAvailableCells(response.all_cells || []);
       } catch (error) {
         console.error("Error loading available cells:", error);
         toast.error("Failed to load available cells");
         setAvailableCells([]);
-      } finally {
-        setIsLoadingCells(false);
       }
     };
 
@@ -129,16 +130,34 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
       return "bg-blue-500 text-white border-blue-600";
     }
     
-    switch (cell.status) {
-      case "AVAILABLE":
-        return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
-      case "OCCUPIED":
-        return "bg-red-100 text-red-800 border-red-300 cursor-not-allowed";
-      case "DAMAGED":
-        return "bg-yellow-100 text-yellow-800 border-yellow-300 cursor-not-allowed";
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-300 cursor-not-allowed";
+    if (cell.status === "OCCUPIED") {
+      return "bg-gray-200 text-gray-800 border-gray-300 cursor-not-allowed";
     }
+    
+    if (cell.status === "AVAILABLE") {
+      // Special rows have their own color schemes for available cells
+      if (cell.row === "R") {
+        return "bg-red-300 border-red-500 text-red-900 hover:bg-red-400";
+      }
+      if (cell.row === "T") {
+        return "bg-purple-300 border-purple-500 text-purple-900 hover:bg-purple-400";
+      }
+      if (cell.row === "V") {
+        return "bg-blue-300 border-blue-500 text-blue-900 hover:bg-blue-400";
+      }
+      
+      // Regular rows and Q row use the original color scheme
+      switch (cell.cell_role) {
+        case "DAMAGED":
+          return "bg-rose-200 border-rose-400 text-rose-800 hover:bg-rose-300";
+        case "EXPIRED":
+          return "bg-amber-200 border-amber-400 text-amber-800 hover:bg-amber-300";
+        default:
+          return "bg-emerald-400 border-emerald-500 text-emerald-900 hover:bg-emerald-500";
+      }
+    }
+    
+    return "bg-gray-100 text-gray-800 border-gray-300 cursor-not-allowed";
   };
 
   const warehouseOptions = warehouses.map(warehouse => ({
@@ -156,6 +175,32 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
     acc[cell.row].push(cell);
     return acc;
   }, {} as Record<string, Cell[]>);
+
+  // Sort rows to match warehouse grid: regular rows (A-P), then Q, then special rows (R, T, V)
+  const sortedRows = Object.keys(cellsByRow).sort((a, b) => {
+    const specialRows = ["Q", "R", "T", "V"];
+    const aIsSpecial = specialRows.includes(a);
+    const bIsSpecial = specialRows.includes(b);
+    
+    if (!aIsSpecial && !bIsSpecial) {
+      // Both are regular rows, sort alphabetically
+      return a.localeCompare(b);
+    }
+    
+    if (!aIsSpecial && bIsSpecial) {
+      // Regular row comes before special rows
+      return -1;
+    }
+    
+    if (aIsSpecial && !bIsSpecial) {
+      // Special row comes after regular rows
+      return 1;
+    }
+    
+    // Both are special rows, sort in specific order: Q, R, T, V
+    const specialOrder = { "Q": 0, "R": 1, "T": 2, "V": 3 };
+    return specialOrder[a as keyof typeof specialOrder] - specialOrder[b as keyof typeof specialOrder];
+  });
 
   return (
     <div className="space-y-6">
@@ -252,70 +297,99 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
           ) : (
             <div className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="max-h-96 overflow-y-auto">
-                {Object.entries(cellsByRow)
-                  .sort(([a], [b]) => a.localeCompare(b))
-                  .map(([row, cells]) => (
-                    <div key={row} className="border-b border-gray-100 last:border-b-0">
-                      <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
-                        <Text weight="font-medium" additionalClass="text-sm text-gray-700">
-                          Row {row} ({cells.length} cells)
-                        </Text>
-                      </div>
-                      <div className="p-4">
-                        <div className="grid grid-cols-8 sm:grid-cols-12 md:grid-cols-16 lg:grid-cols-20 gap-1">
-                          {cells
-                            .sort((a, b) => a.bay - b.bay || a.position - b.position)
-                            .map(cell => {
-                              const isSelected = selectedCells.some(c => c.id === cell.id);
-                              const isAvailable = cell.status === "AVAILABLE";
-                              
-                              return (
-                                <button
-                                  key={cell.id}
-                                  type="button"
-                                  onClick={() => isAvailable ? handleCellToggle(cell) : null}
-                                  disabled={!isAvailable}
-                                  className={`
-                                    relative w-8 h-8 text-xs font-medium border rounded transition-colors
-                                    ${getCellStatusColor(cell, isSelected)}
-                                    ${isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}
-                                  `}
-                                  title={`${formatCellReference(cell)} - ${cell.status} - Capacity: ${cell.capacity}`}
-                                >
-                                  {cell.bay}.{cell.position}
-                                  {isSelected && (
-                                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
-                                      <span className="text-white text-xs">✓</span>
-                                    </div>
-                                  )}
-                                </button>
-                              );
-                            })}
+                {sortedRows.map((row) => {
+                  const cells = cellsByRow[row];
+                  const isSpecialRow = ["R", "T", "V"].includes(row);
+                  
+                  return (
+                    <div key={row}>
+                      {/* Add spacing before special sections */}
+                      {(row === "Q" || row === "R") && (
+                        <div className="h-3 bg-gray-50 border-b border-gray-100">
+                          {row === "R" && (
+                            <div className="text-center text-xs font-semibold text-gray-600 pt-1">
+                              {t('client:cell_assignment.special_section')}
+                            </div>
+                          )}
                         </div>
+                      )}
+                      
+                      <div className="border-b border-gray-100 last:border-b-0">
+                        <div className={`px-3 py-2 border-b border-gray-200 ${isSpecialRow ? 'bg-blue-50' : 'bg-gray-50'}`}>
+                          <div className="flex items-center justify-between">
+                            <Text weight="font-medium" additionalClass={`text-sm ${isSpecialRow ? 'text-blue-800' : 'text-gray-700'}`}>
+                              {t('client:cell_assignment.row')} {row} ({cells.length} {t('client:cell_assignment.cells')})
+                              {isSpecialRow && (
+                                <span className="ml-2 text-xs text-blue-600">
+                                  {row === "R" ? `- ${t('client:cell_assignment.rejected')}` :
+                                   row === "T" ? `- ${t('client:cell_assignment.samples')}` :
+                                   row === "V" ? `- ${t('client:cell_assignment.returns')}` : ''}
+                                </span>
+                              )}
+                            </Text>
+                            <Text additionalClass="text-xs text-gray-500">
+                              {cells.filter(c => c.status === "AVAILABLE").length} {t('client:cell_assignment.available')}
+                            </Text>
+                          </div>
+                        </div>
+                                                 <div className="p-3">
+                           <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-15 gap-1">
+                             {cells
+                               .sort((a, b) => a.bay - b.bay || a.position - b.position)
+                               .map(cell => {
+                                 const isSelected = selectedCells.some(c => c.id === cell.id);
+                                 const isAvailable = cell.status === "AVAILABLE";
+                                 
+                                 return (
+                                   <button
+                                     key={cell.id}
+                                     type="button"
+                                     onClick={() => isAvailable ? handleCellToggle(cell) : null}
+                                     disabled={!isAvailable}
+                                     className={`
+                                       relative w-12 h-10 text-[8px] font-medium border rounded transition-colors overflow-hidden
+                                       ${getCellStatusColor(cell, isSelected)}
+                                       ${isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}
+                                     `}
+                                     title={`${formatCellReference(cell)} - ${cell.status} - ${t('client:cell_assignment.capacity')}: ${cell.capacity}`}
+                                   >
+                                     <div className="flex flex-col items-center justify-center h-full leading-none">
+                                       <span className="font-mono text-[7px] leading-none">
+                                         {formatCellReference(cell)}
+                                       </span>
+                                     </div>
+                                     {isSelected && (
+                                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
+                                         <span className="text-white text-[8px]">✓</span>
+                                       </div>
+                                     )}
+                                   </button>
+                                 );
+                               })}
+                           </div>
+                         </div>
                       </div>
                     </div>
-                  ))}
+                  );
+                })}
               </div>
             </div>
           )}
 
-          {/* Legend */}
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-100 border border-green-300 rounded mr-2"></div>
-              <span>{t('client:cell_assignment.legend.available')}</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-blue-500 border border-blue-600 rounded mr-2"></div>
-              <span>{t('client:cell_assignment.legend.selected')}</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-red-100 border border-red-300 rounded mr-2"></div>
-              <span>{t('client:cell_assignment.legend.occupied')}</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-yellow-100 border border-yellow-300 rounded mr-2"></div>
-              <span>{t('client:cell_assignment.legend.damaged')}</span>
+          {/* Enhanced Legend */}
+          <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+            <Text additionalClass="text-sm font-medium text-gray-700 mb-2">
+              {t('client:cell_assignment.legend.title')}
+            </Text>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 text-xs">
+              <LegendItem color="bg-emerald-400" label={t('client:cell_assignment.legend.available')} />
+              <LegendItem color="bg-blue-500" label={t('client:cell_assignment.legend.selected')} />
+              <LegendItem color="bg-gray-200" label={t('client:cell_assignment.legend.occupied')} />
+              <LegendItem color="bg-rose-200 border-rose-400" label={t('client:cell_assignment.legend.damaged')} />
+              <LegendItem color="bg-amber-200 border-amber-400" label={t('client:cell_assignment.legend.expired')} />
+              <LegendItem color="bg-red-300 border-red-500" label={`${t('client:cell_assignment.row')} R`} />
+              <LegendItem color="bg-purple-300 border-purple-500" label={`${t('client:cell_assignment.row')} T`} />
+              <LegendItem color="bg-blue-300 border-blue-500" label={`${t('client:cell_assignment.row')} V`} />
             </div>
           </div>
         </div>
@@ -323,5 +397,15 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
     </div>
   );
 };
+
+// Legend Item Component
+function LegendItem({ color, label }: { color: string; label: string }) {
+  return (
+    <div className="flex items-center gap-1 text-xs">
+      <div className={`w-4 h-4 rounded-sm ${color}`}></div>
+      <span>{label}</span>
+    </div>
+  );
+}
 
 export default WarehouseCellSelector; 

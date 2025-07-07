@@ -60,15 +60,41 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
   }
 
   const rows = Array.from(new Set(filtered.map((c) => c.row))).sort((a, b) => {
-    if (a === "Q") return 1;
-    if (b === "Q") return -1;
-    return a.localeCompare(b);
+    // Special rows order: regular rows (A-P) first, then Q, then special rows (R, T, V)
+    const specialRows = ["Q", "R", "T", "V"];
+    const aIsSpecial = specialRows.includes(a);
+    const bIsSpecial = specialRows.includes(b);
+    
+    if (!aIsSpecial && !bIsSpecial) {
+      // Both are regular rows, sort alphabetically
+      return a.localeCompare(b);
+    }
+    
+    if (!aIsSpecial && bIsSpecial) {
+      // Regular row comes before special rows
+      return -1;
+    }
+    
+    if (aIsSpecial && !bIsSpecial) {
+      // Special row comes after regular rows
+      return 1;
+    }
+    
+    // Both are special rows, sort in specific order: Q, R, T, V
+    const specialOrder = { "Q": 0, "R": 1, "T": 2, "V": 3 };
+    return specialOrder[a as keyof typeof specialOrder] - specialOrder[b as keyof typeof specialOrder];
   });
 
   const bays = Array.from(new Set(filtered.map((c) => c.bay))).sort(
     (a, b) => a - b
   );
-  const positions = Array.from({ length: 10 }, (_, i) => i + 1);
+
+  // Get actual positions per row instead of assuming 10 positions for all rows
+  const getPositionsForRow = (row: string) => {
+    const rowCells = filtered.filter(c => c.row === row);
+    return Array.from(new Set(rowCells.map(c => c.position))).sort((a, b) => a - b);
+  };
+
 
   const lookup: Record<
     string,
@@ -82,8 +108,26 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
 
   const getCellStyle = (cell?: WarehouseCell) => {
     if (!cell) return "bg-gray-100";
+    
+    // Occupied cells are always gray regardless of row
     if (cell.status === "OCCUPIED") return "bg-gray-200 text-black";
+    
     if (cell.status === "AVAILABLE") {
+      // Special rows have their own color schemes for available cells
+      if (cell.row === "R") {
+        // R row (Rejected): Red-based colors
+        return "bg-red-300 border-red-500 text-red-900";
+      }
+      if (cell.row === "T") {
+        // T row (Samples/Contramuestras): Purple-based colors
+        return "bg-purple-300 border-purple-500 text-purple-900";
+      }
+      if (cell.row === "V") {
+        // V row (Returns/Devoluciones): Blue-based colors
+        return "bg-blue-300 border-blue-500 text-blue-900";
+      }
+      
+      // Regular rows and Q row use the original color scheme
       switch (cell.cell_role) {
         case "DAMAGED":
           return "bg-rose-200 border-rose-400";
@@ -104,13 +148,21 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg">
-      {/* Simple legend */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex flex-wrap gap-4 text-xs">
-          <LegendItem color="bg-emerald-400" label={t('warehouse:available')} />
-          <LegendItem color="bg-gray-200" label={t('warehouse:occupied')} />
-          <LegendItem color="bg-rose-200 border-rose-400" label={t('warehouse:damaged_section')} />
-          <LegendItem color="bg-amber-200 border-amber-400" label={t('warehouse:expired_section')} />
+      {/* Enhanced legend with statistics */}
+      <div className="p-4 border-b border-gray-200 bg-gray-50">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-wrap gap-4 text-xs">
+            <LegendItem color="bg-emerald-400" label={t('warehouse:available')} />
+            <LegendItem color="bg-gray-200" label={t('warehouse:occupied')} />
+            <LegendItem color="bg-red-300 border-red-500" label={`${t('warehouse:row')} R - ${t('warehouse:rechazados')}`} />
+            <LegendItem color="bg-purple-300 border-purple-500" label={`${t('warehouse:row')} T - ${t('warehouse:contramuestras')}`} />
+            <LegendItem color="bg-blue-300 border-blue-500" label={`${t('warehouse:row')} V - ${t('warehouse:devoluciones')}`} />
+          </div>
+          <div className="text-xs text-gray-600 flex gap-4">
+            <span><strong>{t('warehouse:total_cells')}:</strong> {filtered.length}</span>
+            <span><strong>{t('warehouse:rows')}:</strong> {rows.length}</span>
+            <span><strong>{t('warehouse:bays')}:</strong> {bays.length}</span>
+          </div>
         </div>
       </div>
 
@@ -120,13 +172,13 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
           <table className="border-collapse text-xs w-full min-w-[600px]">
             <thead>
               <tr>
-                <th className="sticky left-0 top-0 bg-white z-10 p-2 border"></th>
+                <th className="sticky left-0 top-0 bg-white z-10 p-1 border font-bold text-xs w-8">{t('warehouse:row')}</th>
                 {bays.map((bay) => (
                   <th
                     key={bay}
                     className={clsx(
-                      "p-2 sticky top-0 bg-white border text-center",
-                      "min-w-[2.5rem] sm:min-w-[3rem]"
+                      "p-1 sticky top-0 bg-white border text-center font-bold text-xs",
+                      "min-w-[2rem] sm:min-w-[2.5rem]"
                     )}
                   >
                     {String(bay).padStart(2, "0")}
@@ -135,75 +187,105 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
               </tr>
             </thead>
             <tbody>
-              {rows.map((row, ri) => (
-                <React.Fragment key={row}>
-                  {row === "Q" ? (
-                    <tr className="h-6">
-                      <td colSpan={bays.length + 1} className="border-0"></td>
-                    </tr>
-                  ) : null}
-                  {positions.map((pos) => (
-                    <tr key={`${row}-${pos}`}>
-                      <td
-                        className={clsx(
-                          "sticky left-0 bg-white border-r px-2 sm:px-3 py-1 sm:py-2 font-bold",
-                          pos === 5 ? "visible" : "invisible"
-                        )}
-                      >
-                        {pos === 5 ? row : null}
-                      </td>
-                      {bays.map((bay) => {
-                        const cell = lookup[row]?.[bay]?.[pos];
-                        const style = getCellStyle(cell);
-                        const divClass = isDivider(row, bay - 1)
-                          ? "border-l-2 border-l-gray-500"
-                          : "";
-                        const showLabel =
-                          row === "Q" && (bay === 21 || bay === 25) && pos === 1;
-                        const labelText = bay === 21 ? "DAMAGED" : "EXPIRED";
-
-                        return (
+              {rows.map((row, ri) => {
+                const rowPositions = getPositionsForRow(row);
+                const hasMultiplePositions = rowPositions.length > 1;
+                
+                return (
+                  <React.Fragment key={row}>
+                    {/* Add spacing before special sections */}
+                    {(row === "Q" || row === "R") && (
+                      <tr className="h-4">
+                        <td colSpan={bays.length + 1} className="border-0 bg-gray-50">
+                          {row === "R" && (
+                            <div className="text-center text-xs font-semibold text-gray-600 pt-1">
+                              {t('warehouse:special_section')}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                    
+                    {/* Render only the positions that exist for this row */}
+                    {rowPositions.map((pos, posIndex) => (
+                      <tr key={`${row}-${pos}`}>
+                        {/* Only render row label cell for first position */}
+                        {posIndex === 0 && (
                           <td
-                            key={`${row}-${bay}-${pos}`}
                             className={clsx(
-                              "h-6 sm:h-8 border text-[7px] sm:text-[9px] text-center relative",
-                              "w-[1.5rem] sm:w-12",
-                              style,
-                              divClass
+                              "sticky left-0 bg-white border-r px-1 py-1 font-bold text-center",
+                              "w-8 max-w-8"
                             )}
-                            title={
-                              cell
-                                ? `${formatId(row, bay, pos)} - ${
-                                    cell.cell_role
-                                  } - ${cell.status}`
-                                : undefined
-                            }
+                            rowSpan={hasMultiplePositions ? rowPositions.length : 1}
                           >
-                            {showLabel ? (
-                              <span className="absolute -top-8 left-0 text-[8px] sm:text-[10px] font-bold whitespace-nowrap">
-                                {labelText === "DAMAGED" ? 
-                                  t('warehouse:damaged_section') : 
-                                  t('warehouse:expired_section')}
-                              </span>
-                            ) : null}
-                            {cell ? formatId(row, bay, pos) : null}
+                            <div className="flex flex-col items-center justify-center h-full">
+                              <span className="text-sm font-bold leading-none">{row}</span>
+                              {hasMultiplePositions && (
+                                <span className="text-[10px] text-gray-500 leading-none">
+                                  {rowPositions.length}P
+                                </span>
+                              )}
+                            </div>
                           </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                  {row === "Q" ? (
-                    <tr className="h-6">
-                      <td colSpan={bays.length + 1} className="border-0"></td>
-                    </tr>
-                  ) : null}
-                  {ri < rows.length - 1 ? (
-                    <tr className="h-2 sm:h-3">
-                      <td className="bg-gray-100" colSpan={bays.length + 1}></td>
-                    </tr>
-                  ) : null}
-                </React.Fragment>
-              ))}
+                        )}
+                        
+                        {bays.map((bay) => {
+                          const cell = lookup[row]?.[bay]?.[pos];
+                          const style = getCellStyle(cell);
+                          const divClass = isDivider(row, bay - 1)
+                            ? "border-l-2 border-l-gray-500"
+                            : "";
+                          return (
+                            <td
+                              key={`${row}-${bay}-${pos}`}
+                              className={clsx(
+                                "h-6 sm:h-8 border text-[7px] sm:text-[9px] text-center relative",
+                                "w-[1.8rem] sm:w-10 px-0.5",
+                                style,
+                                divClass
+                              )}
+                              title={
+                                cell
+                                  ? `${formatId(row, bay, pos)} - ${
+                                      cell.cell_role
+                                    } - ${cell.status}`
+                                  : `No cell at ${formatId(row, bay, pos)}`
+                              }
+                            >
+                              {cell ? (
+                                <div className="flex flex-col items-center justify-center h-full">
+                                  <span className="font-mono">{formatId(row, bay, pos)}</span>
+                                  {hasMultiplePositions && (
+                                    <span className="text-[6px] sm:text-[8px] text-gray-600">P{pos}</span>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="h-full flex items-center justify-center text-gray-400">
+                                  —
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                    
+                    {/* Add spacing after special rows group */}
+                    {row === "V" && (
+                      <tr className="h-4">
+                        <td colSpan={bays.length + 1} className="border-0 bg-gray-50"></td>
+                      </tr>
+                    )}
+                    
+                    {/* Add separator between different rows (except for last row) */}
+                    {ri < rows.length - 1 && (
+                      <tr className="h-2">
+                        <td className="bg-gray-200" colSpan={bays.length + 1}></td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -215,7 +297,7 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
 function LegendItem({ color, label }: { color: string; label: string }) {
   return (
     <div className="flex items-center gap-1 text-xs">
-      <div className={clsx("w-4 h-4", color)}></div>
+      <div className={clsx("w-4 h-4 rounded-sm", color)}></div>
       <span>{label}</span>
     </div>
   );

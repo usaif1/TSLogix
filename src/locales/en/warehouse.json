@@ -71,6 +71,8 @@
   "warehouse_layout": "Warehouse Layout",
   "warehouse_overview": "Warehouse Overview",
   "total_cells": "Total Cells",
+  "rows": "Rows",
+  "bays": "Bays",
   "available_cells": "Available Cells",
   "occupied_cells": "Occupied Cells",
   "damaged_cells": "Damaged Cells",

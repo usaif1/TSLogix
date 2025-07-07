@@ -46,7 +46,7 @@
   "page": "Página",
   "of": "de",
   "show": "Mostrar",
-  "entries": "entradas",
+  "entries": "Ingresos",
   "no_data": "No hay datos disponibles",
   "no_results": "No se encontraron resultados",
   "select_option": "Seleccionar opción",
@@ -209,7 +209,7 @@
   "production": "Producción",
   "development": "Desarrollo",
   "staging": "Pruebas",
-  "entry_order": "Orden de Entrada",
+  "entry_order": "Orden de Ingreso",
   "departure_order": "Orden de Salida",
   "product": "Producto",
   "warehouse_report": "Reporte de Almacén",
@@ -222,5 +222,6 @@
   "administrator": "Administrador",
   "warehouse_manager": "Gerente de Almacén",
   "warehouse_assistant": "Asistente de Almacén",
-  "allocate": "Asignar"
+  "allocate": "Asignar",
+  "item_selected": "Artículo Seleccionado"
 }

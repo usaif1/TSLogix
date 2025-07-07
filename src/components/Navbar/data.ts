@@ -46,7 +46,8 @@ const getAllLinksData = (t: TFunction) => [
       route: "/reports",
       icon: FileText,
       subroutes: [
-        { title: t('warehouse_report'), route: "/warehouse" },
+        { title: t('warehouse_layout'), route: "/warehouse" },
+        { title: t('other_reports'), route: "/reports" },
       ],
     },
     {
@@ -171,7 +172,8 @@ export const links = [
       route: "/reports",
       icon: FileText,
       subroutes: [
-        { title: "Warehouse Report", route: "/warehouse" },
+        { title: "Warehouse Layout", route: "/warehouse" },
+        { title: "Other Reports", route: "/reports" },
       ],
     },
     {

@@ -61,7 +61,6 @@ const NewProductForm: React.FC = () => {
     'category', 
     'subcategory1', 
     'subcategory2', 
-    'temperature_range', 
     'uploaded_documents',
     'humidity', // Make humidity optional too
     'observations' // Make observations optional
@@ -73,10 +72,10 @@ const NewProductForm: React.FC = () => {
     message?: string;
   }>({});
 
-  // Load form fields on component mount
+  // Load form fields on component mount - single call
   useEffect(() => {
-    ProductService.fetchProductFormFields();
-    ProductService.fetchProductCategories();
+    console.log("Loading form fields...");
+    ProductService.fetchAllProductFormFields();
   }, []);
 
   // Fetch subcategory1 options when category changes
@@ -139,8 +138,6 @@ const NewProductForm: React.FC = () => {
   };
 
   const handleSelectChange = (name: string, selectedOption: any) => {
-    console.log(`handleSelectChange called: ${name}`, selectedOption);
-    
     // Ensure selectedOption is properly handled - convert undefined to null
     const normalizedOption = selectedOption === undefined ? null : selectedOption;
     
@@ -152,15 +149,12 @@ const NewProductForm: React.FC = () => {
 
       // Clear dependent fields when parent changes
       if (name === "category" && prev.category?.value !== normalizedOption?.value) {
-        console.log("Clearing subcategories due to category change");
         newData.subcategory1 = null;
         newData.subcategory2 = null;
       } else if (name === "subcategory1" && prev.subcategory1?.value !== normalizedOption?.value) {
-        console.log("Clearing subcategory2 due to subcategory1 change");
         newData.subcategory2 = null;
       }
 
-      console.log("New form data after change:", newData);
       return newData;
     });
   };
@@ -179,13 +173,7 @@ const NewProductForm: React.FC = () => {
     setSubmitStatus({});
 
     try {
-      // Debug: Log the current form data
-      console.log("Form data before submission:", formData);
-      console.log("Category value:", formData.category);
-      console.log("Subcategory1 value:", formData.subcategory1);
-      console.log("Subcategory2 value:", formData.subcategory2);
-
-      // Create JSON object like other parts of the application
+      // Create product data object
       const productData = {
         name: formData.name,
         product_code: formData.product_code,
@@ -198,23 +186,21 @@ const NewProductForm: React.FC = () => {
         category_id: formData.category?.value || null,
         subcategory1_id: formData.subcategory1?.value || null,
         subcategory2_id: formData.subcategory2?.value || null,
-        
-        // Note: File upload will be handled separately if needed
-        // For now, we'll skip the file upload functionality
-        uploaded_documents: formData.uploaded_documents?.name || null,
       };
 
-      // Debug: Log the product data being sent
-      console.log("Product data being sent:", productData);
-
-      const response = await ProductService.createProduct(productData);
+      // Use the new method that handles file uploads with FormData
+      const response = await ProductService.createProductWithDocuments(
+        productData, 
+        formData.uploaded_documents || undefined
+      );
+      
       addProduct(response);
       setSubmitStatus({
         success: true,
         message: t('product_created_successfully'),
       });
       navigate("/maintenance/product");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating product:", error);
       setSubmitStatus({
         success: false,
@@ -225,15 +211,7 @@ const NewProductForm: React.FC = () => {
     }
   };
 
-  // Debug: Log available options
-  console.log("Available options:", {
-    categoryOptions: categoryOptions || [],
-    subcategory1Options: subcategory1Options || [],
-    subcategory2Options: subcategory2Options || []
-  });
 
-  // Debug: Log current form state
-  console.log("Current form state:", formData);
 
   return (
     <form className="order_entry_form" onSubmit={handleSubmit}>
@@ -401,7 +379,7 @@ const NewProductForm: React.FC = () => {
       <Divider />
 
       {/* Submit Button */}
-      <div className="w-full flex justify-center">
+      <div className="w-full flex justify-center gap-4">
         <Button
           type="submit"
           variant="primary"
