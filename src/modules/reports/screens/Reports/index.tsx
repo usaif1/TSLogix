@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useReportsStore } from '../../store/reportsStore';
 import { ReportFilters } from '../../api/reportsService';
+import { AuthStore } from '@/globalStore';
 import Button from '@/components/Button';
 import Text from '@/components/Text';
 import TextInput from '@/components/TextInput';
@@ -13,6 +14,7 @@ import CardexReport from './CardexReport';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
+  const { authUser } = AuthStore();
   const {
     selectedReportType,
     setSelectedReportType,
@@ -32,16 +34,27 @@ const Reports: React.FC = () => {
   const [customerCode, setCustomerCode] = useState('');
   const [productName, setProductName] = useState('');
   const [productCode, setProductCode] = useState('');
-  const [warehouseId, setWarehouseId] = useState('');
-  const [qualityStatus, setQualityStatus] = useState('');
 
-  // Report type options
-  const reportTypes = [
+  // Get user role from authUser or localStorage as fallback
+  const userRole = authUser?.role || localStorage.getItem('role') || '';
+
+  // Helper function to check if user is a client
+  const isClient = () => {
+    return userRole === 'CLIENT' || userRole === 'client';
+  };
+
+  // Report type options based on user role
+  const allReportTypes = [
     { key: 'warehouse', label: t('reports:warehouse_report_title') || t('reports:warehouse_report') || 'Reporte de Almacén' },
     { key: 'product-category', label: t('reports:product_category_report_title') || t('reports:product_category_report') || 'Reporte de Categoría de Productos' },
     { key: 'product-wise', label: t('reports:product_wise_report_title') || t('reports:product_wise_report') || 'Reporte de Productos por Movimiento' },
     { key: 'cardex', label: t('reports:cardex_report_title') || t('reports:cardex_report') || 'Reporte Cardex' },
   ];
+
+  // Filter reports based on user role
+  const reportTypes = isClient() 
+    ? allReportTypes.filter(report => report.key === 'cardex' || report.key === 'product-wise')
+    : allReportTypes;
 
   // Apply filters and fetch data
   const applyFilters = () => {
@@ -53,8 +66,6 @@ const Reports: React.FC = () => {
     if (customerCode) newFilters.customer_code = customerCode;
     if (productName) newFilters.product_name = productName;
     if (productCode) newFilters.product_code = productCode;
-    if (warehouseId) newFilters.warehouse_id = warehouseId;
-    if (qualityStatus) newFilters.quality_status = qualityStatus;
 
     setFilters(newFilters);
 
@@ -83,8 +94,6 @@ const Reports: React.FC = () => {
     setCustomerCode('');
     setProductName('');
     setProductCode('');
-    setWarehouseId('');
-    setQualityStatus('');
     setFilters({});
     applyFilters();
   };
@@ -146,6 +155,14 @@ const Reports: React.FC = () => {
       }
     }, 100); // Small delay to ensure state is updated
   }, []);
+
+  // Handle role-based default report selection
+  useEffect(() => {
+    if (isClient() && (selectedReportType === 'warehouse' || selectedReportType === 'product-category')) {
+      // If client tries to access restricted reports, redirect to cardex
+      setSelectedReportType('cardex');
+    }
+  }, [userRole, selectedReportType]);
 
   return (
     <div className="min-h-screen bg-gray-50 p-2">
@@ -215,41 +232,6 @@ const Reports: React.FC = () => {
               />
             </div>
 
-            {/* Warehouse ID (only for warehouse report) */}
-            {selectedReportType === 'warehouse' && (
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {t('reports:warehouse_id') || 'ID del Almacén'}
-                </label>
-                <TextInput
-                  value={warehouseId}
-                  onChange={(e) => setWarehouseId(e.target.value)}
-                  placeholder={t('reports:enter_warehouse_id') || 'Ingrese ID del almacén'}
-                  className="w-full"
-                />
-              </div>
-            )}
-
-            {/* Quality Status (only for warehouse report) */}
-            {selectedReportType === 'warehouse' && (
-              <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {t('reports:quality_status') || 'Estado de Calidad'}
-                </label>
-                <select
-                  value={qualityStatus}
-                  onChange={(e) => setQualityStatus(e.target.value)}
-                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
-                >
-                  <option value="">{t('reports:all_statuses') || 'Todos los Estados'}</option>
-                  <option value="APROBADO">{t('reports:approved') || 'Aprobado'}</option>
-                  <option value="CONTRAMUESTRAS">{t('reports:sample') || 'Contramuestras'}</option>
-                  <option value="CUARENTENA">{t('reports:quarantine') || 'Cuarentena'}</option>
-                  <option value="DEVOLUCIONES">{t('reports:returns') || 'Devoluciones'}</option>
-                  <option value="RECHAZADOS">{t('reports:rejected') || 'Rechazados'}</option>
-                </select>
-              </div>
-            )}
           </div>
 
           {/* Second Row - Customer and Product Filters */}
