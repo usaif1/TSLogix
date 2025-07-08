@@ -217,40 +217,13 @@ const WarehouseReport: React.FC = () => {
       </div>
 
       {/* Additional Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
         <div className="bg-indigo-50 p-2 rounded border border-indigo-200">
           <Text size="xs" additionalClass="text-indigo-600 mb-1">
             {t('reports:total_weight') || 'Peso'}
           </Text>
           <Text size="lg" weight="font-bold" additionalClass="text-indigo-900">
             {formatWeight(summary?.total_weight)}
-          </Text>
-        </div>
-        
-        <div className="bg-teal-50 p-2 rounded border border-teal-200">
-          <Text size="xs" additionalClass="text-teal-600 mb-1">
-            {t('reports:total_volume') || 'Volumen'}
-          </Text>
-          <Text size="lg" weight="font-bold" additionalClass="text-teal-900">
-            {formatVolume(summary?.total_volume)}
-          </Text>
-        </div>
-        
-        <div className="bg-red-50 p-2 rounded border border-red-200">
-          <Text size="xs" additionalClass="text-red-600 mb-1">
-            {t('reports:expired_items') || 'Vencidos'}
-          </Text>
-          <Text size="lg" weight="font-bold" additionalClass="text-red-900">
-            {formatNumber(summary?.urgency_breakdown?.expired)}
-          </Text>
-        </div>
-        
-        <div className="bg-orange-50 p-2 rounded border border-orange-200">
-          <Text size="xs" additionalClass="text-orange-600 mb-1">
-            {t('reports:near_expiry') || 'Por Vencer'}
-          </Text>
-          <Text size="lg" weight="font-bold" additionalClass="text-orange-900">
-            {formatNumber(summary?.urgency_breakdown?.near_expiry)}
           </Text>
         </div>
       </div>

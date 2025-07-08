@@ -16,6 +16,7 @@ interface AllocationHelperResponse {
     organisation_name: string;
     created_by: string;
     registration_date: string;
+    creator_name:string;
   };
   products: Array<{
     entry_order_product_id: string;
@@ -263,14 +264,6 @@ const SimplifiedInventoryAllocation: React.FC = () => {
     if (row.weight_kg <= 0) errors.push(t('inventory:validation.weight_required'));
     if (row.weight_kg > row.remaining_weight) errors.push(t('inventory:validation.weight_exceeds_remaining'));
 
-    // Check cell capacity if we have the data
-    if (allocationData && row.cell_id) {
-      const warehouse = allocationData.warehouses.find(w => w.warehouse_id === row.warehouse_id);
-      const cell = warehouse?.available_cells.find(c => c.id === row.cell_id);
-      if (cell && row.inventory_quantity > cell.available_capacity) {
-        errors.push(t('inventory:validation.exceeds_position_capacity'));
-      }
-    }
 
     return { isValid: errors.length === 0, errors };
   }, [allocationData, t]);
@@ -465,8 +458,6 @@ const SimplifiedInventoryAllocation: React.FC = () => {
       // Fix: Use 'id' instead of 'cell_id' based on the actual API response
       const cellId = cell.id || cell.cell_id || `temp-cell-${warehouseId}-${index}`;
       const cellRef = cell.cell_reference || `${t('inventory:position')}-${index + 1}`;
-      const availableCap = cell.available_capacity || 0;
-      const totalCap = Number(cell.capacity) || 100;
       
       console.log("🔍 Processing cell:", { 
         index,
@@ -474,14 +465,12 @@ const SimplifiedInventoryAllocation: React.FC = () => {
         original_cell_id: cell.cell_id,
         original_reference: cell.cell_reference,
         final_cellId: cellId, 
-        final_cellRef: cellRef, 
-        availableCap, 
-        totalCap 
+        final_cellRef: cellRef
       });
       
       return { 
         value: cellId, 
-        label: `${cellRef} (${availableCap}/${totalCap})` 
+        label: cellRef 
       };
     });
     
@@ -492,7 +481,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
   // Entry order options
   const entryOrderOptions = entryOrders.map(order => ({
     value: order.entry_order_id,
-    label: `${order.entry_order_no} - ${order.organisation_name} (${order.products_needing_allocation || 0} pending)`
+    label: `${order.entry_order_no} - ${order.creator_name} (${order.products_needing_allocation || 0} pending)`
   }));
 
   const validRowsCount = allocationRows.filter(row => row.isValid && row.inventory_quantity > 0).length;
@@ -549,7 +538,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
         {allocationData && (
           <div className="mt-4 p-3 bg-white rounded border">
             <Text weight="font-medium" additionalClass="mb-2">
-              {allocationData.entry_order.entry_order_no} - {allocationData.entry_order.organisation_name}
+              {allocationData.entry_order.entry_order_no} - {allocationData.entry_order.creator_name}
             </Text>
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div>
