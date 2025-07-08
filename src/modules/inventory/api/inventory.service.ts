@@ -97,6 +97,7 @@ export const InventoryLogService = {
                 first_name: "System",
                 last_name: "",
               },
+              client_info: item.client_info || null,
               product: {
                 product_id: item.product.product_id,
                 product_code: item.product.product_code,
@@ -137,6 +138,7 @@ export const InventoryLogService = {
           first_name: log.user?.first_name || log.dispatched_by_name?.split(' ')[0] || "User",
           last_name: log.user?.last_name || log.dispatched_by_name?.split(' ').slice(1).join(' ') || "",
         },
+        client_info: log.client_info || null,
         product: log.product,
         movement_type: log.movement_type,
         quantity_change: log.quantity_change,

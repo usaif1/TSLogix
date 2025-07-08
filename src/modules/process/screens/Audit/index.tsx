@@ -847,27 +847,60 @@ const Review: React.FC = () => {
   };
 
   // ✅ Handle document download/view
-  const handleDocumentAction = (document: any, action: 'view' | 'download') => {
-    if (typeof document === 'string') {
+  const handleDocumentAction = async (documentData: any, action: 'view' | 'download') => {
+    if (typeof documentData === 'string') {
       // Old format - single URL
       if (action === 'view') {
-        window.open(document, '_blank');
+        window.open(documentData, '_blank');
       } else {
-        // Create a temporary link for download
-        const link = window.document.createElement('a');
-        link.href = document;
-        link.download = document.split('/').pop() || 'document';
-        link.click();
+        // Force download by fetching the file as blob
+        try {
+          const response = await fetch(documentData);
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = documentData.split('/').pop() || 'document.pdf';
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up the blob URL
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error('Download failed:', error);
+          // Fallback to opening in new tab
+          window.open(documentData, '_blank');
+        }
       }
     } else {
       // New format - object with file details
       if (action === 'view') {
-        window.open(document.public_url, '_blank');
+        window.open(documentData.public_url, '_blank');
       } else {
-        const link = document.createElement('a');
-        link.href = document.public_url;
-        link.download = document.file_name;
-        link.click();
+        // Force download by fetching the file as blob
+        try {
+          const response = await fetch(documentData.public_url);
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = documentData.file_name || 'document.pdf';
+          link.style.display = 'none';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up the blob URL
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error('Download failed:', error);
+          // Fallback to opening in new tab
+          window.open(documentData.public_url, '_blank');
+        }
       }
     }
   };
@@ -923,7 +956,7 @@ const Review: React.FC = () => {
         <div className="bg-white rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-center mb-4">
             <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
-              {entry.entry_order_no} - {entry.organisation_name || entry.order?.organisation?.name}
+              {entry.entry_order_no} - {entry.creator ? `${entry.creator.first_name} ${entry.creator.last_name}` : entry.creator_name || 'N/A'}
             </Text>
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${getReviewStatusColor(entry.review_status)}`}>
               {getReviewStatusText(entry.review_status)}
@@ -1039,30 +1072,71 @@ const Review: React.FC = () => {
               )}
 
               {/* Allocations */}
-              {entry.inventoryAllocations && entry.inventoryAllocations.length > 0 && (
+              {(() => {
+                const hasProductAllocations = entry.products?.some((product: any) => product.inventoryAllocations && product.inventoryAllocations.length > 0);
+                const hasEntryAllocations = entry.inventoryAllocations && entry.inventoryAllocations.length > 0;
+                return hasProductAllocations || hasEntryAllocations;
+              })() && (
                 <div>
                   <Text size="lg" weight="font-semibold" additionalClass="mb-3 text-gray-800">
-                    {t('process:allocations')} ({entry.inventoryAllocations.length})
+                    {t('process:allocations')} ({(() => {
+                      const allAllocations: any[] = [];
+                      entry.products?.forEach((product: any) => {
+                        if (product.inventoryAllocations) {
+                          allAllocations.push(...product.inventoryAllocations);
+                        }
+                      });
+                      return allAllocations.length > 0 ? allAllocations.length : (entry.inventoryAllocations?.length || 0);
+                    })()})
                   </Text>
                   <div className="space-y-2">
-                    {entry.inventoryAllocations.map((allocation: any) => (
-                      <div key={allocation.allocation_id} className="border border-gray-200 rounded p-3 text-sm">
-                        <div className="flex justify-between items-center">
-                          <div>
-                            <Text size="sm" weight="font-medium" additionalClass="font-mono">{allocation.allocation_id.slice(0, 8)}...</Text>
-                            <Text size="xs" additionalClass="text-gray-500">{formatDate(allocation.allocated_at)}</Text>
-                          </div>
-                          <div className="text-right">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${allocation.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                              {allocation.status}
-                            </span>
-                            <Text size="xs" additionalClass="text-gray-500 mt-1">
-                              {allocation.allocator ? `${allocation.allocator.first_name} ${allocation.allocator.last_name}` : 'N/A'}
-                            </Text>
+                    {(() => {
+                      // Get all allocations from products
+                      const allAllocations: any[] = [];
+                      entry.products?.forEach((product: any) => {
+                        if (product.inventoryAllocations) {
+                          product.inventoryAllocations.forEach((allocation: any) => {
+                            allAllocations.push({
+                              ...allocation,
+                              productName: product.product?.name || 'N/A',
+                              productCode: product.product?.product_code || 'N/A'
+                            });
+                          });
+                        }
+                      });
+                      
+                      // If no product allocations, fall back to entry.inventoryAllocations
+                      const allocationsToShow = allAllocations.length > 0 ? allAllocations : (entry.inventoryAllocations || []);
+                      
+                      return allocationsToShow.map((allocation: any, index: number) => (
+                        <div key={allocation.allocation_id || index} className="border border-gray-200 rounded p-3 text-sm">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <Text size="sm" weight="font-medium">
+                                {t('process:cell_reference')}: {allocation.cellReference || 
+                                 (allocation.cell ? `${allocation.cell.row}.${String(allocation.cell.bay).padStart(2, '0')}.${String(allocation.cell.position).padStart(2, '0')}` : 'N/A')}
+                              </Text>
+                              <Text size="xs" additionalClass="text-gray-500">
+                                {allocation.inventory_quantity || 0} {t('process:units')} • {formatDate(allocation.allocated_at)}
+                              </Text>
+                              {allocation.productName && (
+                                <Text size="xs" additionalClass="text-blue-600">
+                                  {allocation.productName} ({allocation.productCode})
+                                </Text>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${allocation.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                {allocation.status === 'ACTIVE' ? t('process:active') : allocation.status}
+                              </span>
+                              <Text size="xs" additionalClass="text-gray-500 mt-1">
+                                {allocation.allocator ? `${allocation.allocator.first_name} ${allocation.allocator.last_name}` : allocation.allocator_name || (t('process:allocator') + ': N/A')}
+                              </Text>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 </div>
               )}

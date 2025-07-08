@@ -331,5 +331,8 @@
   "fully_completed": "Completamente Terminadas",
   "partially_completed": "Parcialmente Completadas",
   "dispatcher": "Despachador",
-  "client": "Cliente"
+  "client": "Cliente",
+  "item_will_remain_same_location": "El artículo permanecerá en la misma ubicación",
+  "quarantine_approval_info": "Información de Aprobación de Cuarentena",
+  "choose_action": "Elegir Acción"
 }
