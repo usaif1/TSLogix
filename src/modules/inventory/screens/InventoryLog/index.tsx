@@ -99,11 +99,26 @@ const InventoryLog: React.FC = () => {
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
       {
-        header: t('inventory:user'),
-        accessorFn: (row: any) =>
-          `${row.user?.first_name || t('inventory:system')} ${row.user?.last_name || ''}`.trim(),
-        id: "userName",
-        size: 120,
+        header: t('inventory:client'),
+        accessorFn: (row: any) => ({
+          company_name: row.client_info?.company_name || row.client_info?.first_names || "-",
+          client_type: row.client_info?.client_type || "-"
+        }),
+        id: "clientInfo",
+        cell: (info: CellContext<any, any>) => {
+          const data = info.getValue<{company_name: string, client_type: string}>();
+          return (
+            <div className="min-w-0">
+              <div className="font-medium text-gray-900 truncate" title={data.company_name}>
+                {data.company_name}
+              </div>
+              <div className="text-xs text-gray-500 uppercase truncate" title={data.client_type}>
+                {data.client_type}
+              </div>
+            </div>
+          );
+        },
+        size: 140,
       },
       {
         header: t('inventory:product_info'),

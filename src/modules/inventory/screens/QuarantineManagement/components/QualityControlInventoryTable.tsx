@@ -230,7 +230,7 @@ function QualityControlInventoryTable({
                     key={row.id}
                     className={`border-b border-gray-200 cursor-pointer ${
                       isSelected 
-                        ? "bg-blue-50 hover:bg-blue-100" 
+                        ? "bg-blue-100 hover:bg-blue-200" 
                         : rowIndex % 2 === 0 ? "bg-white hover:bg-gray-100" : "bg-gray-50 hover:bg-gray-100"
                     } transition-colors`}
                     onClick={() => {
@@ -250,7 +250,7 @@ function QualityControlInventoryTable({
                             ? {
                                 position: "sticky",
                                 left: stickyOffsets[stickyColumns.indexOf(index)] ?? 0,
-                                background: isSelected ? "#dbeafe" : rowIndex % 2 === 0 ? "white" : "#F9FAFB",
+                                background: isSelected ? "#bfdbfe" : rowIndex % 2 === 0 ? "white" : "#F9FAFB",
                                 zIndex: 10,
                               }
                             : {}),

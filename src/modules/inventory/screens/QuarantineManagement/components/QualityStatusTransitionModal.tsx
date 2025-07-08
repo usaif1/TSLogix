@@ -128,8 +128,9 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
   const selectedCell = selectedCellId ? availableCells.find(cell => cell.cell_id === selectedCellId) : null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`bg-white rounded-lg w-full mx-4 p-6 ${requiresCellSelection ? 'max-w-5xl max-h-[90vh] overflow-y-auto' : 'max-w-2xl'}`}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className={`bg-white rounded-lg w-full max-h-[85vh] overflow-y-auto ${requiresCellSelection ? 'max-w-3xl' : 'max-w-xl'}`}>
+        <div className="p-6">
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <h2 className="text-lg font-semibold flex items-center gap-2 mb-2">
@@ -154,7 +155,6 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
               }
             </p>
           </div>
-
           {showQuantityFields && selectedItem && (
             <div className="mb-6 p-4 bg-gray-50 rounded-lg">
               <h3 className="text-sm font-medium text-gray-900 mb-2">{t('item_details')}</h3>
@@ -214,7 +214,7 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
                     <Text>{t('no_available_cells_for_status', { status: getStatusLabel(transitionStatus, t) })}</Text>
                   </div>
                 ) : (
-                  <div className="max-h-80 overflow-y-auto">
+                  <div className="max-h-48 overflow-y-auto">
                     <CellGrid
                       cells={availableCells}
                       onSelect={onCellSelect}
@@ -412,6 +412,7 @@ const QualityStatusTransitionModal: React.FC<QualityStatusTransitionModalProps> 
             </Button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );
