@@ -342,7 +342,7 @@ const CellGrid: React.FC<CellGridProps> = ({
                             )}
                             style={{ width: '50px', minWidth: '24px', maxWidth: '50px' }}
                             onClick={() => isAvailable && onSelect(cell)}
-                            title={`${cell.cellReference} - ${cell.status} - ${t('inventory:capacity')}: ${cell.capacity}`}
+                            title={`${cell.cellReference} - ${cell.status}`}
                           >
                             <div className="flex flex-col items-center justify-center h-full p-0.5">
                               <span className={clsx(
