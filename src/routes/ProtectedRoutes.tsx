@@ -46,6 +46,7 @@ import {
   // client
   Client,
   NewClient,
+  ClientDetail,
 } from "@/modules/client/screens";
 
 import {
@@ -124,6 +125,7 @@ const ProtectedRoutes: React.FC = () => {
           <Route path="client">
             <Route index element={<Client />} />
             <Route path="new" element={<NewClient />} />
+            <Route path=":clientId" element={<ClientDetail />} />
           </Route>
         </Route>
         <Route path="warehouse">

@@ -16,7 +16,7 @@ export const exportWarehouseToExcel = (
   }
 
   // Format cells for Excel - flatten the data
-  const excelData = cells.map((cell) => ({
+  const exposiciónta = cells.map((cell) => ({
     Location: `${cell.row}${String(cell.bay).padStart(2, "0")}.${String(
       cell.position
     ).padStart(2, "0")}`,
@@ -31,7 +31,7 @@ export const exportWarehouseToExcel = (
   }));
 
   // Create worksheet
-  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  const worksheet = XLSX.utils.json_to_sheet(exposiciónta);
 
   // Create workbook
   const workbook = XLSX.utils.book_new();

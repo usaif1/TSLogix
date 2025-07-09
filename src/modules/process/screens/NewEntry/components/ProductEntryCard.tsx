@@ -319,7 +319,7 @@ const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div className="flex flex-col">
           <label className="text-sm font-medium text-gray-700 mb-1">
-            {t("process:insured_value")}
+            ${t("process:insured_value")}
           </label>
           <input
             type="number"

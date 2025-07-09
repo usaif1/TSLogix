@@ -16,7 +16,9 @@
     "commercial_information": "Commercial Information",
     "personal_information": "Personal Information",
     "contact_information": "Contact Information",
-    "client_users": "Client Users"
+    "client_users": "Client Users",
+    "basic_information": "Basic Information",
+    "cell_assignments": "Cell Assignments"
   },
   "fields": {
     "client_type": "Client Type",
@@ -32,7 +34,14 @@
     "email": "Email",
     "address": "Address",
     "phone": "Phone",
-    "cell_phone": "Cell Phone"
+    "cell_phone": "Cell Phone",
+    "full_name": "Full Name",
+    "created_at": "Created",
+    "active_state": "Active State",
+    "reassign_cells": "Reassign cells",
+    "select_warehouse": "Select Warehouse",
+    "select_cells": "Select Cells",
+    "assignment_notes": "Assignment Notes"
   },
   "placeholders": {
     "select_client_type": "Select client type",
@@ -48,7 +57,12 @@
     "address": "Enter full address",
     "phone": "Enter phone number",
     "cell_phone": "Enter cell phone number",
-    "user_name": "Enter user name"
+    "user_name": "Enter user name",
+    "select_warehouse": "Select warehouse...",
+    "select_active_state": "Select active state...",
+    "select_establishment_type": "Select establishment type...",
+    "select_company_type": "Select company type...",
+    "assignment_notes": "Optional notes about cell assignment..."
   },
   "types": {
     "commercial": "Commercial",
@@ -60,7 +74,10 @@
     "save_client": "Save Client",
     "cancel": "Cancel",
     "add_user": "Add User",
-    "remove": "Remove"
+    "remove": "Remove",
+    "edit_client": "Edit Client",
+    "update_client": "Update Client",
+    "updating": "Updating..."
   },
   "validation": {
     "client_type_required": "Client type is required",
@@ -121,7 +138,9 @@
   },
   "status": {
     "active": "Active",
-    "inactive": "Inactive"
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "suspended": "Suspended"
   },
   "cell_assignment": {
     "title": "Cell Assignment",
@@ -149,7 +168,34 @@
       "selected": "Selected",
       "occupied": "Occupied",
       "damaged": "Damaged",
-      "expired": "Expired"
+      "expired": "Expired",
+      "assigned_to_client": "Assigned to Client",
+      "assigned_to_others": "Assigned to Others",
+      "available_unassigned": "Available Unassigned"
     }
+  },
+  "detail": {
+    "client_details": "Client Details",
+    "client_not_found": "Client not found",
+    "back_to_list": "Back to Client List",
+    "basic_information": "Basic Information",
+    "contact_information": "Contact Information",
+    "cell_assignments": "Cell Assignments",
+    "recent_orders": "Recent Orders",
+    "no_cell_assignments": "No cell assignments found",
+    "no_recent_orders": "No recent orders found",
+    "assigned_on": "Assigned on",
+    "assigned_by": "Assigned by",
+    "created_on": "Created on"
+  },
+  "cell_sections": {
+    "currently_assigned": "Currently Assigned to This Client",
+    "available_unassigned": "Available Unassigned Cells",
+    "assigned_to_others": "Assigned to Other Clients",
+    "select_all": "Select All",
+    "clear_section": "Clear Section",
+    "clear_all": "Clear All",
+    "total_cells": "Total Cells",
+    "selected_count": "Selected"
   }
 } 

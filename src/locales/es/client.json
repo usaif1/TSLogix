@@ -16,7 +16,9 @@
     "commercial_information": "Información Comercial",
     "personal_information": "Información Personal",
     "contact_information": "Información de Contacto",
-    "client_users": "Usuarios del Cliente"
+    "client_users": "Usuarios del Cliente",
+    "basic_information": "Información Básica",
+    "cell_assignments": "Asignaciones de Posiciones"
   },
   "fields": {
     "client_type": "Tipo de Cliente",
@@ -32,7 +34,14 @@
     "email": "Correo Electrónico",
     "address": "Dirección",
     "phone": "Teléfono",
-    "cell_phone": "Celular"
+    "cell_phone": "Celular",
+    "full_name": "Nombre Completo",
+    "created_at": "Creado",
+    "active_state": "Estado Activo",
+    "reassign_cells": "Reasignar posiciones",
+    "select_warehouse": "Seleccionar Almacén",
+    "select_cells": "Seleccionar Posiciones",
+    "assignment_notes": "Notas de Asignación"
   },
   "placeholders": {
     "select_client_type": "Seleccione tipo de cliente",
@@ -48,7 +57,12 @@
     "address": "Ingrese dirección completa",
     "phone": "Ingrese número de teléfono",
     "cell_phone": "Ingrese número de celular",
-    "user_name": "Ingrese nombre del usuario"
+    "user_name": "Ingrese nombre del usuario",
+    "select_warehouse": "Seleccione almacén...",
+    "select_active_state": "Seleccione estado activo...",
+    "select_establishment_type": "Seleccione tipo de establecimiento...",
+    "select_company_type": "Seleccione tipo de empresa...",
+    "assignment_notes": "Notas opcionales sobre asignación de posiciones..."
   },
   "types": {
     "commercial": "Comercial",
@@ -60,7 +74,10 @@
     "save_client": "Guardar Cliente",
     "cancel": "Cancelar",
     "add_user": "Agregar Usuario",
-    "remove": "Eliminar"
+    "remove": "Eliminar",
+    "edit_client": "Editar Cliente",
+    "update_client": "Actualizar Cliente",
+    "updating": "Actualizando..."
   },
   "validation": {
     "client_type_required": "El tipo de cliente es requerido",
@@ -121,7 +138,9 @@
   },
   "status": {
     "active": "Activo",
-    "inactive": "Inactivo"
+    "inactive": "Inactivo",
+    "pending": "Pendiente",
+    "suspended": "Suspendido"
   },
   "cell_assignment": {
     "title": "Asignación de Posiciones",
@@ -133,7 +152,7 @@
     "select_all": "Seleccionar Todo",
     "clear_selection": "Limpiar Selección",
     "assignment_notes": "Notas de Asignación (Opcional)",
-    "notes_placeholder": "Agregar notas sobre esta asignación de celda...",
+    "notes_placeholder": "Agregar notas sobre esta asignación de posición...",
     "no_cells_available": "No hay Posiciones disponibles en este almacén",
     "special_section": "Sección Especial",
     "row": "Fila",
@@ -149,7 +168,34 @@
       "selected": "Seleccionado",
       "occupied": "Ocupado",
       "damaged": "Dañado",
-      "expired": "Vencido"
+      "expired": "Vencido",
+      "assigned_to_client": "Asignado al Cliente",
+      "assigned_to_others": "Asignado a Otros",
+      "available_unassigned": "Disponible Sin Asignar"
     }
+  },
+  "detail": {
+    "client_details": "Detalles del Cliente",
+    "client_not_found": "Cliente no encontrado",
+    "back_to_list": "Volver a Lista de Clientes",
+    "basic_information": "Información Básica",
+    "contact_information": "Información de Contacto",
+    "cell_assignments": "Asignaciones de Posiciones",
+    "recent_orders": "Órdenes Recientes",
+    "no_cell_assignments": "No se encontraron asignaciones de posiciones",
+    "no_recent_orders": "No se encontraron órdenes recientes",
+    "assigned_on": "Asignado el",
+    "assigned_by": "Asignado por",
+    "created_on": "Creado el"
+  },
+  "cell_sections": {
+    "currently_assigned": "Actualmente Asignado a Este Cliente",
+    "available_unassigned": "Posiciones Disponibles Sin Asignar",
+    "assigned_to_others": "Asignado a Otros Clientes",
+    "select_all": "Seleccionar Todo",
+    "clear_section": "Limpiar Sección",
+    "clear_all": "Limpiar Todo",
+    "total_cells": "Total de Posiciones",
+    "selected_count": "Seleccionado"
   }
 } 

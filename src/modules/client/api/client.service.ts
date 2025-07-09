@@ -92,12 +92,15 @@ export interface AvailableCell {
 }
 
 export interface ClientCellAssignment {
+  assignment_id?: string;
   client_id: string;
   cell_id?: string; // For single cell assignment
   cell_ids?: string[]; // For multiple cell assignment
   warehouse_id?: string;
+  assigned_at?: string;
   assigned_by: string;
-  observations?: string;
+  is_active?: boolean;
+  priority?: number;
   notes?: string;
   max_capacity?: number;
 }
@@ -360,6 +363,7 @@ export const ClientService = {
       const payload = {
         ...assignmentData,
         assigned_by: userId,
+        is_active: true, // Ensure new assignments are active by default
       };
 
       const response = await api.post(`${baseURL}/assign-cells`, payload, {
@@ -377,17 +381,90 @@ export const ClientService = {
     }
   },
 
-  // Remove cell assignment from client
-  removeCellAssignment: async (clientId: string, cellId: string) => {
+  // Deactivate cell assignment from client (set is_active to false)
+  deactivateCellAssignment: async (clientId: string, cellId: string) => {
     try {
       startLoader("clients/remove-cell-assignment");
-      const response = await api.delete(`${baseURL}/${clientId}/cells/${cellId}`);
+      
+      const userId = localStorage.getItem("id");
+      const currentDate = new Date().toISOString();
+      const payload = {
+        is_active: false,
+        notes: `Deactivated by ${userId} on ${currentDate}`
+      };
+      
+      const response = await api.put(`${baseURL}/${clientId}/cells/${cellId}`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
       return response.data;
     } catch (error) {
-      console.error("Remove cell assignment error:", error);
+      console.error("Deactivate cell assignment error:", error);
       throw error;
     } finally {
       stopLoader("clients/remove-cell-assignment");
+    }
+  },
+
+  // Reactivate cell assignment (set is_active to true)
+  reactivateCellAssignment: async (clientId: string, cellId: string) => {
+    try {
+      startLoader("clients/assign-cell");
+      
+      const userId = localStorage.getItem("id");
+      const currentDate = new Date().toISOString();
+      const payload = {
+        is_active: true,
+        notes: `Reactivated by ${userId} on ${currentDate}`
+      };
+      
+      const response = await api.put(`${baseURL}/${clientId}/cells/${cellId}`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error("Reactivate cell assignment error:", error);
+      throw error;
+    } finally {
+      stopLoader("clients/assign-cell");
+    }
+  },
+
+  // Alias for backward compatibility
+  removeCellAssignment: async (clientId: string, cellId: string) => {
+    return ClientService.deactivateCellAssignment(clientId, cellId);
+  },
+
+  // Update client with cell reassignment
+  updateClientWithCellReassignment: async (clientId: string, updateData: Record<string, unknown>) => {
+    try {
+      startLoader("clients/update-client");
+      
+      const userId = localStorage.getItem("id");
+      const payload = {
+        ...updateData,
+        updated_by: userId,
+      };
+
+      const response = await api.put(`${baseURL}/${clientId}/comprehensive-update`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = response.data.data || response.data;
+      setCurrentClient(data);
+      return data;
+    } catch (error) {
+      console.error("Update client with cell reassignment error:", error);
+      throw error;
+    } finally {
+      stopLoader("clients/update-client");
     }
   },
 
@@ -424,6 +501,26 @@ export const ClientService = {
       throw err;
     } finally {
       stopLoader("clients/fetch-warehouses");
+    }
+  },
+
+  // Fetch available cells with client assignments
+  fetchAvailableCellsWithClientAssignments: async (clientId: string, warehouseId?: string) => {
+    try {
+      startLoader("clients/fetch-available-cells-with-assignments");
+      const params: { client_id: string; warehouse_id?: string } = { client_id: clientId };
+      if (warehouseId) {
+        params.warehouse_id = warehouseId;
+      }
+      const response = await api.get(`${baseURL}/cells/available-with-assignments`, { params });
+      const data = response.data.data || response.data;
+      setAvailableCells(data.cells || []);
+      return data;
+    } catch (error) {
+      console.error("Fetch available cells with assignments error:", error);
+      throw error;
+    } finally {
+      stopLoader("clients/fetch-available-cells-with-assignments");
     }
   },
 };
