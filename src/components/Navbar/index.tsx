@@ -21,7 +21,7 @@ import HomeRoute from "./HomeRoute";
 import { AuthStore } from "@/globalStore";
 
 const Navbar: React.FC = () => {
-  const { t, i18n } = useTranslation(['common']);
+  const { t, i18n } = useTranslation(['common', 'reports']);
   const location = useLocation();
   
   // Get user role from auth store with multiple fallbacks

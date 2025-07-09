@@ -259,9 +259,6 @@ const ProductCategoryReport: React.FC = () => {
                           <Text weight="font-medium" additionalClass="text-gray-900 text-sm">
                             {item.client_name || 'N/A'}
                           </Text>
-                          <Text size="xs" additionalClass="text-gray-500">
-                            {item.client_id}
-                          </Text>
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
