@@ -26,12 +26,11 @@ const LoginForm: React.FC = () => {
     const Password = formData.loginPassword.trim();
 
     try {
-      const response = await AuthService.login({
+      await AuthService.login({
         userId: UserId,
         password: Password,
       });
 
-      console.log("response", response);
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       const errorMessage =
