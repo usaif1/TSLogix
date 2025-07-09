@@ -10,6 +10,7 @@ export type ClientLoaderTypes =
   | "clients/delete-client"
   | "clients/fetch-form-fields"
   | "clients/fetch-available-cells"
+  | "clients/fetch-available-cells-with-assignments"
   | "clients/fetch-warehouses"
   | "clients/assign-cell"
   | "clients/remove-cell-assignment";
@@ -58,18 +59,26 @@ export interface Client {
       row: string;
       bay: number;
       position: number;
-      warehouse: {
-        warehouse_id: string;
-        name: string;
-      };
+    };
+    warehouse: {
+      warehouse_id: string;
+      name: string;
     };
     assigned_at: string;
     assigned_by: string;
+    assignedBy: {
+      id: string;
+      first_name: string;
+      last_name: string;
+      email: string;
+    };
+    is_active: boolean;
   }>;
   departureOrders?: Array<{
     departure_order_id: string;
     departure_order_no: string;
     order_status: string;
+    created_at?: string;
   }>;
   
   // Counts
@@ -177,6 +186,7 @@ const clientInitialState: ClientStore = {
     "clients/delete-client": false,
     "clients/fetch-form-fields": false,
     "clients/fetch-available-cells": false,
+    "clients/fetch-available-cells-with-assignments": false,
     "clients/fetch-warehouses": false,
     "clients/assign-cell": false,
     "clients/remove-cell-assignment": false,

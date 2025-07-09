@@ -232,7 +232,7 @@ const WarehouseReport: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-3">
         <div className="bg-blue-50 p-2 rounded border border-blue-200">
           <Text size="xs" additionalClass="text-blue-600 mb-1">
-            {t('reports:total_warehouse_cells') || 'Total de Celdas'}
+            {t('reports:total_warehouse_cells') || 'Total de posicións'}
           </Text>
           <Text size="lg" weight="font-bold" additionalClass="text-blue-900">
             {formatNumber(summary?.total_warehouse_cells)}
@@ -241,7 +241,7 @@ const WarehouseReport: React.FC = () => {
         
         <div className="bg-green-50 p-2 rounded border border-green-200">
           <Text size="xs" additionalClass="text-green-600 mb-1">
-            {t('reports:total_occupied_cells') || 'Celdas Ocupadas'}
+            {t('reports:total_occupied_cells') || 'posicións Ocupadas'}
           </Text>
           <Text size="lg" weight="font-bold" additionalClass="text-green-900">
             {formatNumber(summary?.total_occupied_cells)}
@@ -250,7 +250,7 @@ const WarehouseReport: React.FC = () => {
         
         <div className="bg-gray-50 p-2 rounded border border-gray-200">
           <Text size="xs" additionalClass="text-gray-600 mb-1">
-            {t('reports:total_vacant_cells') || 'Celdas Vacías'}
+            {t('reports:total_vacant_cells') || 'posicións Vacías'}
           </Text>
           <Text size="lg" weight="font-bold" additionalClass="text-gray-900">
             {formatNumber(summary?.total_vacant_cells)}

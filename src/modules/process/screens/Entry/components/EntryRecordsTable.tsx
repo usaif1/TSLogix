@@ -119,8 +119,12 @@ const EntryRecordsTable: React.FC = () => {
         },
       },
       {
-        // ✅ Updated to use calculated total from products
-        accessorKey: "total_package_quantity",
+        // ✅ Calculate total quantity from products
+        accessorFn: (row) => {
+          if (!row.products || row.products.length === 0) return 0;
+          return row.products.reduce((total: number, product: any) => total + (product.inventory_quantity || 0), 0);
+        },
+        id: "total_quantity",
         header: t('process:total_qty'),
         size: 100,
         cell: ({ getValue }) => {
@@ -129,24 +133,23 @@ const EntryRecordsTable: React.FC = () => {
         },
       },
       {
-        // ✅ Updated to use calculated_total_weight with fallback to total_weight
-        accessorFn: (row) => row.calculated_total_weight || row.total_weight,
-        id: "total_weight",
+        // ✅ Use total_weight field from API
+        accessorKey: "total_weight",
         header: t('process:total_weight'),
         size: 120,
         cell: ({ getValue }) => {
-          const value = getValue() as number;
+          const value = getValue() as string | number;
           return value ? `${value} kg` : '-';
         },
       },
       {
-        // ✅ Updated to use total_insured_value
-        accessorKey: "total_insured_value",
+        // ✅ Use cif_value field from API
+        accessorKey: "cif_value",
         header: t('process:insured_value'),
         size: 120,
         cell: ({ getValue }) => {
-          const value = getValue() as number;
-          return value ? `$${value.toLocaleString()}` : '-';
+          const value = getValue() as string | number;
+          return value ? `$${Number(value).toLocaleString()}` : '-';
         },
       },
       {
@@ -247,29 +250,12 @@ const EntryRecordsTable: React.FC = () => {
         size: 120,
       },
       {
-        // ✅ Added new fields that are available in the new structure
-        accessorKey: "cif_value",
-        header: t('process:cif_value'),
-        size: 100,
-        cell: ({ getValue }) => {
-          const value = getValue() as number;
-          return value ? `$${value.toLocaleString()}` : '-';
+        // ✅ Use creator information from API
+        accessorFn: (row) => {
+          if (!row.creator) return '-';
+          return `${row.creator.first_name} ${row.creator.last_name}`.trim();
         },
-      },
-      {
-        // ✅ Updated to use calculated_total_volume with fallback to total_volume
-        accessorFn: (row) => row.calculated_total_volume || row.total_volume,
-        id: "total_volume",
-        header: t('process:total_volume'),
-        size: 120,
-        cell: ({ getValue }) => {
-          const value = getValue() as number;
-          return value ? `${value} m³` : '-';
-        },
-      },
-      {
-        // ✅ Added creator information
-        accessorKey: "creator_name",
+        id: "created_by",
         header: t('process:created_by'),
         size: 150,
         cell: ({ getValue }) => {
@@ -282,22 +268,27 @@ const EntryRecordsTable: React.FC = () => {
         },
       },
       {
-        // ✅ Added reviewer information
-        accessorKey: "reviewer_name",
+        // ✅ Use reviewer information from API
+        accessorFn: (row) => {
+          if (!row.reviewer) return t('process:not_reviewed', 'Not reviewed');
+          return `${row.reviewer.first_name} ${row.reviewer.last_name}`.trim();
+        },
+        id: "reviewed_by",
         header: t('process:reviewed_by'),
         size: 150,
         cell: ({ getValue }) => {
           const value = getValue() as string;
           return (
             <div className="truncate max-w-[150px]" title={value}>
-              {value || t('process:not_reviewed', 'Not reviewed')}
+              {value}
             </div>
           );
         },
       },
       {
-        // ✅ Added organisation information
-        accessorKey: "organisation_name",
+        // ✅ Use organisation information from API
+        accessorFn: (row) => row.order?.organisation?.name || '-',
+        id: "organisation",
         header: t('process:organisation'),
         size: 160,
         cell: ({ getValue }) => {

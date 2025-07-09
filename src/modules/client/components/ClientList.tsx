@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Select, { SingleValue } from "react-select";
 
@@ -17,6 +18,7 @@ interface OptionType {
 
 const ClientList: React.FC = () => {
   const { t } = useTranslation(['client', 'common']);
+  const navigate = useNavigate();
   
   // Hardcoded client type options (no need for API call)
   const clientTypeOptions = [
@@ -103,6 +105,10 @@ const ClientList: React.FC = () => {
 
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleClientClick = (clientId: string) => {
+    navigate(`/maintenance/client/${clientId}`);
   };
 
   return (
@@ -202,9 +208,6 @@ const ClientList: React.FC = () => {
                       {t('client:table.cells')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      {t('client:table.orders')}
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('client:table.created')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -214,7 +217,11 @@ const ClientList: React.FC = () => {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {clients.map((client) => (
-                    <tr key={client.client_id} className="hover:bg-gray-50">
+                    <tr 
+                      key={client.client_id} 
+                      className="hover:bg-gray-50 cursor-pointer" 
+                      onClick={() => handleClientClick(client.client_id)}
+                    >
                       {/* Name */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
@@ -275,17 +282,6 @@ const ClientList: React.FC = () => {
                         </div>
                       </td>
 
-                      {/* Orders */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Text additionalClass="text-sm font-medium text-gray-900">
-                            {client._count?.departureOrders || 0}
-                          </Text>
-                          <Text additionalClass="text-sm text-gray-500 ml-1">
-                            {t('client:table.orders_count')}
-                          </Text>
-                        </div>
-                      </td>
 
                       {/* Created */}
                       <td className="px-6 py-4 whitespace-nowrap">

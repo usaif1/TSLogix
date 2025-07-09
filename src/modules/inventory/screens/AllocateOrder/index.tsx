@@ -262,7 +262,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
     if (row.package_quantity <= 0) errors.push(t('inventory:validation.packages_required'));
     if (row.package_quantity > row.remaining_packages) errors.push(t('inventory:validation.packages_exceed_remaining'));
     if (row.weight_kg <= 0) errors.push(t('inventory:validation.weight_required'));
-    if (row.weight_kg > row.remaining_weight) errors.push(t('inventory:validation.weight_exceeds_remaining'));
+    // Removed weight limit validation - allow allocating more weight than remaining
 
 
     return { isValid: errors.length === 0, errors };
@@ -721,7 +721,6 @@ const SimplifiedInventoryAllocation: React.FC = () => {
                         type="number"
                         step="0.1"
                         min="0"
-                        max={row.remaining_weight}
                         value={row.weight_kg || ''}
                         onChange={(e) => updateRow(row.id, { weight_kg: parseFloat(e.target.value) || 0 })}
                         className="w-full text-xs border border-gray-300 rounded px-1 py-1 text-center"
