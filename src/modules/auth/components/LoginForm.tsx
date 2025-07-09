@@ -14,20 +14,39 @@ const LoginForm: React.FC = () => {
     loginPassword: "",
   });
 
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [error, setError] = useState<string>("");
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Clear any previous errors
+    setError("");
 
     const UserId = formData.userId.trim();
     const Password = formData.loginPassword.trim();
 
+    try {
+      const response = await AuthService.login({
+        userId: UserId,
+        password: Password,
+      });
 
-    AuthService.login({
-      userId: UserId,
-      password: Password,
-    });
+      console.log("response", response);
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (err) {
+      const errorMessage =
+        "Error al iniciar sesión. Por favor intente nuevamente.";
+      setError(errorMessage);
+      console.log("error", errorMessage);
+    }
   };
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Clear error when user starts typing
+    if (error) {
+      setError("");
+    }
+
     setFormData((prevState) => ({
       ...prevState,
       [e.target.name]: e.target.value,
@@ -58,6 +77,15 @@ const LoginForm: React.FC = () => {
           name="loginPassword"
         />
       </div>
+
+      {/* Error message display */}
+      {error && (
+        <div className="mt-2">
+          <Text size="sm" weight="font-normal" additionalClass="text-red-500">
+            {error}
+          </Text>
+        </div>
+      )}
 
       <Button type="submit">
         <div className="flex gap-x-2 items-center">
