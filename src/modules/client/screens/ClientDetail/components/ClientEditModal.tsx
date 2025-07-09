@@ -40,7 +40,6 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   // Cell assignment state
-  const [showCellSelector, setShowCellSelector] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState<OptionType | null>(null);
   const [selectedCells, setSelectedCells] = useState<string[]>([]);
   const [cellAssignmentNotes, setCellAssignmentNotes] = useState("");
@@ -246,8 +245,8 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({
   })) || [];
 
   const activeStateOptions = clientFormFields?.active_states?.map(state => ({
-    value: state.state_id,
-    label: state.name
+    value: state.value,
+    label: state.label
   })) || [];
 
   return (
@@ -703,8 +702,8 @@ const CellAssignmentDisplay: React.FC<CellAssignmentDisplayProps> = ({
                 </div>
                 <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-15 gap-1">
                   {rowCells
-                    .sort((a, b) => a.bay - b.bay || a.position - b.position)
-                    .map(cell => {
+                    .sort((a: any, b: any) => a.bay - b.bay || a.position - b.position)
+                    .map((cell:any) => {
                       const isSelected = selectedCells.includes(cell.id);
                       const isClickable = cell.availability_status !== "assigned_to_others";
                       
