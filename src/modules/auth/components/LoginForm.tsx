@@ -36,7 +36,6 @@ const LoginForm: React.FC = () => {
       const errorMessage =
         "Error al iniciar sesión. Por favor intente nuevamente.";
       setError(errorMessage);
-      console.log("error", errorMessage);
     }
   };
 
