@@ -1,8 +1,8 @@
 {
   "reports": "Reportes",
   "reports_description": "Generar y ver reportes completos de almacén e inventario",
-  "warehouse_layout": "Diseño de Almacén",
-  "other_reports": "Otros Reportes",
+  "warehouse_layout": "Informe de Posiciones de Almacén",
+  "other_reports": "Reportes General",
   "warehouse_report": "Reporte de Almacén",
   "warehouse_report_description": "Ver resumen de inventario por almacén y estadísticas",
   "product_category_report": "Reporte de Categoría de Productos",
@@ -142,4 +142,4 @@
   "locations": "ubicaciones",
   "from_date": "Fecha Desde",
   "to_date": "Fecha Hasta"
-} 
+}
