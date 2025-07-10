@@ -82,6 +82,7 @@
   "product": "Product",
   "order_info": "Order Info",
   "lot_number": "Lot Number",
+  "expiry_date": "Expiry Date",
   "volume": "Volume",
   "units": "units",
   "packages": "packages",

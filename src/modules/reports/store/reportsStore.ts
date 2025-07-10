@@ -21,6 +21,7 @@ interface ReportsState {
   // Actions
   setLoading: (key: string, loading: boolean) => void;
   setFilters: (filters: Partial<ReportFilters>) => void;
+  clearFilters: () => void;
   setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex') => void;
   
   // Fetch reports
@@ -62,6 +63,10 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     set((state) => ({
       filters: { ...state.filters, ...filters },
     }));
+  },
+
+  clearFilters: () => {
+    set({ filters: {} });
   },
 
   setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex') => {
