@@ -3,9 +3,45 @@ import React from "react";
 import useBreadcrumbs from "use-react-router-breadcrumbs";
 import { CaretRight } from "@phosphor-icons/react";
 import { useTranslation } from "react-i18next";
+import { ClientStore } from "@/modules/client/store";
+
+// Custom breadcrumb component for client detail page
+const ClientDetailBreadcrumb: React.FC = () => {
+  const currentClient = ClientStore.use.currentClient();
+  
+  const getClientDisplayName = (client: any): string => {
+    if (!client) return "Client";
+    
+    if (client.client_type === "JURIDICO") {
+      return client.company_name || "Unknown Company";
+    } else {
+      return `${client.first_names || ""} ${client.last_name || ""}`.trim() || "Unknown Individual";
+    }
+  };
+
+  return <span>{getClientDisplayName(currentClient)}</span>;
+};
+
+// Custom routes configuration for breadcrumbs
+const routes = [
+  {
+    path: "/maintenance/client/:clientId",
+    breadcrumb: ClientDetailBreadcrumb,
+  },
+  // Add more custom breadcrumbs here for other entities if needed
+  // Example:
+  // {
+  //   path: "/maintenance/supplier/:supplierId", 
+  //   breadcrumb: SupplierDetailBreadcrumb
+  // },
+  // {
+  //   path: "/maintenance/product/:productId",
+  //   breadcrumb: ProductDetailBreadcrumb
+  // },
+];
 
 const Breadcrumbs: React.FC = () => {
-  const breadcrumbs = useBreadcrumbs();
+  const breadcrumbs = useBreadcrumbs(routes);
   const { t } = useTranslation(['common']);
 
   // Function to translate breadcrumb text

@@ -48,6 +48,7 @@
   "product_assigned_successfully": "Producto asignado exitosamente al inventario",
   "movement_type": "Tipo de Movimiento",
   "departure_order": "Orden de Salida",
+  "order_info": "Info de Orden",
   "entry": "Ingreso",
   "departure": "Salida",
   "transfer": "Transferencia",
