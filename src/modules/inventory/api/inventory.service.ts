@@ -24,9 +24,6 @@ const {
   setAvailableInventoryForDeparture,
   setAuditTrail,
   setInventorySummaryStats,
-  setCurrentInventoryItems,
-  setDispatchHistoryLogs,
-  setCompletedDepartureOrders,
   setFiltersApplied,
   setLastGeneratedAt,
   startLoader,
@@ -68,131 +65,91 @@ export const InventoryLogService = {
     }
   },
 
-  // ✅ UPDATED: Fetch inventory logs with comprehensive data structure
+  // ✅ UPDATED: Fetch inventory logs with simplified structure
   fetchAllLogs: async (filters?: Filters) => {
     try {
       startLoader("inventoryLogs/fetch-logs");
       const response = await api.get(`${baseURL}/summary`, { params: filters });
       const responseData = response.data.data || response.data;
 
-      // ✅ Handle new API response structure
+      // ✅ Handle new flattened API response structure
       const summaryStats = responseData.summary_stats || {};
-      const currentInventory = responseData.current_inventory || [];
-      const dispatchHistory = responseData.dispatch_history || [];
-      const completedOrders = responseData.completed_departure_orders || [];
+      const movementLogs = responseData.movement_logs || [];
+      const filtersApplied = responseData.filters_applied || {};
+      const generatedAt = responseData.generated_at || new Date().toISOString();
 
-      // ✅ Extract movement logs from current inventory items
-      const inventoryMovementLogs: any[] = [];
-      
-      currentInventory.forEach((item: any) => {
-        if (item.movement_logs && Array.isArray(item.movement_logs)) {
-          item.movement_logs.forEach((log: any) => {
-            inventoryMovementLogs.push({
-              log_id: log.log_id,
-              inventory_id: item.inventory_id,
-              user: log.user_id ? {
-                first_name: log.user?.first_name || "User",
-                last_name: log.user?.last_name || "",
-              } : {
-                first_name: "System",
-                last_name: "",
-              },
-              client_info: item.client_info || null,
-              product: {
-                product_id: item.product.product_id,
-                product_code: item.product.product_code,
-                name: item.product.name,
-                manufacturer: item.product.manufacturer,
-              },
-              movement_type: log.movement_type,
-              quantity_change: log.quantity_change,
-              package_change: log.package_change,
-              weight_change: log.weight_change,
-              volume_change: log.volume_change,
-              warehouseCell: item.cell ? {
-                row: item.cell.row,
-                bay: item.cell.bay,
-                position: item.cell.position,
-              } : null,
-              warehouse: item.warehouse,
-              entry_order: log.entry_order,
-              departure_order: log.departure_order,
-              departure_order_id: log.departure_order_id,
-              entry_order_id: log.entry_order_id,
-              product_status: log.product_status,
-              status_code: log.status_code,
-              quality_status: item.allocation?.quality_status,
-              timestamp: log.timestamp,
-              notes: log.notes || item.allocation?.observations || null,
-              cell_reference: item.cell_reference,
-            });
-          });
-        }
-      });
-
-      // ✅ Add dispatch history as movement logs
-      const dispatchMovementLogs: any[] = dispatchHistory.map((log: any) => ({
+      // ✅ Transform movement logs to match table expectations with flattened structure
+      const transformedLogs = movementLogs.map((log: any) => ({
         log_id: log.log_id,
-        inventory_id: null, // Dispatch logs might not have inventory_id
-        user: {
-          first_name: log.user?.first_name || log.dispatched_by_name?.split(' ')[0] || "User",
-          last_name: log.user?.last_name || log.dispatched_by_name?.split(' ').slice(1).join(' ') || "",
-        },
-        client_info: log.client_info || null,
-        product: log.product,
+        timestamp: log.timestamp,
         movement_type: log.movement_type,
         quantity_change: log.quantity_change,
         package_change: log.package_change,
         weight_change: log.weight_change,
-        volume_change: log.volume_change,
-        warehouseCell: log.cell ? {
-          row: log.cell.row,
-          bay: log.cell.bay,
-          position: log.cell.position,
-        } : null,
-        warehouse: log.warehouse,
-        entry_order: null,
-        departure_order: log.departure_order,
-        departure_order_id: log.departure_order_id,
-        entry_order_id: null,
-        product_status: log.product_status,
-        status_code: log.status_code,
-        quality_status: null,
-        timestamp: log.timestamp,
-        notes: log.notes || null,
+        current_quantity: log.current_quantity,
+        current_weight: log.current_weight,
+        
+        // Product information (flattened)
+        product: {
+          product_code: log.product_code,
+          name: log.product_name,
+          manufacturer: log.manufacturer,
+        },
+        
+        // Location information (flattened)
+        warehouse: {
+          name: log.warehouse_name,
+        },
         cell_reference: log.cell_reference,
-        // Additional dispatch-specific data
-        dispatched_quantity: log.dispatched_quantity,
-        dispatched_weight: log.dispatched_weight,
-        dispatcher_name: log.dispatcher_name,
+        
+        // Client information (flattened)
+        client_info: {
+          company_name: log.client_name,
+          client_email: log.client_email,
+        },
+        
+        // Order information (flattened)
+        order_no: log.order_no,
+        order_id: log.order_id,
+        order_date: log.order_date,
+        order_type: log.order_type,
+        order_status: log.order_status,
+        destination_point: log.destination_point,
+        carrier_name: log.carrier_name,
         customer_name: log.customer_name,
-        client_name: log.client_name,
+        
+        // Status information
+        quality_status: log.quality_status,
+        
+        // Additional information
+        lot_series: log.lot_series,
+        manufacturing_date: log.manufacturing_date,
+        expiration_date: log.expiration_date,
+        created_by: log.created_by,
+        reviewed_by: log.reviewed_by,
+        
+        // User information (simplified)
+        user: {
+          first_name: log.reviewed_by?.split(' ')[0] || log.created_by?.split(' ')[0] || "System",
+          last_name: log.reviewed_by?.split(' ').slice(1).join(' ') || log.created_by?.split(' ').slice(1).join(' ') || "",
+        },
       }));
 
-      // ✅ Combine all movement logs
-      const allMovementLogs = [...inventoryMovementLogs, ...dispatchMovementLogs];
-
       // Sort by timestamp (newest first)
-      allMovementLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      transformedLogs.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-      setInventoryLogs(allMovementLogs);
+      setInventoryLogs(transformedLogs);
 
-      // ✅ Store additional data in state for enhanced UI
+      // ✅ Store additional data in state
       setInventorySummaryStats(summaryStats);
-      setCurrentInventoryItems(currentInventory);
-      setDispatchHistoryLogs(dispatchHistory);
-      setCompletedDepartureOrders(completedOrders);
-      setFiltersApplied(responseData.filters_applied || {});
-      setLastGeneratedAt(responseData.generated_at || new Date().toISOString());
+      setFiltersApplied(filtersApplied);
+      setLastGeneratedAt(generatedAt);
 
       const enhancedData = {
-        logs: allMovementLogs,
+        logs: transformedLogs,
         summaryStats,
-        currentInventory,
-        dispatchHistory,
-        completedOrders,
-        filtersApplied: responseData.filters_applied || {},
-        generatedAt: responseData.generated_at || new Date().toISOString(),
+        filtersApplied,
+        generatedAt,
       };
 
       return enhancedData;

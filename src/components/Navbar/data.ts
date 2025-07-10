@@ -8,6 +8,7 @@ export enum UserRole {
   USER = "USER", // Same as CLIENT for this system
   WAREHOUSE_INCHARGE = "WAREHOUSE_INCHARGE", 
   WAREHOUSE_ASSISTANT = "WAREHOUSE_ASSISTANT",
+  PHARMACIST = "PHARMACIST",
   ADMIN = "ADMIN"
 }
 
@@ -102,6 +103,12 @@ export const getFilteredLinksData = (t: TFunction, userRole: string | null) => {
       
     case UserRole.WAREHOUSE_INCHARGE:
       // WAREHOUSE_INCHARGE can see everything except event_logs
+      return allLinks.filter(link => 
+        link.route !== "/system-logs/events"
+      );
+      
+    case UserRole.PHARMACIST:
+      // PHARMACIST can see everything except event_logs (similar to WAREHOUSE_INCHARGE)
       return allLinks.filter(link => 
         link.route !== "/system-logs/events"
       );

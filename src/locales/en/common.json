@@ -107,6 +107,7 @@
   "administrator": "Administrator",
   "warehouse_manager": "Warehouse Manager",
   "warehouse_assistant": "Warehouse Assistant",
+  "pharmacist": "Pharmacist",
   "user": "User",
   "allocate": "Allocate",
   "item_selected": "Item Selected"

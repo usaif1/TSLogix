@@ -95,6 +95,31 @@ const InventoryLog: React.FC = () => {
     }
   };
 
+  const getInventoryStatusInfo = (status: string) => {
+    switch (status) {
+      case "AVAILABLE":
+        return { 
+          text: t('inventory:available'), 
+          color: "text-green-700 bg-green-50 border-green-200"
+        };
+      case "QUARANTINED":
+        return { 
+          text: t('inventory:quarantined'), 
+          color: "text-yellow-700 bg-yellow-50 border-yellow-200"
+        };
+      case "DEPLETED":
+        return { 
+          text: t('inventory:depleted'), 
+          color: "text-red-700 bg-red-50 border-red-200"
+        };
+      default:
+        return { 
+          text: status || t('inventory:unknown'), 
+          color: "text-gray-700 bg-gray-50 border-gray-200"
+        };
+    }
+  };
+
   // Clean, simple columns - Reduced for better viewport fit
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
@@ -145,33 +170,41 @@ const InventoryLog: React.FC = () => {
       {
         header: t('inventory:quantities'),
         accessorFn: (row: any) => ({
-          inventory: row.quantity_change || 0,
-          packages: row.package_change || 0,
+          change: row.quantity_change || 0,
+          current: row.current_quantity || 0,
+          weight_change: row.weight_change || 0,
+          current_weight: row.current_weight || 0,
         }),
         id: "quantities",
         cell: (info: CellContext<any, any>) => {
-          const data = info.getValue<{inventory: number, packages: number}>();
+          const data = info.getValue<{change: number, current: number, weight_change: number, current_weight: number}>();
           const type = info.row.original.movement_type;
-          const color =
+          const changeColor =
             type === "ENTRY" ? "text-green-600" :
             type === "DEPARTURE" ? "text-red-600" :
-            "text-gray-800";
+            "text-orange-600";
+          
           return (
-            <div className={`text-sm ${color} font-medium`}>
-              <div>{data.inventory} units</div>
-              <div className="text-xs">{data.packages} pkg</div>
+            <div className="text-sm space-y-1">
+              <div className={`${changeColor} font-medium`}>
+                {data.change > 0 ? '+' : ''}{data.change} units
+              </div>
+              <div className="text-xs text-gray-700">
+                Current: {data.current.toLocaleString()}
+              </div>
+              <div className="text-xs text-gray-500">
+                {data.weight_change > 0 ? '+' : ''}{data.weight_change} kg → {data.current_weight} kg
+              </div>
             </div>
           );
         },
-        size: 100,
+        size: 140,
       },
       {
         header: t('inventory:location'),
         accessorFn: (row: any) => ({
           warehouse: row.warehouse?.name || "-",
-          cell: row.warehouseCell ? 
-            `${row.warehouseCell.row}.${String(row.warehouseCell.bay).padStart(2, "0")}.${String(row.warehouseCell.position).padStart(2, "0")}` 
-            : "-"
+          cell: row.cell_reference || "-"
         }),
         id: "location",
         cell: (info: CellContext<any, any>) => {
@@ -188,17 +221,18 @@ const InventoryLog: React.FC = () => {
         size: 140,
       },
       {
-        header: t('inventory:departure_order'),
+        header: t('inventory:order_info'),
         accessorFn: (row: any) => ({
-          order_no: row.departure_order?.departure_order_no || null,
-          order_status: row.departure_order?.order_status || null,
-          is_departure: row.movement_type === "DEPARTURE"
+          order_no: row.order_no || null,
+          order_status: row.order_status || null,
+          order_type: row.order_type || null,
+          destination_point: row.destination_point || null
         }),
-        id: "departureOrder",
+        id: "orderInfo",
         cell: (info: CellContext<any, any>) => {
-          const data = info.getValue<{order_no: string | null, order_status: string | null, is_departure: boolean}>();
+          const data = info.getValue<{order_no: string | null, order_status: string | null, order_type: string | null, destination_point: string | null}>();
           
-          if (!data.order_no || !data.is_departure) {
+          if (!data.order_no) {
             return <span className="text-gray-400">-</span>;
           }
 
@@ -208,46 +242,54 @@ const InventoryLog: React.FC = () => {
             data.order_status === "COMPLETED" ? "bg-green-100 text-green-800 border-green-200" :
             "bg-gray-100 text-gray-800 border-gray-200";
 
+          const typeColor = 
+            data.order_type === "DEPARTURE" ? "text-red-700" :
+            data.order_type === "ENTRY" ? "text-green-700" :
+            "text-gray-700";
+
           return (
             <div className="text-xs space-y-1">
-              <div className="font-mono font-medium text-red-700" title={data.order_no}>
+              <div className={`font-mono font-medium ${typeColor}`} title={data.order_no}>
                 {data.order_no}
               </div>
-              <span className={`inline-block px-2 py-0.5 rounded-full text-xs border ${statusColor}`}>
-                {data.order_status}
-              </span>
+              {data.order_status && (
+                <span className={`inline-block px-2 py-0.5 rounded-full text-xs border ${statusColor}`}>
+                  {data.order_status}
+                </span>
+              )}
+              {data.destination_point && (
+                <div className="text-xs text-gray-500" title={data.destination_point}>
+                  {data.destination_point}
+                </div>
+              )}
             </div>
           );
         },
-        size: 130,
+        size: 140,
       },
       {
         header: t('inventory:status'),
         accessorFn: (row: any) => ({
-          product: row.product_status || "GOOD_CONDITION",
-          quality: row.quality_status || null
+          quality: row.quality_status || null,
+          inventory: row.inventory_status || null
         }),
         id: "status",
         cell: (info: CellContext<any, any>) => {
-          const data = info.getValue<{product: string, quality: string | null}>();
+          const data = info.getValue<{quality: string | null, inventory: string | null}>();
           
-          const productColor = 
-            data.product === "GOOD_CONDITION" ? "text-green-600" :
-            data.product === "DAMAGED" ? "text-red-600" :
-            data.product === "EXPIRED" ? "text-orange-600" :
-            data.product === "QUARANTINE" ? "text-yellow-600" :
-            "text-gray-600";
-
           const qualityInfo = data.quality ? getQualityStatusInfo(data.quality) : null;
+          const inventoryInfo = data.inventory ? getInventoryStatusInfo(data.inventory) : null;
           
           return (
             <div className="text-xs space-y-1">
-              <div className={`${productColor} font-medium`}>
-                {getProductStatusText(data.product)}
-              </div>
               {qualityInfo && (
                 <span className={`px-1.5 py-0.5 rounded text-xs border ${qualityInfo.color}`}>
                   {qualityInfo.text}
+                </span>
+              )}
+              {inventoryInfo && (
+                <span className={`px-1.5 py-0.5 rounded text-xs border ${inventoryInfo.color}`}>
+                  {inventoryInfo.text}
                 </span>
               )}
             </div>
@@ -293,42 +335,8 @@ const InventoryLog: React.FC = () => {
         },
         size: 110,
       },
-      {
-        header: t('inventory:notes'),
-        accessorKey: "notes",
-        cell: (info) => {
-          const row = info.row.original;
-          const notes = info.getValue<string>();
-          
-          // ✅ Enhanced notes display for dispatch logs
-          if (row.movement_type === 'DEPARTURE' && row.dispatcher_name) {
-            const dispatchInfo = [
-              row.dispatcher_name && `${t('inventory:dispatcher')}: ${row.dispatcher_name}`,
-              row.client_name && `${t('inventory:client')}: ${row.client_name}`,
-              notes
-            ].filter(Boolean).join(' | ');
-            
-            return dispatchInfo ? (
-              <div className="text-sm text-gray-600 max-w-32 truncate" title={dispatchInfo}>
-                {dispatchInfo}
-              </div>
-            ) : (
-              <span className="text-gray-400">-</span>
-            );
-          }
-          
-          return notes ? (
-            <div className="text-sm text-gray-600 max-w-32 truncate" title={notes}>
-              {notes}
-            </div>
-          ) : (
-            <span className="text-gray-400">-</span>
-          );
-        },
-        size: 150,
-      },
     ],
-    [t, getMovementTypeText, getProductStatusText, getQualityStatusInfo]
+    [t, getMovementTypeText, getProductStatusText, getQualityStatusInfo, getInventoryStatusInfo]
   );
 
   const handleNavigateToQuarantine = () => navigate("/inventory/quarantine");

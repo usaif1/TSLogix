@@ -118,6 +118,8 @@ const UserProfile: React.FC = () => {
         return t('common:warehouse_manager');
       case "WAREHOUSE_ASSISTANT":
         return t('common:warehouse_assistant');
+      case "PHARMACIST":
+        return t('common:pharmacist');
       default:
         return role || t('common:user');
     }
@@ -134,6 +136,8 @@ const UserProfile: React.FC = () => {
         return "bg-green-500 text-white";
       case "WAREHOUSE_ASSISTANT":
         return "bg-yellow-500 text-white";
+      case "PHARMACIST":
+        return "bg-purple-500 text-white";
       default:
         return "bg-gray-500 text-white";
     }
