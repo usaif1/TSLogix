@@ -97,6 +97,13 @@ interface ProcessesStore {
   comprehensiveDepartureOrders: DepartureOrder[];
   currentDepartureOrder: DepartureOrder | null;
   
+  // ✅ NEW: Cache management for API optimization
+  departureOrdersCache: {
+    lastFetched: number | null;
+    isValid: boolean;
+    orderStatusTracker: Record<string, string>; // Track order status changes
+  };
+  
   // ✅ NEW: Departure Orders by Status for Workflow Management
   pendingDepartureOrders: DepartureOrder[];
   approvedDepartureOrders: DepartureOrder[];
@@ -230,6 +237,11 @@ interface ProcessesStoreActions {
   addComprehensiveDepartureOrder: (order: DepartureOrder) => void;
   updateComprehensiveDepartureOrder: (orderId: string, updates: Partial<DepartureOrder>) => void;
   removeComprehensiveDepartureOrder: (orderId: string) => void;
+  
+  // ✅ NEW: Cache management
+  invalidateDepartureOrdersCache: () => void;
+  updateOrderStatusInCache: (orderId: string, newStatus: string) => void;
+  isDepartureOrdersCacheValid: () => boolean;
   
   // ✅ NEW: Departure Orders by Status
   setPendingDepartureOrders: (orders: DepartureOrder[]) => void;
@@ -388,6 +400,13 @@ const processesInitialState: ProcessesStore = {
   // ✅ NEW: Comprehensive Departure Orders
   comprehensiveDepartureOrders: [],
   currentDepartureOrder: null,
+  
+  // ✅ NEW: Cache management
+  departureOrdersCache: {
+    lastFetched: null,
+    isValid: false,
+    orderStatusTracker: {},
+  },
   
   // ✅ NEW: Departure Orders by Status
   pendingDepartureOrders: [],
@@ -572,21 +591,84 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>((set, get)
   clearDepartureFormError: () => set({ departureFormError: "" }),
 
   // ✅ NEW: Comprehensive Departure Order Management
-  setComprehensiveDepartureOrders: (orders) => set({ comprehensiveDepartureOrders: orders }),
+  setComprehensiveDepartureOrders: (orders) => set({ 
+    comprehensiveDepartureOrders: orders,
+    departureOrdersCache: {
+      lastFetched: Date.now(),
+      isValid: true,
+      orderStatusTracker: orders.reduce((acc, order) => ({
+        ...acc,
+        [order.departure_order_id]: (order as any).order_status || order.status
+      }), {})
+    }
+  }),
   setCurrentDepartureOrder: (order) => set({ currentDepartureOrder: order }),
   addComprehensiveDepartureOrder: (order) => set({ comprehensiveDepartureOrders: [...get().comprehensiveDepartureOrders, order] }),
-  updateComprehensiveDepartureOrder: (orderId, updates) => set({ 
-    comprehensiveDepartureOrders: get().comprehensiveDepartureOrders.map(order => 
-      order.departure_order_id === orderId ? { ...order, ...updates } : order
-    ),
-    currentDepartureOrder: get().currentDepartureOrder?.departure_order_id === orderId 
-      ? { ...get().currentDepartureOrder!, ...updates } 
-      : get().currentDepartureOrder
-  }),
+  updateComprehensiveDepartureOrder: (orderId, updates) => {
+    const currentState = get();
+    const newStatus = (updates as any).order_status || (updates as any).status;
+    
+    set({ 
+      comprehensiveDepartureOrders: currentState.comprehensiveDepartureOrders.map(order => 
+        order.departure_order_id === orderId ? { ...order, ...updates } : order
+      ),
+      currentDepartureOrder: currentState.currentDepartureOrder?.departure_order_id === orderId 
+        ? { ...currentState.currentDepartureOrder!, ...updates } 
+        : currentState.currentDepartureOrder,
+      // Update status tracker if status changed
+      departureOrdersCache: newStatus ? {
+        ...currentState.departureOrdersCache,
+        orderStatusTracker: {
+          ...currentState.departureOrdersCache.orderStatusTracker,
+          [orderId]: newStatus
+        }
+      } : currentState.departureOrdersCache
+    });
+  },
   removeComprehensiveDepartureOrder: (orderId) => set({ 
     comprehensiveDepartureOrders: get().comprehensiveDepartureOrders.filter(order => order.departure_order_id !== orderId),
     currentDepartureOrder: get().currentDepartureOrder?.departure_order_id === orderId ? null : get().currentDepartureOrder
   }),
+
+  // ✅ NEW: Cache management methods
+  invalidateDepartureOrdersCache: () => set({
+    departureOrdersCache: {
+      lastFetched: null,
+      isValid: false,
+      orderStatusTracker: {},
+    }
+  }),
+  
+  updateOrderStatusInCache: (orderId, newStatus) => {
+    const currentState = get();
+    const oldStatus = currentState.departureOrdersCache.orderStatusTracker[orderId];
+    
+    // If status changed, invalidate cache
+    if (oldStatus && oldStatus !== newStatus) {
+      set({
+        departureOrdersCache: {
+          ...currentState.departureOrdersCache,
+          isValid: false,
+          orderStatusTracker: {
+            ...currentState.departureOrdersCache.orderStatusTracker,
+            [orderId]: newStatus
+          }
+        }
+      });
+    }
+  },
+  
+  isDepartureOrdersCacheValid: () => {
+    const state = get();
+    const cacheAge = state.departureOrdersCache.lastFetched 
+      ? Date.now() - state.departureOrdersCache.lastFetched 
+      : Infinity;
+    
+    // Cache is valid if it exists, is marked valid, and is less than 5 minutes old
+    return state.departureOrdersCache.isValid && 
+           state.departureOrdersCache.lastFetched !== null && 
+           cacheAge < 5 * 60 * 1000; // 5 minutes
+  },
 
   // ✅ NEW: Departure Orders by Status
   setPendingDepartureOrders: (orders) => set({ pendingDepartureOrders: orders }),
@@ -693,8 +775,19 @@ const processesStore = create<ProcessesStore & ProcessesStoreActions>((set, get)
     dispatchError: "",
   }),
 
-  // Legacy Departure Orders
-  setDepartureOrders: (orders) => set({ departureOrders: orders }),
+  // Legacy Departure Orders (now uses comprehensive orders for consistency)
+  setDepartureOrders: (orders) => set({ 
+    departureOrders: orders,
+    comprehensiveDepartureOrders: orders, // Keep both for compatibility
+    departureOrdersCache: {
+      lastFetched: Date.now(),
+      isValid: true,
+      orderStatusTracker: orders.reduce((acc, order) => ({
+        ...acc,
+        [order.departure_order_id || order.id]: (order as any).order_status || order.status
+      }), {})
+    }
+  }),
   setDepartureFormFields: (fields) => set({ departureFormFields: fields }),
 
   // Inventory Management

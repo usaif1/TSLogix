@@ -1766,7 +1766,7 @@ export const ProcessService = {
   },
 
   /**
-   * Fetch comprehensive departure orders with workflow status
+   * Fetch comprehensive departure orders with workflow status (with caching optimization)
    */
   fetchComprehensiveDepartureOrders: async (filters?: { 
     status?: import("../types").DepartureOrderStatus;
@@ -1776,8 +1776,27 @@ export const ProcessService = {
     warehouse_id?: string;
     customer_id?: string;
     created_by?: string;
+    forceRefresh?: boolean;
   }) => {
-    const { startLoader, stopLoader, setDepartureOrders } = ProcessesStore.getState();
+    const { 
+      startLoader, 
+      stopLoader, 
+      setDepartureOrders, 
+      isDepartureOrdersCacheValid,
+      comprehensiveDepartureOrders 
+    } = ProcessesStore.getState();
+
+    // Check if we can use cached data (unless force refresh or specific filters)
+    const hasSpecificFilters = filters && (
+      filters.status || filters.orderNo || filters.priority || 
+      filters.warehouse_id || filters.customer_id || filters.created_by
+    );
+    
+    if (!filters?.forceRefresh && !hasSpecificFilters && isDepartureOrdersCacheValid()) {
+      console.log("Using cached departure orders data");
+      return comprehensiveDepartureOrders;
+    }
+
     startLoader("processes/fetch-departure-orders");
 
     try {
@@ -1823,10 +1842,31 @@ export const ProcessService = {
   },
 
   /**
-   * Fetch single comprehensive departure order by order number (for audit screen)
+   * Fetch single comprehensive departure order by order number (for audit screen with caching optimization)
    */
-  fetchComprehensiveDepartureOrderByNo: async (orderNo: string) => {
-    const { startLoader, stopLoader, setCurrentDepartureOrder } = ProcessesStore.getState();
+  fetchComprehensiveDepartureOrderByNo: async (orderNo: string, forceRefresh = false) => {
+    const { 
+      startLoader, 
+      stopLoader, 
+      setCurrentDepartureOrder, 
+      comprehensiveDepartureOrders,
+      isDepartureOrdersCacheValid 
+    } = ProcessesStore.getState();
+
+    // Try to find the order in cache first
+    if (!forceRefresh && isDepartureOrdersCacheValid()) {
+      const cachedOrder = comprehensiveDepartureOrders.find(order => 
+        order.departure_order_no === orderNo || 
+        (order as any).departure_order_code === orderNo
+      );
+      
+      if (cachedOrder) {
+        console.log("Using cached departure order data for:", orderNo);
+        setCurrentDepartureOrder(cachedOrder);
+        return cachedOrder;
+      }
+    }
+
     startLoader("processes/fetch-departure-orders");
 
     try {
@@ -1883,9 +1923,11 @@ export const ProcessService = {
 
       const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/approve`, payload);
 
-      // Refresh orders list
+      // Invalidate cache and refresh orders list
+      ProcessesStore.getState().invalidateDepartureOrdersCache();
       await ProcessService.fetchComprehensiveDepartureOrders({ 
-        organisationId: localStorage.getItem("organisation_id") || undefined 
+        organisationId: localStorage.getItem("organisation_id") || undefined,
+        forceRefresh: true
       });
 
       return response.data;
@@ -1927,9 +1969,11 @@ export const ProcessService = {
 
       const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/reject`, payload);
 
-      // Refresh orders list
+      // Invalidate cache and refresh orders list
+      ProcessesStore.getState().invalidateDepartureOrdersCache();
       await ProcessService.fetchComprehensiveDepartureOrders({ 
-        organisationId: localStorage.getItem("organisation_id") || undefined 
+        organisationId: localStorage.getItem("organisation_id") || undefined,
+        forceRefresh: true
       });
 
       return response.data;
@@ -1972,9 +2016,11 @@ export const ProcessService = {
 
       const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/request-revision`, payload);
 
-      // Refresh orders list
+      // Invalidate cache and refresh orders list
+      ProcessesStore.getState().invalidateDepartureOrdersCache();
       await ProcessService.fetchComprehensiveDepartureOrders({ 
-        organisationId: localStorage.getItem("organisation_id") || undefined 
+        organisationId: localStorage.getItem("organisation_id") || undefined,
+        forceRefresh: true
       });
 
       return response.data;
@@ -2193,9 +2239,11 @@ export const ProcessService = {
       
       const response = await api.post(`${departureBaseURL}/departure-orders/${orderId}/auto-dispatch`, payload);
 
-      // Refresh orders list
+      // Invalidate cache and refresh orders list
+      ProcessesStore.getState().invalidateDepartureOrdersCache();
       await ProcessService.fetchComprehensiveDepartureOrders({ 
-        organisationId: localStorage.getItem("organisation_id") || undefined 
+        organisationId: localStorage.getItem("organisation_id") || undefined,
+        forceRefresh: true
       });
 
       return response.data;

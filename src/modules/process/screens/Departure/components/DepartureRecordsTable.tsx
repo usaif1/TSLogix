@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { ProcessesStore } from "@/globalStore";
 import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
+import { formatDate } from "@/utils/dateUtils";
 
 const DepartureRecordsTable: React.FC = () => {
   const { t } = useTranslation(['process', 'common']);
@@ -18,207 +19,267 @@ const DepartureRecordsTable: React.FC = () => {
     navigate(`/processes/departure/audit?orderNo=${encodeURIComponent(orderCode)}`);
   }, [navigate]);
 
-  // Get status color styling
-  const getStatusColor = (status: string) => {
+  // Get order status color styling
+  const getOrderStatusColor = (status: string) => {
     switch (status) {
-      case "APPROVED":
-        return "bg-green-600";
-      case "PENDING":
-        return "bg-yellow-600";
-      case "REJECTED":
-        return "bg-red-600";
-      case "REVISION":
-        return "bg-orange-600";
-      case "DISPATCHED":
-        return "bg-blue-600";
       case "COMPLETED":
         return "bg-gray-600";
+      case "PENDING":
+        return "bg-yellow-600";
+      case "DISPATCHED":
+        return "bg-blue-600";
+      case "REVISION":
+        return "bg-orange-600";
       default:
         return "bg-gray-400";
     }
   };
 
+
+
   const getStatusText = useCallback((status: string) => {
-    return t(`process:${status?.toLowerCase()}`, status || 'Unknown');
+    if (!status) return 'Unknown';
+    return t(`process:${status?.toLowerCase()}`, status);
   }, [t]);
+
+  // Helper function to get main client/customer name
+  const getClientName = useCallback((order: any) => {
+    return order.client?.company_name || order.customer?.name || '-';
+  }, []);
+
+  // Helper function to get main supplier from products
+  const getMainSupplier = useCallback((products: any[]) => {
+    if (!products || products.length === 0) return "-";
+    
+    // Try to get from products_summary first, then fallback to products
+    const suppliers = [...new Set(
+      products.map(p => 
+        p.supplier_info?.company_name || 
+        p.supplier?.name || 
+        p.supplier?.company_name
+      ).filter(Boolean)
+    )];
+    
+    if (suppliers.length === 1) {
+      return suppliers[0];
+    } else if (suppliers.length > 1) {
+      return t('process:multiple_suppliers', `Multiple (${suppliers.length})`);
+    } else {
+      return "-";
+    }
+  }, [t]);
+
+  // Helper function to get comprehensive totals
+  const getComprehensiveTotals = useCallback((order: any) => {
+    // Use comprehensive_summary if available, otherwise calculate from products
+    if (order.comprehensive_summary) {
+      return {
+        quantity: order.comprehensive_summary.total_quantity || 0,
+        weight: order.comprehensive_summary.total_weight || 0,
+        value: order.comprehensive_summary.total_value || 0,
+      };
+    }
+    
+    // Fallback to calculating from products
+    const totals = order.products?.reduce((acc: any, p: any) => {
+      return {
+        quantity: acc.quantity + (Number(p.requested_quantity) || 0),
+        weight: acc.weight + (Number(p.requested_weight) || 0),
+        value: acc.value + (Number(p.total_value) || 0),
+      };
+    }, { quantity: 0, weight: 0, value: 0 }) || { quantity: 0, weight: 0, value: 0 };
+    
+    return totals;
+  }, []);
   
   const columns = useMemo(() => 
     createTableColumns([
       { 
         accessor: 'departure_order_no', 
-        header: t('process:order'),
-        cell: (info: any) => {
-          const order = info.row.original;
-          return (
-            <span className="font-medium text-blue-600">
-              {order.departure_order_no || order.departure_order_code}
-            </span>
-          );
-        }
-      },
-      { 
-        accessor: 'status',
-        header: t('process:status'),
+        header: t('process:departure_order_no'),
+        size: 140,
         cell: (info: any) => {
           const order = info.row.original;
           return (
             <button
-              className={`min-w-20 cursor-pointer border rounded-md flex justify-center items-center py-0.5 px-2 ${getStatusColor(
-                order?.status || order?.order_status
-              )} text-white hover:opacity-80 transition-opacity`}
+              className="text-blue-600 hover:text-blue-800 hover:underline font-medium"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigateToDepartureAudit(order.departure_order_no || order.departure_order_code);
+              }}
+            >
+              {order.departure_order_no || order.departure_order_code}
+            </button>
+          );
+        }
+      },
+      { 
+        accessor: 'order_status',
+        header: t('process:order_status'),
+        size: 120,
+        cell: (info: any) => {
+          const order = info.row.original;
+          const status = order.order_status || order.status;
+          return (
+            <button
+              className={`min-w-20 cursor-pointer border rounded-md flex justify-center items-center py-0.5 px-2 ${getOrderStatusColor(status)} text-white hover:opacity-80 transition-opacity`}
             >
               <p className="text-xs font-bold">
-                {getStatusText(order?.status || order?.order_status)}
+                {getStatusText(status)}
               </p>
             </button>
           );
         },
       },
+
       { 
-        accessor: 'product_code', 
-        header: t('process:product_code'),
+        accessor: 'client_name', 
+        header: t('process:client'),
+        size: 160,
         cell: (info: any) => {
           const order = info.row.original;
-          const productCodes = order.products?.map((p: any) => p.product_code).filter(Boolean) || [];
-          return productCodes.length > 0 ? productCodes.join(', ') : '-';
+          const clientName = getClientName(order);
+          return (
+            <div className="truncate max-w-[160px]" title={clientName}>
+              {clientName}
+            </div>
+          );
         }
       },
       { 
-        accessor: 'product_name', 
-        header: t('process:product_name'),
+        accessor: 'total_products', 
+        header: t('process:total_products'),
+        size: 80,
         cell: (info: any) => {
           const order = info.row.original;
-          const productNames = order.products?.map((p: any) => p.product?.name).filter(Boolean) || [];
-          return productNames.length > 0 ? productNames.join(', ') : '-';
+          return order.comprehensive_summary?.total_products || order.products?.length || 0;
         }
       },
       { 
         accessor: 'total_qty', 
         header: t('process:total_qty'),
+        size: 100,
         cell: (info: any) => {
           const order = info.row.original;
-          const totalQty = order.products?.reduce((sum: number, p: any) => {
-            const qty = Number(p.requested_quantity) || 0;
-            return sum + qty;
-          }, 0) || 0;
-          return totalQty;
+          const totals = getComprehensiveTotals(order);
+          return totals.quantity.toLocaleString();
         }
       },
       { 
         accessor: 'total_weight', 
         header: t('process:total_weight_kg'),
+        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
-          const totalWeight = order.products?.reduce((sum: number, p: any) => {
-            const weight = Number(p.requested_weight) || 0;
-            return sum + weight;
-          }, 0) || 0;
-          
-          // Ensure totalWeight is a valid number before calling toFixed
-          return typeof totalWeight === 'number' && !isNaN(totalWeight) 
-            ? totalWeight.toFixed(2) 
-            : '0.00';
+          const totals = getComprehensiveTotals(order);
+          return `${Number(totals.weight).toFixed(2)} kg`;
+        }
+      },
+      { 
+        accessor: 'total_pallets', 
+        header: t('process:total_pallets'),
+        size: 100,
+        cell: (info: any) => {
+          const order = info.row.original;
+          return order.total_pallets || 0;
+        }
+      },
+      { 
+        accessor: 'supplier', 
+        header: t('process:supplier'),
+        size: 160,
+        cell: (info: any) => {
+          const order = info.row.original;
+          const supplier = getMainSupplier(order.products_summary || order.products || []);
+          return (
+            <div className="truncate max-w-[160px]" title={supplier}>
+              {supplier}
+            </div>
+          );
         }
       },
       { 
         accessor: 'departure_date', 
         header: t('process:departure_date'),
+        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
           const date = order.departure_date_time || order.departure_date;
-          return date ? new Date(date).toLocaleDateString() : '-';
+          return date ? formatDate(date) : '-';
         }
       },
       { 
         accessor: 'destination_point', 
         header: t('process:destination'),
+        size: 140,
         cell: (info: any) => {
           const order = info.row.original;
-          return order.destination_point || order.arrival_point || '-';
+          const destination = order.destination_point || order.arrival_point || '-';
+          return (
+            <div className="truncate max-w-[140px]" title={destination}>
+              {destination}
+            </div>
+          );
         }
       },
       { 
-        accessor: 'presentation', 
-        header: t('process:presentation'),
-        cell: (info: any) => {
-          const order = info.row.original;
-          // Get unique presentations from products
-          const presentations = order.products?.map((p: any) => p.presentation).filter(Boolean) || [];
-          const uniquePresentations = [...new Set(presentations)];
-          return uniquePresentations.length > 0 ? uniquePresentations.join(', ') : '-';
-        }
-      },
-      { 
-        accessor: 'priority_level', 
-        header: t('process:priority'),
-        cell: (info: any) => {
-          const order = info.row.original;
-          const priority = order.priority_level;
-          const priorityColor = priority === 'URGENT' ? 'text-red-600' : 
-                               priority === 'HIGH' ? 'text-orange-600' : 
-                               priority === 'MEDIUM' ? 'text-yellow-600' : 'text-green-600';
-          return <span className={priorityColor}>{priority || 'MEDIUM'}</span>;
-        }
-      },
-      { 
-        accessor: 'type', 
-        header: t('process:type'),
+        accessor: 'transport_type', 
+        header: t('process:transport_type'),
+        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
           return order.transport_type || '-';
         }
       },
       { 
-        accessor: 'carrier_name', 
-        header: t('process:carrier'),
+        accessor: 'priority_level', 
+        header: t('process:priority'),
+        size: 100,
         cell: (info: any) => {
           const order = info.row.original;
-          return order.carrier_name || '-';
-        }
-      },
-      { 
-        accessor: 'customer', 
-        header: t('process:customer'),
-        cell: (info: any) => {
-          const order = info.row.original;
-          return order.customer?.name || '-';
+          const priority = order.priority_level || 'MEDIUM';
+          const priorityColor = priority === 'URGENT' ? 'text-red-600 font-bold' : 
+                               priority === 'HIGH' ? 'text-orange-600 font-semibold' : 
+                               priority === 'MEDIUM' ? 'text-yellow-600' : 'text-green-600';
+          return <span className={priorityColor}>{priority}</span>;
         }
       },
       { 
         accessor: 'warehouse', 
         header: t('process:warehouse'),
+        size: 140,
         cell: (info: any) => {
           const order = info.row.original;
-          return order.warehouse?.name || '-';
+          const warehouse = order.warehouse?.name || '-';
+          return (
+            <div className="truncate max-w-[140px]" title={warehouse}>
+              {warehouse}
+            </div>
+          );
         }
       },
+
       { 
-        accessor: 'created_by', 
-        header: t('process:created_by'),
+        accessor: 'created_at', 
+        header: t('process:created_date'),
+        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
-          return order.creator ? `${order.creator.first_name} ${order.creator.last_name}` : '-';
+          const date = order.time_tracking?.created_at || order.registration_date || order.created_at;
+          return date ? formatDate(date) : '-';
         }
       },
     ]), 
-  [t, navigateToDepartureAudit, getStatusText]);
+  [t, navigateToDepartureAudit, getStatusText, getClientName, getMainSupplier, getComprehensiveTotals]);
 
   // Transform data to ensure all calculations are safe
   const transformedData = useMemo(() => {
     return departureOrders.map(order => ({
       ...order,
       // Pre-calculate totals to avoid recalculation in each cell render
-      calculated_total_qty: order.products?.reduce((sum: number, p: any) => {
-        return sum + (Number(p.requested_quantity) || 0);
-      }, 0) || 0,
-      calculated_total_weight: order.products?.reduce((sum: number, p: any) => {
-        return sum + (Number(p.requested_weight) || 0);
-      }, 0) || 0,
-      calculated_total_volume: order.products?.reduce((sum: number, p: any) => {
-        return sum + (Number(p.requested_volume) || 0);
-      }, 0) || 0,
+      calculated_totals: getComprehensiveTotals(order),
     }));
-  }, [departureOrders]);
+  }, [departureOrders, getComprehensiveTotals]);
 
   return (
     <div className="max-w-full h-full">

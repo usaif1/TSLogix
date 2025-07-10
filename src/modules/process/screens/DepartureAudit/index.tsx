@@ -79,7 +79,7 @@ const DepartureAudit: React.FC = () => {
     if (submitStatus.success && submitStatus.message?.includes("updated successfully")) {
       setIsEditMode(false);
       setTimeout(() => {
-        ProcessService.fetchComprehensiveDepartureOrderByNo(orderNo);
+        ProcessService.fetchComprehensiveDepartureOrderByNo(orderNo, true);
         setSubmitStatus({ success: false, message: "" });
       }, 2000);
     }
@@ -213,44 +213,7 @@ const DepartureAudit: React.FC = () => {
     }
   };
 
-  // Helper function to get allocation info for a product
-  const getProductAllocationInfo = (productId: string) => {
-    if (!order) return { entryOrderNumbers: [], guideNumbers: [], packagingTypes: [] };
-    
-    // Get data from actual allocations (for dispatched orders)
-    const allocations = (order as any)?.departureAllocations?.filter(
-      (allocation: any) => allocation.departure_order_product_id === productId
-    ) || [];
-    
-    // Get data from products_summary (for all orders including pending)
-    const productSummary = (order as any)?.products_summary?.find(
-      (p: any) => p.departure_order_product_id === productId
-    );
-    
-    // Combine data from both sources
-    const allocationEntryOrders = allocations.map((alloc: any) => 
-      alloc.source_allocation?.entry_order_product?.entry_order?.entry_order_no
-    ).filter(Boolean);
-    
-    const allocationGuideNumbers = allocations.map((alloc: any) => 
-      alloc.source_allocation?.entry_order_product?.guide_number || alloc.guide_number
-    ).filter(Boolean);
-    
-    const allocationPackagingTypes = allocations.map((alloc: any) => 
-      alloc.presentation || alloc.source_allocation?.entry_order_product?.presentation
-    ).filter(Boolean);
-    
-    // Get from products_summary as fallback
-    const summaryEntryOrders: string[] = productSummary?.entry_order_info?.source_entry_orders || [];
-    const summaryGuideNumbers: string[] = []; // Guide numbers aren't in summary
-    const summaryPackagingTypes: string[] = []; // Packaging types aren't in summary
-    
-    return {
-      entryOrderNumbers: [...allocationEntryOrders, ...summaryEntryOrders].filter(Boolean),
-      guideNumbers: [...allocationGuideNumbers, ...summaryGuideNumbers].filter(Boolean),
-      packagingTypes: [...allocationPackagingTypes, ...summaryPackagingTypes].filter(Boolean)
-    };
-  };
+
 
   // Handle review actions
   const handleReview = useCallback(async () => {
@@ -292,8 +255,8 @@ const DepartureAudit: React.FC = () => {
       }
 
       closeModal();
-      // Refresh order data
-      await ProcessService.fetchComprehensiveDepartureOrderByNo(orderNo);
+      // Refresh order data (force refresh since status changed)
+      await ProcessService.fetchComprehensiveDepartureOrderByNo(orderNo, true);
 
       const statusText = reviewMode === "approve" 
         ? t('process:approved')
@@ -697,46 +660,7 @@ const DepartureAudit: React.FC = () => {
     );
   }
 
-  const orderInfo = [
-    { label: t('process:departure_order_no'), value: order.departure_order_no || (order as any)?.departure_order_code },
-    { label: t('process:customer'), value: (order as any)?.client?.company_name || (order as any)?.customer?.name },
-    { label: t('process:warehouse'), value: order.warehouse?.name },
-    { label: t('process:total_products'), value: order.products?.length || 0 },
-    {
-      label: t('process:total_quantity'),
-      value: (order as any)?.comprehensive_summary?.total_quantity || order.products?.reduce((sum: number, product: any) => {
-        return sum + (Number(product.requested_quantity) || 0);
-      }, 0) || 0,
-    },
-    {
-      label: t('process:total_weight'),
-      value: `${(order as any)?.comprehensive_summary?.total_weight || (order as any)?.total_weight || 0} kg`,
-    },
-    {
-      label: t('process:total_volume'),
-      value: `${(order as any)?.total_volume || 0} m³`,
-    },
-    {
-      label: t('process:departure_date'),
-      value: formatDate((order as any)?.departure_date_time || order.departure_date),
-    },
-    {
-      label: t('process:document_date'),
-      value: formatDate((order as any)?.document_date),
-    },
-    {
-      label: t('process:created_date'),
-      value: formatDate((order as any)?.time_tracking?.created_at || (order as any)?.registration_date || order.created_at),
-    },
-    { label: t('process:priority_level'), value: (order as any)?.priority_level || '-' },
-    { label: t('process:transport_type'), value: (order as any)?.transport_type || '-' },
-    { label: t('process:arrival_point'), value: (order as any)?.destination_point || (order as any)?.arrival_point || '-' },
-    { label: t('process:status'), value: getStatusText((order as any)?.order_status || order.status) },
-    { 
-      label: t('process:created_by'), 
-      value: (order as any)?.creator ? `${(order as any).creator.first_name} ${(order as any).creator.last_name}` : '-' 
-    },
-  ];
+
 
   return (
     <div className="flex flex-col h-full">
@@ -767,46 +691,129 @@ const DepartureAudit: React.FC = () => {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto space-y-6">
-        {/* Order Information Card */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
+      <div className="flex-1 overflow-y-auto space-y-4">
+        {/* Compact Order Information */}
+        <div className="bg-white rounded-lg p-4 shadow-sm">
           <div className="flex justify-between items-center mb-4">
-            <Text
-              size="lg"
-              weight="font-semibold"
-              additionalClass="text-gray-800"
-            >
-              {t('process:order_information')}
+            <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
+              {order.departure_order_no || (order as any)?.departure_order_code} - {(order as any)?.creator ? `${(order as any).creator.first_name} ${(order as any).creator.last_name}` : (order as any)?.creator_name || 'N/A'}
             </Text>
-            <span
-              className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor((order as any)?.order_status || order.status)}`}
-            >
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor((order as any)?.order_status || order.status)}`}>
               {getStatusText((order as any)?.order_status || order.status)}
             </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {orderInfo.map(({ label, value }) => (
-              <div key={label} className="flex flex-col space-y-1">
-                <span className="font-medium text-gray-700 text-sm">{label}</span>
-                <span className="text-gray-600 text-sm">{value ?? "-"}</span>
-              </div>
-            ))}
+
+          {/* Compact grid layout */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 text-sm">
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:client')}</span>
+              <p className="font-medium">{(order as any)?.client?.company_name || (order as any)?.customer?.name || '-'}</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:total_products')}</span>
+              <p className="font-medium">{(order as any)?.comprehensive_summary?.total_products || order.products?.length || 0}</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:total_quantity')}</span>
+              <p className="font-medium">{(order as any)?.comprehensive_summary?.total_quantity || 0}</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:total_weight')}</span>
+              <p className="font-medium">{(order as any)?.comprehensive_summary?.total_weight || (order as any)?.total_weight || 0} kg</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:total_pallets')}</span>
+              <p className="font-medium">{(order as any)?.total_pallets || 0}</p>
+            </div>
+            <div>
+              <span className="text-gray-500 text-xs">{t('process:departure_date')}</span>
+              <p className="font-medium">{formatDate((order as any)?.departure_date_time || order.departure_date)}</p>
+            </div>
           </div>
+
+          {/* Comments/Observations inline */}
+          {((order as any)?.observation || (order as any)?.review_comments) && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              {(order as any)?.observation && (
+                <div className="mb-2">
+                  <span className="text-gray-500 text-xs">{t('process:observations')}: </span>
+                  <span className="text-sm">{(order as any)?.observation}</span>
+                </div>
+              )}
+              {(order as any)?.review_comments && (
+                <div>
+                  <span className="text-gray-500 text-xs">{t('process:review_comments')}: </span>
+                  <span className="text-sm">{(order as any)?.review_comments}</span>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Products Card */}
-        <div className="bg-white rounded-lg p-6 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <Text
-              size="lg"
-              weight="font-semibold"
-              additionalClass="text-gray-800"
-            >
+        {/* Documents Section */}
+        {(order as any)?.uploaded_documents && (order as any).uploaded_documents.length > 0 && (
+          <div className="bg-white rounded-lg p-4 shadow-sm">
+            <Text size="lg" weight="font-semibold" additionalClass="mb-3 text-gray-800">
+              {t('process:uploaded_documents')} ({(order as any).uploaded_documents.length})
+            </Text>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(order as any).uploaded_documents.map((doc: any, index: number) => (
+                <div key={index} className="border border-gray-200 rounded p-3 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                      </svg>
+                      <div>
+                        <Text size="sm" weight="font-medium">{doc.file_name}</Text>
+                        <Text size="xs" additionalClass="text-gray-500">
+                          {doc.file_size ? `${(doc.file_size / 1024).toFixed(1)} KB` : ''} • {doc.document_type || 'Document'}
+                        </Text>
+                      </div>
+                    </div>
+                    <div className="flex space-x-1">
+                      {doc.public_url && (
+                        <>
+                          <button
+                            onClick={() => window.open(doc.public_url, '_blank')}
+                            className="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
+                            title={t('process:view_document')}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                          <a
+                            href={doc.public_url}
+                            download={doc.file_name}
+                            className="p-1 text-green-600 hover:text-green-800 hover:bg-green-50 rounded"
+                            title={t('process:download_document')}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </a>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Products and Actions */}
+        <div className="bg-white rounded-lg shadow-sm">
+          <div className="flex justify-between items-center p-4 border-b border-gray-200">
+            <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
               {t('process:products')} ({order.products?.length || 0})
             </Text>
 
             <div className="flex space-x-2">
-              {/* ✅ Edit button for REVISION orders */}
+              {/* Edit button for REVISION orders */}
               {canUserEdit() && (
                 <Button
                   variant="action"
@@ -846,118 +853,169 @@ const DepartureAudit: React.FC = () => {
                 </>
               )}
             </div>
-
           </div>
 
-          {/* Products List */}
-          <div className="space-y-4">
-            {order.products?.map((product: any, index: number) => {
-              const allocationInfo = getProductAllocationInfo(product.departure_order_product_id);
-              
-              return (
-                <div
-                  key={product.departure_order_product_id || index}
-                  className="rounded-lg p-4 bg-gray-50"
-                >
-                  {/* Product Header */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <Text weight="font-semibold" additionalClass="text-gray-800">
-                        #{index + 1}: {product.product?.name || product.product_name}
-                      </Text>
-                      <Text size="sm" additionalClass="text-gray-600">
-                        {t('process:product_code')}: {product.product?.product_code || product.product_code}
-                      </Text>
-                    </div>
-                  </div>
-
-                  {/* Product Details Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 text-sm">
-                    <div>
-                      <span className="font-medium text-gray-700 block mb-1">
-                        {t('process:requested_quantity')}:
-                      </span>
-                      <span className="text-gray-600">
-                        {product.requested_quantity || 0}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="font-medium text-gray-700 block mb-1">
-                        {t('process:requested_weight')}:
-                      </span>
-                      <span className="text-gray-600">
-                        {product.requested_weight || 0} kg
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="font-medium text-gray-700 block mb-1">
-                        {t('process:packaging_quantity')}:
-                      </span>
-                      <span className="text-gray-600">
-                        {product.requested_packages || product.packaging_quantity || 0}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="font-medium text-gray-700 block mb-1">
-                        {t('process:presentation')}:
-                      </span>
-                      <span className="text-gray-600">{product.presentation || 'CAJA'}</span>
-                    </div>
-
-                    <div>
-                      <span className="font-medium text-gray-700 block mb-1">
-                        {t('process:lot_number')}:
-                      </span>
-                      <span className="text-gray-600">{product.lot_series || product.lot_number || '-'}</span>
-                    </div>
-
-                    <div>
-                      <span className="font-medium text-gray-700 block mb-1">
-                        {t('process:packaging_type')}:
-                      </span>
-                      <span className="text-gray-600">
-                        {allocationInfo.packagingTypes.length > 0 
-                          ? allocationInfo.packagingTypes.join(', ') 
-                          : product.packaging_type || product.presentation || '-'
-                        }
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="font-medium text-gray-700 block mb-1">
-                        {t('process:entry_order_no')}:
-                      </span>
-                      <span className="text-gray-600">
-                        {allocationInfo.entryOrderNumbers.length > 0 
-                          ? allocationInfo.entryOrderNumbers.join(', ') 
-                          : product.entry_order_no || '-'
-                        }
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="font-medium text-gray-700 block mb-1">
-                        {t('process:guide_number')}:
-                      </span>
-                      <span className="text-gray-600">
-                        {allocationInfo.guideNumbers.length > 0 
-                          ? allocationInfo.guideNumbers.join(', ') 
-                          : product.guide_number || '-'
-                        }
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {(!order.products || order.products.length === 0) && (
-            <div className="text-center py-8 text-gray-500">
-              <Text>{t('process:no_products_found')}</Text>
+          {/* Excel-like Products Table */}
+          {order.products && order.products.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      #
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:product')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:lot_series')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:supplier')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:requested_quantity')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:requested_packages')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:requested_pallets')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:requested_weight')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:presentation')}
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-gray-200">
+                      {t('process:temperature_requirement')}
+                    </th>
+                    {(order as any)?.order_status !== 'COMPLETED' && (
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        {t('process:allocation_info')}
+                      </th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {order.products.map((product: any, index: number) => {
+                    const productSummary = (order as any)?.products_summary?.find(
+                      (p: any) => p.departure_order_product_id === product.departure_order_product_id
+                    );
+                    
+                    return (
+                      <tr key={product.departure_order_product_id} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}>
+                        <td className="px-3 py-4 text-sm font-medium text-gray-900 border-r border-gray-200">
+                          {index + 1}
+                        </td>
+                        <td className="px-4 py-4 text-sm border-r border-gray-200">
+                          <div>
+                            <Text weight="font-medium" additionalClass="text-gray-900">
+                              {product.product?.name || product.product_name}
+                            </Text>
+                            <Text size="xs" additionalClass="text-gray-500">
+                              {product.product?.product_code || product.product_code}
+                            </Text>
+                            {product.product?.manufacturer && (
+                              <Text size="xs" additionalClass="text-gray-400">
+                                {product.product.manufacturer}
+                              </Text>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 font-mono">
+                          {product.lot_series}
+                        </td>
+                        <td className="px-4 py-4 text-sm border-r border-gray-200">
+                          <div>
+                            <Text weight="font-medium" additionalClass="text-gray-900">
+                              {productSummary?.supplier_info?.company_name || product.supplier?.name || '-'}
+                            </Text>
+                            {productSummary?.supplier_info?.contact_person && (
+                              <Text size="xs" additionalClass="text-gray-500">
+                                {productSummary.supplier_info.contact_person}
+                              </Text>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-center font-medium">
+                          {product.requested_quantity?.toLocaleString() || 0}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-center font-medium">
+                          {product.requested_packages || 0}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-center font-medium">
+                          {product.requested_pallets || 0}
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-center font-medium">
+                          {product.requested_weight} kg
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 border-r border-gray-200 text-center">
+                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
+                            {product.presentation || 'CAJA'}
+                          </span>
+                        </td>
+                                                 <td className={`px-4 py-4 text-sm text-gray-900 text-center ${(order as any)?.order_status !== 'COMPLETED' ? 'border-r border-gray-200' : ''}`}>
+                           <span className={`px-2 py-1 text-xs rounded ${
+                             product.temperature_requirement === 'REFRIGERADO' ? 'bg-blue-100 text-blue-800' :
+                             product.temperature_requirement === 'CONGELADO' ? 'bg-purple-100 text-purple-800' :
+                             'bg-green-100 text-green-800'
+                           }`}>
+                             {product.temperature_requirement || 'AMBIENTE'}
+                           </span>
+                         </td>
+                         {(order as any)?.order_status !== 'COMPLETED' && (
+                           <td className="px-4 py-4 text-sm text-gray-700">
+                             <div className="space-y-1">
+                               {/* Available Inventory Info */}
+                               {productSummary?.available_inventory_summary?.total_available_quantity > 0 && (
+                                 <div>
+                                   <Text size="xs" additionalClass="text-green-600 font-medium">
+                                     {t('process:available')}: {productSummary.available_inventory_summary.total_available_quantity.toLocaleString()}
+                                   </Text>
+                                   <Text size="xs" additionalClass="text-gray-500">
+                                     {productSummary.available_inventory_summary.total_available_cells} {t('process:cells')}
+                                   </Text>
+                                 </div>
+                               )}
+                               
+                               {/* Entry Order Info */}
+                               {productSummary?.entry_order_info?.source_entry_orders?.length > 0 && (
+                                 <div>
+                                   <Text size="xs" additionalClass="text-blue-600">
+                                     {t('process:from')}: {productSummary.entry_order_info.source_entry_orders.join(', ')}
+                                   </Text>
+                                 </div>
+                               )}
+                               
+                               {/* Allocation Status */}
+                               {productSummary?.allocation_status && (
+                                 <div>
+                                   <Text size="xs" additionalClass={
+                                     productSummary.allocation_status.is_fully_allocated ? 'text-green-600' : 'text-orange-600'
+                                   }>
+                                     {productSummary.allocation_status.is_fully_allocated ? 
+                                       t('process:fully_allocated') : 
+                                       `${productSummary.allocation_status.allocation_percentage}% ${t('process:allocated')}`
+                                     }
+                                   </Text>
+                                 </div>
+                               )}
+                             </div>
+                           </td>
+                         )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="p-8 text-center text-gray-500">
+              <Text size="sm">
+                {t('process:no_products_found')}
+              </Text>
             </div>
           )}
         </div>
@@ -1012,23 +1070,7 @@ const DepartureAudit: React.FC = () => {
           </div>
         )}
 
-        {/* Observations */}
-        {((order as any)?.observation || order.observations) && (
-          <div className="bg-white rounded-lg p-6 shadow-sm">
-            <Text
-              size="lg"
-              weight="font-semibold"
-              additionalClass="mb-3 text-gray-800"
-            >
-              {t('process:observations')}
-            </Text>
-            <div className="bg-gray-50 rounded-lg p-4">
-              <Text size="sm" additionalClass="text-gray-700">
-                {(order as any)?.observation || order.observations}
-              </Text>
-            </div>
-          </div>
-        )}
+
       </div>
 
       {/* Review Modal */}
