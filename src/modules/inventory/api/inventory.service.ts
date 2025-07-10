@@ -512,8 +512,8 @@ export const InventoryLogService = {
         : {
             quality_status: qualityStatus,
             warehouse_id: warehouseId,
-            // Add entry_order_id for warehouse incharge to fetch only client's assigned cells
-            ...(userRole === "WAREHOUSE_INCHARGE" && entryOrderId && { entry_order_id: entryOrderId })
+            // Always include entry_order_id for warehouse staff roles (required by API)
+            ...(["WAREHOUSE_INCHARGE", "PHARMACIST"].includes(userRole || "") && { entry_order_id: entryOrderId || '' })
           };
 
       const response = await api.get(apiEndpoint, {

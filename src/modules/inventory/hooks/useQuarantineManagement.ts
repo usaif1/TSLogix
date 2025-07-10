@@ -321,29 +321,28 @@ export const useQuarantineManagement = () => {
 
     try {
       // Get entry_order_id from the selected item or any available quarantine item
-      // Note: entry_order_id might not be in the interface, so we need to check for it carefully
-      let entryOrderId = (selectedItem?.entry_order_product?.entry_order as any)?.entry_order_id || 
-                        (selectedItems.length > 0 ? 
-                          (quarantineInventory.find(item => item.allocation_id === selectedItems[0])?.entry_order_product?.entry_order as any)?.entry_order_id 
-                          : undefined);
+      let entryOrderId: string | undefined;
       
-      // If still no entry_order_id, try alternative approaches
+      // First, try to get from selected item
+      if (selectedItem) {
+        entryOrderId = selectedItem.entry_order_id || 
+                      selectedItem.entry_order_product?.entry_order_id;
+      }
+      
+      // If no selected item, try to get from first selected item
+      if (!entryOrderId && selectedItems.length > 0) {
+        const selectedInventoryItem = quarantineInventory.find(item => item.allocation_id === selectedItems[0]);
+        if (selectedInventoryItem) {
+          entryOrderId = selectedInventoryItem.entry_order_id || 
+                        selectedInventoryItem.entry_order_product?.entry_order_id;
+        }
+      }
+      
+      // If still no entry_order_id, get from first available quarantine item
       if (!entryOrderId && quarantineInventory.length > 0) {
         const firstItem = quarantineInventory[0];
-        
-        // Try to find entry_order_id in the nested structure
-        entryOrderId = (firstItem.entry_order_product?.entry_order as any)?.entry_order_id || 
-                      (firstItem as any)?.entry_order_product?.entry_order_id ||
-                      (firstItem as any)?.entry_order_id;
-                      
-        // If still no entry_order_id, try using entry_order_no as fallback
-        if (!entryOrderId) {
-          const entryOrderNo = firstItem.entry_order_product?.entry_order?.entry_order_no;
-          if (entryOrderNo) {
-            console.warn('🔄 No entry_order_id found, using entry_order_no as fallback:', entryOrderNo);
-            entryOrderId = entryOrderNo; // Use entry_order_no as fallback
-          }
-        }
+        entryOrderId = firstItem.entry_order_id || 
+                      firstItem.entry_order_product?.entry_order_id;
       }
       
       // If still no entry_order_id, pass empty string to satisfy API requirement
@@ -361,8 +360,9 @@ export const useQuarantineManagement = () => {
         quarantineInventoryCount: quarantineInventory.length,
         firstItemData: quarantineInventory.length > 0 ? {
           allocation_id: quarantineInventory[0].allocation_id,
-          entry_order_no: quarantineInventory[0].entry_order_product?.entry_order?.entry_order_no,
-          full_entry_order: quarantineInventory[0].entry_order_product?.entry_order
+          entry_order_id: quarantineInventory[0].entry_order_id,
+          entry_order_product_entry_order_id: quarantineInventory[0].entry_order_product?.entry_order_id,
+          entry_order_no: quarantineInventory[0].entry_order_product?.entry_order?.entry_order_no
         } : null
       });
       

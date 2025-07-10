@@ -188,6 +188,7 @@ export interface SystemAuditLog {
 // ✅ NEW: Quarantine Inventory Interface
 export interface QuarantineInventoryItem {
   allocation_id: string;
+  entry_order_id: string; // ✅ Add entry_order_id at root level
   inventory_quantity: number;
   package_quantity: number;
   weight_kg: number;
@@ -198,6 +199,7 @@ export interface QuarantineInventoryItem {
   allocated_by: string;
   
   entry_order_product: {
+    entry_order_id: string; // ✅ Add entry_order_id here too
     product: {
       product_id: string;
       product_code: string;
