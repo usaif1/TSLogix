@@ -29,10 +29,9 @@ const DepartureAudit: React.FC = () => {
   const isUpdating = loaders["processes/update-departure-order"];
 
   const [showModal, setShowModal] = useState(false);
-  const [reviewMode, setReviewMode] = useState<"approve" | "reject" | "revision" | "dispatch">("approve");
+  const [reviewMode, setReviewMode] = useState<"approve" | "reject" | "revision">("approve");
   const [reviewComments, setReviewComments] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
-  const [dispatchNotes, setDispatchNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // ✅ Edit mode state
@@ -290,16 +289,6 @@ const DepartureAudit: React.FC = () => {
             required_changes: [reviewComments.trim()],
           });
           break;
-
-        case "dispatch": {
-          console.log('Dispatching order with notes:', dispatchNotes.trim() || "Order dispatched from audit screen");
-          const dispatchResult = await ProcessService.simpleDispatchDepartureOrder(
-            orderId, 
-            dispatchNotes.trim() || "Order dispatched from audit screen"
-          );
-          console.log('Dispatch result:', dispatchResult);
-          break;
-        }
       }
 
       closeModal();
@@ -310,8 +299,6 @@ const DepartureAudit: React.FC = () => {
         ? t('process:approved')
         : reviewMode === "reject"
         ? t('process:rejected')
-        : reviewMode === "dispatch"
-        ? t('process:dispatched')
         : t('process:marked_for_revision');
 
       console.log(`${t('process:departure_order')} ${statusText} ${t('common:successfully')}!`);
@@ -320,9 +307,9 @@ const DepartureAudit: React.FC = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [order, reviewMode, reviewComments, rejectionReason, orderNo, t, dispatchNotes]);
+  }, [order, reviewMode, reviewComments, rejectionReason, orderNo, t]);
 
-  const openModal = useCallback((mode: "approve" | "reject" | "revision" | "dispatch") => {
+  const openModal = useCallback((mode: "approve" | "reject" | "revision") => {
     setReviewMode(mode);
     setShowModal(true);
   }, []);
@@ -331,7 +318,6 @@ const DepartureAudit: React.FC = () => {
     setShowModal(false);
     setReviewComments("");
     setRejectionReason("");
-    setDispatchNotes("");
     setReviewMode("approve");
     setIsSubmitting(false);
   }, []);
@@ -861,21 +847,6 @@ const DepartureAudit: React.FC = () => {
               )}
             </div>
 
-            {/* Dispatch Actions */}
-            {(order as any)?.order_status === "APPROVED" && 
-             userRole && 
-             userRole !== "CLIENT" &&
-             (departurePermissions?.can_dispatch_order || userRole === "WAREHOUSE_INCHARGE") && (
-              <div className="flex space-x-2">
-                <Button
-                  onClick={() => openModal("dispatch")}
-                  additionalClass="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white"
-                  disabled={isSubmitting}
-                >
-                  {t('process:dispatch_order')}
-                </Button>
-              </div>
-            )}
           </div>
 
           {/* Products List */}
@@ -1063,16 +1034,12 @@ const DepartureAudit: React.FC = () => {
       {/* Review Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className={`bg-white rounded-lg w-full max-h-[90vh] overflow-y-auto p-6 m-4 ${
-            reviewMode === "dispatch" ? "max-w-4xl" : "max-w-2xl"
-          }`}>
+          <div className="bg-white rounded-lg w-full max-h-[90vh] overflow-y-auto p-6 m-4">
             <div className="flex justify-between items-center mb-4">
               <Text size="xl" weight="font-bold">
                 {reviewMode === "approve"
                   ? t('process:approve_departure_order')
                   : reviewMode === "reject"
-                  ? t('process:reject_departure_order')
-                  : reviewMode === "dispatch"
                   ? t('process:dispatch_departure_order')
                   : t('process:request_revision_departure_order')}
                 : {orderNo}
@@ -1109,114 +1076,9 @@ const DepartureAudit: React.FC = () => {
                 </div>
               )}
 
-              {/* Dispatch Content (only for dispatch) */}
-              {reviewMode === "dispatch" && (
-                <div className="space-y-6">
-                  {/* Order Summary */}
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <Text size="sm" weight="font-medium" additionalClass="text-gray-800 mb-3">
-                      {t('process:dispatch_summary')}
-                    </Text>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium text-gray-700">{t('process:total_products')}:</span>
-                        <span className="ml-2 text-gray-600">{order.products?.length || 0}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">{t('process:total_quantity')}:</span>
-                        <span className="ml-2 text-gray-600">{(order as any)?.comprehensive_summary?.total_quantity || 0}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">{t('process:total_weight')}:</span>
-                        <span className="ml-2 text-gray-600">{(order as any)?.comprehensive_summary?.total_weight || (order as any)?.total_weight || 0} kg</span>
-                      </div>
-                      <div>
-                        <span className="font-medium text-gray-700">{t('process:destination_point')}:</span>
-                        <span className="ml-2 text-gray-600">{(order as any)?.destination_point || (order as any)?.arrival_point || '-'}</span>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Products List */}
-                  <div>
-                    <Text size="sm" weight="font-medium" additionalClass="text-gray-800 mb-3">
-                      {t('process:inventory_selections_to_dispatch')} ({order.products?.length || 0})
-                    </Text>
-                    <div className="max-h-48 overflow-y-auto space-y-2">
-                      {order.products?.map((product: any, index: number) => (
-                        <div key={product.departure_order_product_id || index} className="bg-red-50 border border-red-200 rounded p-3 text-sm">
-                          <div className="flex justify-between items-start mb-2">
-                            <Text weight="font-medium" additionalClass="text-gray-800">
-                              #{index + 1}: {product.product?.name || product.product_name}
-                            </Text>
-                            <span className="bg-red-200 text-red-800 px-2 py-1 rounded text-xs">
-                              {t('process:will_remove_from_inventory')}
-                            </span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-3 text-xs">
-                            <div>
-                              <span className="text-gray-600">{t('process:quantity')}: </span>
-                              <span className="font-medium text-red-700">{product.requested_quantity || 0}</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">{t('process:weight')}: </span>
-                              <span className="font-medium text-red-700">{product.requested_weight || 0} kg</span>
-                            </div>
-                            <div>
-                              <span className="text-gray-600">{t('process:lot_number')}: </span>
-                              <span className="font-medium text-red-700">{product.lot_series || product.lot_number || '-'}</span>
-                            </div>
-                          </div>
-                          <div className="mt-2 text-xs text-gray-500">
-                            <span className="text-gray-600">{t('process:inventory_id')}: </span>
-                            <span className="font-mono">{product.departure_order_product_id || product.product_id}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Warning */}
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="flex-shrink-0">
-                        <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 19c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <Text weight="font-medium" additionalClass="text-red-800 text-sm mb-1">
-                          {t('process:critical_inventory_removal')}
-                        </Text>
-                        <ul className="text-xs text-red-700 space-y-1">
-                          <li>• {t('process:inventory_selections_will_be_permanently_removed')}</li>
-                          <li>• {t('process:backend_will_validate_each_inventory_selection')}</li>
-                          <li>• {t('process:order_status_will_change_to_dispatched')}</li>
-                          <li>• {t('process:this_action_cannot_be_undone')}</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Dispatch Notes */}
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      {t('process:dispatch_notes')} ({t('process:optional')})
-                    </label>
-                    <textarea
-                      className="w-full rounded p-3 h-24 resize-none bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      placeholder={t('process:enter_dispatch_notes_placeholder')}
-                      value={dispatchNotes}
-                      onChange={(e) => setDispatchNotes(e.target.value)}
-                      disabled={isSubmitting}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Comments (not shown for dispatch) */}
-              {reviewMode !== "dispatch" && (
-                <div>
+              {/* Comments */}
+              <div>
                   <label className="block font-medium text-gray-700 mb-2">
                     {reviewMode === "approve" 
                       ? `${t('process:approval_comments')} (${t('process:optional')})`
@@ -1238,9 +1100,8 @@ const DepartureAudit: React.FC = () => {
                     disabled={isSubmitting}
                   />
                 </div>
-              )}
 
-              {reviewMode !== "approve" && reviewMode !== "dispatch" && !reviewComments.trim() && (
+              {reviewMode !== "approve"  && !reviewComments.trim() && (
                 <Text size="sm" additionalClass="text-red-600">
                   {t('process:comments_required_for_rejection_revision')}
                 </Text>
@@ -1271,14 +1132,12 @@ const DepartureAudit: React.FC = () => {
                   reviewMode === "approve"
                     ? "bg-green-600 hover:bg-green-700"
                     : reviewMode === "reject"
-                    ? "bg-red-600 hover:bg-red-700"
-                    : reviewMode === "dispatch"
                     ? "bg-blue-600 hover:bg-blue-700"
                     : "bg-orange-600 hover:bg-orange-700"
                 }`}
                 disabled={
                   isSubmitting ||
-                  (reviewMode !== "approve" && reviewMode !== "dispatch" && !reviewComments.trim()) ||
+                  (reviewMode !== "approve" && !reviewComments.trim()) ||
                   (reviewMode === "reject" && !rejectionReason.trim())
                 }
               >
@@ -1288,8 +1147,6 @@ const DepartureAudit: React.FC = () => {
                   ? t('process:approve_order')
                   : reviewMode === "reject"
                   ? t('process:reject_order')
-                  : reviewMode === "dispatch"
-                  ? t('process:dispatch_order')
                   : t('process:request_revision')}
               </Button>
             </div>
