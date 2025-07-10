@@ -23,6 +23,8 @@ const CardexReport: React.FC = () => {
         t('reports:client_name') || 'Cliente',
         t('reports:manufacturer') || 'Fabricante',
         t('reports:category') || 'Categoría',
+        t('reports:lot_number') || 'Lote',
+        t('reports:expiry_date') || 'Fecha de Vencimiento',
         'Balance Inicial (Cant.)',
         'Balance Inicial (Valor)',
         'Entradas (Cant.)',
@@ -40,6 +42,8 @@ const CardexReport: React.FC = () => {
         item.client_name,
         item.manufacturer,
         item.category,
+        item.lot_numbers?.join(', ') || '-',
+        item.expiry_dates?.map((date: string) => new Date(date).toLocaleDateString()).join(', ') || '-',
         item.opening_balance.quantity.toLocaleString(),
         `$${item.opening_balance.financial_value.toFixed(2)}`,
         item.stock_in.quantity.toLocaleString(),
@@ -218,6 +222,12 @@ const CardexReport: React.FC = () => {
                     {t('reports:client_name') || 'Cliente'}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                    {t('reports:lot_number') || 'Lote'}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
+                    {t('reports:expiry_date') || 'Vencimiento'}
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
                     Balance Inicial
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
@@ -237,7 +247,7 @@ const CardexReport: React.FC = () => {
               <tbody className="bg-white divide-y divide-gray-200">
                 {!cardexReports?.data || cardexReports.data.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                       {t('reports:no_data_available') || 'No hay datos disponibles'}
                     </td>
                   </tr>
@@ -261,6 +271,32 @@ const CardexReport: React.FC = () => {
                         <Text weight="font-medium" additionalClass="text-gray-900">
                           {report.client_name}
                         </Text>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div>
+                          {report.lot_numbers && report.lot_numbers.length > 0 ? (
+                            report.lot_numbers.map((lot: string, lotIndex: number) => (
+                              <Text key={lotIndex} size="xs" additionalClass="text-gray-700 block">
+                                {lot}
+                              </Text>
+                            ))
+                          ) : (
+                            <Text size="xs" additionalClass="text-gray-400">-</Text>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div>
+                          {report.expiry_dates && report.expiry_dates.length > 0 ? (
+                            report.expiry_dates.map((date: string, dateIndex: number) => (
+                              <Text key={dateIndex} size="xs" additionalClass="text-gray-700 block">
+                                {new Date(date).toLocaleDateString()}
+                              </Text>
+                            ))
+                          ) : (
+                            <Text size="xs" additionalClass="text-gray-400">-</Text>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div>

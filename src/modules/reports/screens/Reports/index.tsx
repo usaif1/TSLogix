@@ -20,6 +20,7 @@ const Reports: React.FC = () => {
     setSelectedReportType,
     filters,
     setFilters,
+    clearFilters: clearStoreFilters,
     isLoading,
     loadingStates,
     fetchWarehouseReports,
@@ -88,14 +89,33 @@ const Reports: React.FC = () => {
 
   // Clear filters
   const clearFilters = () => {
+    // Clear local state
     setDateFrom('');
     setDateTo('');
     setCustomerName('');
     setCustomerCode('');
     setProductName('');
     setProductCode('');
-    setFilters({});
-    applyFilters();
+    
+    // Clear store filters
+    clearStoreFilters();
+    
+    // Fetch data with empty filters
+    const emptyFilters = {};
+    switch (selectedReportType) {
+      case 'warehouse':
+        fetchWarehouseReports(emptyFilters);
+        break;
+      case 'product-category':
+        fetchProductCategoryReports(emptyFilters);
+        break;
+      case 'product-wise':
+        fetchProductWiseReports(emptyFilters);
+        break;
+      case 'cardex':
+        fetchCardexReports(emptyFilters);
+        break;
+    }
   };
 
   // Handle report type change

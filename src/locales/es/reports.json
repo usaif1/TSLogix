@@ -81,6 +81,7 @@
   "product": "Producto",
   "order_info": "Información de Orden",
   "lot_number": "Número de Lote",
+  "expiry_date": "Fecha de Vencimiento",
   "volume": "Volumen",
   "units": "unidades",
   "packages": "paquetes",
