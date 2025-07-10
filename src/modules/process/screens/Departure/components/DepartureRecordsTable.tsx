@@ -97,7 +97,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'departure_order_no', 
         header: t('process:departure_order_no'),
-        size: 140,
         cell: (info: any) => {
           const order = info.row.original;
           return (
@@ -116,7 +115,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'order_status',
         header: t('process:order_status'),
-        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
           const status = order.order_status || order.status;
@@ -131,11 +129,9 @@ const DepartureRecordsTable: React.FC = () => {
           );
         },
       },
-
       { 
         accessor: 'client_name', 
         header: t('process:client'),
-        size: 160,
         cell: (info: any) => {
           const order = info.row.original;
           const clientName = getClientName(order);
@@ -149,7 +145,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'total_products', 
         header: t('process:total_products'),
-        size: 80,
         cell: (info: any) => {
           const order = info.row.original;
           return order.comprehensive_summary?.total_products || order.products?.length || 0;
@@ -158,7 +153,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'total_qty', 
         header: t('process:total_qty'),
-        size: 100,
         cell: (info: any) => {
           const order = info.row.original;
           const totals = getComprehensiveTotals(order);
@@ -168,7 +162,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'total_weight', 
         header: t('process:total_weight_kg'),
-        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
           const totals = getComprehensiveTotals(order);
@@ -178,7 +171,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'total_pallets', 
         header: t('process:total_pallets'),
-        size: 100,
         cell: (info: any) => {
           const order = info.row.original;
           return order.total_pallets || 0;
@@ -187,7 +179,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'supplier', 
         header: t('process:supplier'),
-        size: 160,
         cell: (info: any) => {
           const order = info.row.original;
           const supplier = getMainSupplier(order.products_summary || order.products || []);
@@ -201,7 +192,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'departure_date', 
         header: t('process:departure_date'),
-        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
           const date = order.departure_date_time || order.departure_date;
@@ -211,7 +201,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'destination_point', 
         header: t('process:destination'),
-        size: 140,
         cell: (info: any) => {
           const order = info.row.original;
           const destination = order.destination_point || order.arrival_point || '-';
@@ -225,7 +214,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'transport_type', 
         header: t('process:transport_type'),
-        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
           return order.transport_type || '-';
@@ -234,7 +222,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'priority_level', 
         header: t('process:priority'),
-        size: 100,
         cell: (info: any) => {
           const order = info.row.original;
           const priority = order.priority_level || 'MEDIUM';
@@ -247,7 +234,6 @@ const DepartureRecordsTable: React.FC = () => {
       { 
         accessor: 'warehouse', 
         header: t('process:warehouse'),
-        size: 140,
         cell: (info: any) => {
           const order = info.row.original;
           const warehouse = order.warehouse?.name || '-';
@@ -258,11 +244,9 @@ const DepartureRecordsTable: React.FC = () => {
           );
         }
       },
-
       { 
         accessor: 'created_at', 
         header: t('process:created_date'),
-        size: 120,
         cell: (info: any) => {
           const order = info.row.original;
           const date = order.time_tracking?.created_at || order.registration_date || order.created_at;
