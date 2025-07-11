@@ -92,7 +92,7 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
   // Get actual positions per row instead of assuming 10 positions for all rows
   const getPositionsForRow = (row: string) => {
     const rowCells = filtered.filter(c => c.row === row);
-    return Array.from(new Set(rowCells.map(c => c.position))).sort((a, b) => a - b);
+    return Array.from(new Set(rowCells.map(c => c.position))).sort((a, b) => b - a);
   };
 
 
@@ -108,6 +108,9 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
 
   const getCellStyle = (cell?: WarehouseCell) => {
     if (!cell) return "bg-gray-100";
+    
+    // Passage cells are always white
+    if (cell.is_passage) return "bg-white border-gray-300 text-gray-800";
     
     // Occupied cells are always gray regardless of row
     if (cell.status === "OCCUPIED") return "bg-gray-200 text-black";
@@ -154,12 +157,13 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
           <div className="flex flex-wrap gap-4 text-xs">
             <LegendItem color="bg-emerald-400" label={t('warehouse:available')} />
             <LegendItem color="bg-gray-200" label={t('warehouse:occupied')} />
+            <LegendItem color="bg-white border-gray-300" label={t('warehouse:passage')} />
             <LegendItem color="bg-red-300 border-red-500" label={`${t('warehouse:row')} R - ${t('warehouse:rechazados')}`} />
             <LegendItem color="bg-purple-300 border-purple-500" label={`${t('warehouse:row')} T - ${t('warehouse:contramuestras')}`} />
             <LegendItem color="bg-blue-300 border-blue-500" label={`${t('warehouse:row')} V - ${t('warehouse:devoluciones')}`} />
           </div>
           <div className="text-xs text-gray-600 flex gap-4">
-            <span><strong>{t('warehouse:total_cells')}:</strong> {filtered.length}</span>
+            <span><strong>{t('warehouse:total_cells')}:</strong> {filtered.filter(cell => !cell.is_passage).length}</span>
             <span><strong>{t('warehouse:rows')}:</strong> {rows.length}</span>
             <span><strong>{t('warehouse:bays')}:</strong> {bays.length}</span>
           </div>
@@ -254,9 +258,13 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
                             >
                               {cell ? (
                                 <div className="flex flex-col items-center justify-center h-full">
-                                  <span className="font-mono">{formatId(row, bay, pos)}</span>
-                                  {hasMultiplePositions && (
-                                    <span className="text-[6px] sm:text-[8px] text-gray-600">P{pos}</span>
+                                  {!cell.is_passage && (
+                                    <>
+                                      <span className="font-mono">{formatId(row, bay, pos)}</span>
+                                      {hasMultiplePositions && (
+                                        <span className="text-[6px] sm:text-[8px] text-gray-600">P{pos}</span>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                               ) : (

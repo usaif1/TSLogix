@@ -19,6 +19,7 @@ interface Cell {
   currentUsage: number;
   status: "AVAILABLE" | "OCCUPIED" | "DAMAGED" | "EXPIRED";
   cell_role: string;
+  is_passage: boolean;
   warehouse: {
     warehouse_id: string;
     name: string;
@@ -106,6 +107,12 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
   };
 
   const handleCellToggle = (cell: Cell) => {
+    // Prevent selection of passage cells
+    if (cell.is_passage) {
+      toast.error(t('client:cell_assignment.passage_cell_error'));
+      return;
+    }
+    
     const isSelected = selectedCells.some(c => c.id === cell.id);
     
     if (isSelected) {
@@ -118,7 +125,9 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
   };
 
   const handleSelectAllCells = () => {
-    onCellSelectionChange(availableCells);
+    // Filter out passage cells from select all
+    const selectableCells = availableCells.filter(cell => !cell.is_passage);
+    onCellSelectionChange(selectableCells);
   };
 
   const handleClearSelection = () => {
@@ -128,6 +137,11 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
   const getCellStatusColor = (cell: Cell, isSelected: boolean) => {
     if (isSelected) {
       return "bg-blue-500 text-white border-blue-600";
+    }
+    
+    // Passage cells are always white and non-selectable
+    if (cell.is_passage) {
+      return "bg-white border-gray-300 text-gray-800 cursor-not-allowed";
     }
     
     if (cell.status === "OCCUPIED") {
@@ -335,10 +349,10 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
                                                  <div className="p-3">
                            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-15 gap-1">
                              {cells
-                               .sort((a, b) => a.bay - b.bay || a.position - b.position)
+                               .sort((a, b) => a.bay - b.bay || b.position - a.position)
                                .map(cell => {
                                  const isSelected = selectedCells.some(c => c.id === cell.id);
-                                 const isAvailable = cell.status === "AVAILABLE";
+                                 const isAvailable = cell.status === "AVAILABLE" && !cell.is_passage;
                                  
                                  return (
                                    <button
@@ -351,12 +365,14 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
                                        ${getCellStatusColor(cell, isSelected)}
                                        ${isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}
                                      `}
-                                     title={`${formatCellReference(cell)} - ${cell.status} - ${t('client:cell_assignment.capacity')}: ${cell.capacity}`}
+                                     title={`${formatCellReference(cell)} - ${cell.status}${cell.is_passage ? ' - Passage' : ''} - ${t('client:cell_assignment.capacity')}: ${cell.capacity}`}
                                    >
                                      <div className="flex flex-col items-center justify-center h-full leading-none">
-                                       <span className="font-mono text-[7px] leading-none">
-                                         {formatCellReference(cell)}
-                                       </span>
+                                       {!cell.is_passage && (
+                                         <span className="font-mono text-[7px] leading-none">
+                                           {formatCellReference(cell)}
+                                         </span>
+                                       )}
                                      </div>
                                      {isSelected && (
                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
@@ -381,10 +397,11 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
             <Text additionalClass="text-sm font-medium text-gray-700 mb-2">
               {t('client:cell_assignment.legend.title')}
             </Text>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 text-xs">
               <LegendItem color="bg-emerald-400" label={t('client:cell_assignment.legend.available')} />
               <LegendItem color="bg-blue-500" label={t('client:cell_assignment.legend.selected')} />
               <LegendItem color="bg-gray-200" label={t('client:cell_assignment.legend.occupied')} />
+              <LegendItem color="bg-white border-gray-300" label={t('client:cell_assignment.legend.passage')} />
               <LegendItem color="bg-rose-200 border-rose-400" label={t('client:cell_assignment.legend.damaged')} />
               <LegendItem color="bg-amber-200 border-amber-400" label={t('client:cell_assignment.legend.expired')} />
               <LegendItem color="bg-red-300 border-red-500" label={`${t('client:cell_assignment.row')} R`} />
