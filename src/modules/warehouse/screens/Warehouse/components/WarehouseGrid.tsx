@@ -92,7 +92,7 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
   // Get actual positions per row instead of assuming 10 positions for all rows
   const getPositionsForRow = (row: string) => {
     const rowCells = filtered.filter(c => c.row === row);
-    return Array.from(new Set(rowCells.map(c => c.position))).sort((a, b) => a - b);
+    return Array.from(new Set(rowCells.map(c => c.position))).sort((a, b) => b - a);
   };
 
 

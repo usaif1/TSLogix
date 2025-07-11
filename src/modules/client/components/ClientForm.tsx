@@ -51,6 +51,7 @@ interface Cell {
   currentUsage: number;
   status: "AVAILABLE" | "OCCUPIED" | "DAMAGED" | "EXPIRED";
   cell_role: string;
+  is_passage: boolean;
   warehouse: {
     warehouse_id: string;
     name: string;

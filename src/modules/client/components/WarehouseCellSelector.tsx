@@ -349,7 +349,7 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
                                                  <div className="p-3">
                            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-15 gap-1">
                              {cells
-                               .sort((a, b) => a.bay - b.bay || a.position - b.position)
+                               .sort((a, b) => a.bay - b.bay || b.position - a.position)
                                .map(cell => {
                                  const isSelected = selectedCells.some(c => c.id === cell.id);
                                  const isAvailable = cell.status === "AVAILABLE" && !cell.is_passage;
