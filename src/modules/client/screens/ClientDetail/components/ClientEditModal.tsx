@@ -245,8 +245,8 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({
   })) || [];
 
   const activeStateOptions = clientFormFields?.active_states?.map(state => ({
-    value: state.value,
-    label: state.label
+    value: state.state_id,
+    label: state.name
   })) || [];
 
   return (
