@@ -117,12 +117,14 @@ const ClientForm: React.FC = () => {
     loadFormFields();
   }, []);
 
-  // Auto-select first active state when form fields load
+  // Auto-select "Active" state when form fields load
   useEffect(() => {
     if (clientFormFields?.active_states && clientFormFields.active_states.length > 0 && !formData.active_state_id) {
+      // Find "Active" state, fallback to first if not found
+      const activeState = clientFormFields.active_states.find(state => state.name === "Active") || clientFormFields.active_states[0];
       setFormData(prev => ({
         ...prev,
-        active_state_id: clientFormFields.active_states[0].value
+        active_state_id: activeState.state_id
       }));
     }
   }, [clientFormFields, formData.active_state_id]);
@@ -348,7 +350,7 @@ const ClientForm: React.FC = () => {
         address: "",
         phone: "",
         cell_phone: "",
-        active_state_id: clientFormFields?.active_states?.[0]?.value || "",
+        active_state_id: clientFormFields?.active_states?.find(state => state.name === "Active")?.state_id || clientFormFields?.active_states?.[0]?.state_id || "",
         client_users: [],
       });
       setValidationErrors({});
@@ -635,6 +637,28 @@ const ClientForm: React.FC = () => {
                         onChange={handleInputChange}
                         placeholder={t('client:placeholders.cell_phone')}
                       />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        {t('client:fields.active_state')} *
+                      </label>
+                      <Select
+                        value={clientFormFields?.active_states?.find(state => state.state_id === formData.active_state_id) ? {
+                          value: formData.active_state_id,
+                          label: clientFormFields.active_states.find(state => state.state_id === formData.active_state_id)?.name || ''
+                        } : null}
+                        onChange={(selectedOption) => handleSelectChange('active_state_id', selectedOption)}
+                        options={clientFormFields?.active_states?.map(state => ({
+                          value: state.state_id,
+                          label: state.name
+                        })) || []}
+                        placeholder={t('client:placeholders.active_state')}
+                        className={validationErrors.active_state_id ? "border-red-500" : ""}
+                      />
+                      {validationErrors.active_state_id && (
+                        <Text additionalClass="text-red-500 text-sm mt-1">{validationErrors.active_state_id}</Text>
+                      )}
                     </div>
                   </div>
 

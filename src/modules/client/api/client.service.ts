@@ -68,7 +68,7 @@ export interface ClientFormFields {
   client_types: Array<{ value: string; label: string }>;
   establishment_types: Array<{ value: string; label: string }>;
   company_types: Array<{ value: string; label: string }>;
-  active_states: Array<{ value: string; label: string }>;
+  active_states: Array<{ state_id: string; name: string }>;
   required_fields: {
     juridico: string[];
     natural: string[];
