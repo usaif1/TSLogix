@@ -110,5 +110,15 @@
   "pharmacist": "Pharmacist",
   "user": "User",
   "allocate": "Allocate",
-  "item_selected": "Item Selected"
+  "item_selected": "Item Selected",
+  "view_profile": "View Profile",
+  "manage_your_account_settings_and_preferences": "Manage your account settings and preferences",
+  "security_settings": "Security Settings",
+  "password": "Password",
+  "change_your_account_password": "Change your account password",
+  "email": "Email",
+  "phone": "Phone",
+  "retry": "Retry",
+  "supplier_code": "Supplier Code",
+  "auto_generated_code": "Auto-generated code"
 }

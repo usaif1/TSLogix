@@ -178,5 +178,13 @@
   "enter_supplier_category": "Ingrese la categoría del proveedor",
   "ruc_required_for_peru": "El RUC es requerido para proveedores de Perú",
   "documents": "Documentos",
-  "no_documents": "Sin Documentos"
+  "no_documents": "Sin Documentos",
+  "update_supplier_information": "Actualizar información del proveedor",
+  "save_changes": "Guardar Cambios",
+  "supplier_updated_successfully": "Proveedor actualizado exitosamente",
+  "failed_to_update_supplier": "Error al actualizar el proveedor",
+  "failed_to_load_supplier": "Error al cargar los datos del proveedor",
+  "supplier_not_found": "Proveedor no encontrado",
+  "supplier_code": "Código de Proveedor",
+  "auto_generated_code": "Código generado automáticamente"
 }

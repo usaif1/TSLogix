@@ -82,7 +82,7 @@ export default function WarehouseView() {
   return (
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-xl font-bold">{t('warehouse:warehouse_report')}</h1>
+        <h1 className="text-xl font-bold">{t('warehouse:warehouse_management')}</h1>
         <Button 
           variant="primary" 
           onClick={downloadExcel}
@@ -93,6 +93,7 @@ export default function WarehouseView() {
         </Button>
       </div>
 
+      {/* Warehouse Selection */}
       <div className="mb-4">
         <label className="mr-2">{t('warehouse:select_warehouse')}</label>
         {loadingWarehouses ? (
@@ -117,6 +118,7 @@ export default function WarehouseView() {
         )}
       </div>
 
+      {/* Warehouse Grid */}
       <div className="border max-h-[70vh] max-w-[95vw] sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[80vw] overflow-y-auto overflow-x-auto">
         <WarehouseGrid warehouse_id={warehouseId} />
       </div>

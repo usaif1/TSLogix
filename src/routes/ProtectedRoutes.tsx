@@ -27,6 +27,7 @@ import {
   // maintenance
   Supplier,
   NewSupplier,
+  EditSupplier,
   MaintenanceHome,
   Product,
   NewProduct,
@@ -58,6 +59,11 @@ import {
   // reports
   Reports,
 } from "@/modules/reports/screens";
+
+import {
+  // profile
+  UserProfile,
+} from "@/modules/profile/screens";
 
 // Role-based route wrapper component
 const RoleProtectedRoute: React.FC<{
@@ -117,6 +123,7 @@ const ProtectedRoutes: React.FC = () => {
           <Route path="supplier">
             <Route index element={<Supplier />} />
             <Route path="new" element={<NewSupplier />} />
+            <Route path="edit/:supplierId" element={<EditSupplier />} />
           </Route>
           <Route path="product">
             <Route index element={<Product />} />
@@ -142,6 +149,9 @@ const ProtectedRoutes: React.FC = () => {
         </Route>
         <Route path="reports">
           <Route index element={<Reports />} />
+        </Route>
+        <Route path="profile">
+          <Route index element={<UserProfile />} />
         </Route>
       </Route>
     </Routes>

@@ -7,6 +7,13 @@ import {
   ColumnDef,
 } from "@tanstack/react-table";
 
+// Extend the ColumnMeta interface to include our custom properties
+declare module '@tanstack/react-table' {
+  interface ColumnMeta<TData, TValue> {
+    isFixed?: boolean;
+  }
+}
+
 interface DataTableProps<T extends object> {
   data: T[];
   columns: ColumnDef<T, unknown>[];
@@ -60,19 +67,31 @@ function DataTable<T extends object>({
           <thead className="bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id} className="border-b border-gray-200">
-                {headerGroup.headers.map((header, index) => (
-                  <th
-                    key={header.id}
-                    className={`px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider ${
-                      index === 0 ? "sticky left-0 bg-gray-50 shadow-md" : ""
-                    }`}
-                  >
+                {headerGroup.headers.map((header, index) => {
+                  const isFixed = header.column.columnDef.meta?.isFixed;
+                  let stickyClass = "";
+                  
+                  if (isFixed && index === 0) {
+                    stickyClass = "sticky left-0 bg-gray-50 shadow-md z-10 min-w-[200px]";
+                  } else if (isFixed && index === 1) {
+                    stickyClass = "sticky left-[200px] bg-gray-50 shadow-md z-10 min-w-[200px]";
+                  } else if (index === 0) {
+                    // Fallback: make first column sticky even without meta.isFixed
+                    stickyClass = "sticky left-0 bg-gray-50 shadow-md z-10 min-w-[200px]";
+                  }
+                  
+                  return (
+                    <th
+                      key={header.id}
+                      className={`px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider ${stickyClass}`}
+                    >
                     {flexRender(
                       header.column.columnDef.header,
                       header.getContext()
                     )}
-                  </th>
-                ))}
+                    </th>
+                  );
+                })}
               </tr>
             ))}
           </thead>
@@ -90,20 +109,32 @@ function DataTable<T extends object>({
                   }`}
                   onClick={() => onRowClick?.(row.original)}
                 >
-                  {row.getVisibleCells().map((cell, index) => (
-                    <td
-                      key={cell.id}
-                      className={`px-6 py-4 text-sm text-gray-700 truncate max-w-xs ${
-                        index === 0 ? "sticky left-0 bg-white shadow-md" : ""
-                      }`}
-                      title={String(cell.getValue() || "")}
-                    >
+                  {row.getVisibleCells().map((cell, index) => {
+                    const isFixed = cell.column.columnDef.meta?.isFixed;
+                    let stickyClass = "";
+                    
+                    if (isFixed && index === 0) {
+                      stickyClass = "sticky left-0 bg-white shadow-md z-10 min-w-[200px]";
+                    } else if (isFixed && index === 1) {
+                      stickyClass = "sticky left-[200px] bg-white shadow-md z-10 min-w-[200px]";
+                    } else if (index === 0) {
+                      // Fallback: make first column sticky even without meta.isFixed
+                      stickyClass = "sticky left-0 bg-white shadow-md z-10 min-w-[200px]";
+                    }
+                    
+                    return (
+                      <td
+                        key={cell.id}
+                        className={`px-6 py-4 text-sm text-gray-700 truncate max-w-xs ${stickyClass}`}
+                        title={String(cell.getValue() || "")}
+                      >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
                       )}
-                    </td>
-                  ))}
+                      </td>
+                    );
+                  })}
                 </tr>
               ))
             ) : (

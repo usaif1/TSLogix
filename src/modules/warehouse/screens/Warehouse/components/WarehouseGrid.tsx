@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import clsx from "clsx";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import useWarehouseCellStore, {
   WarehouseCell,
 } from "@/modules/warehouse/store";
+import { WarehouseCellService } from "@/modules/warehouse/api/warehouse.service";
 
 interface WarehouseGridProps {
   warehouse_id?: string;
@@ -11,8 +13,91 @@ interface WarehouseGridProps {
 
 function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
   const { t } = useTranslation(['warehouse', 'common']);
-  const { cells, loaders } = useWarehouseCellStore();
+  const { cells, loaders, setCells } = useWarehouseCellStore();
   const loading = loaders["cells/fetch-cells"];
+  
+  // Role change state
+  const [selectedCell, setSelectedCell] = useState<WarehouseCell | null>(null);
+  const [cellRoles, setCellRoles] = useState<Array<{ value: string; label: string }>>([]);
+  const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    show: boolean;
+    cellId: string;
+    newRole: string;
+    oldRole: string;
+  }>({ show: false, cellId: '', newRole: '', oldRole: '' });
+
+  // Check if user is ADMIN
+  const userRole = localStorage.getItem("role");
+  const isAdmin = userRole === "ADMIN";
+
+  // Load cell roles on component mount
+  useEffect(() => {
+    if (isAdmin) {
+      loadCellRoles();
+    }
+  }, [isAdmin]);
+
+  const loadCellRoles = async () => {
+    try {
+      const roles = await WarehouseCellService.fetchCellRoles();
+      setCellRoles(roles);
+    } catch (error) {
+      console.error("Error loading cell roles:", error);
+      toast.error(t('warehouse:failed_to_load_cell_roles'));
+    }
+  };
+
+  const handleCellClick = (cell: WarehouseCell) => {
+    if (!isAdmin || cell.is_passage) return;
+    
+    setSelectedCell(cell);
+    setShowRoleDropdown(true);
+  };
+
+  const handleRoleSelect = (newRole: string) => {
+    if (!selectedCell) return;
+    
+    setConfirmDialog({
+      show: true,
+      cellId: selectedCell.id,
+      newRole,
+      oldRole: selectedCell.cell_role || 'STANDARD',
+    });
+    setShowRoleDropdown(false);
+  };
+
+  const confirmRoleChange = async () => {
+    const { cellId, newRole } = confirmDialog;
+    
+    try {
+      const result = await WarehouseCellService.changeCellRole(cellId, newRole);
+      
+      if (result.success) {
+        toast.success(result.message || t('warehouse:cell_role_changed_successfully'));
+        
+        // Update the cell in the store
+        const updatedCells = cells.map(cell => 
+          cell.id === cellId 
+            ? { ...cell, cell_role: newRole }
+            : cell
+        );
+        setCells(updatedCells);
+      }
+    } catch (error: any) {
+      console.error("Error changing cell role:", error);
+      toast.error(error.message || t('warehouse:failed_to_change_cell_role'));
+    } finally {
+      setConfirmDialog({ show: false, cellId: '', newRole: '', oldRole: '' });
+      setSelectedCell(null);
+    }
+  };
+
+  const cancelRoleChange = () => {
+    setConfirmDialog({ show: false, cellId: '', newRole: '', oldRole: '' });
+    setSelectedCell(null);
+    setShowRoleDropdown(false);
+  };
 
   if (loading) {
     return (
@@ -109,38 +194,42 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
   const getCellStyle = (cell?: WarehouseCell) => {
     if (!cell) return "bg-gray-100";
     
-    // Passage cells are always white
-    if (cell.is_passage) return "bg-white border-gray-300 text-gray-800";
+    // Passage cells have a light gray background for better visibility
+    if (cell.is_passage) return "bg-gray-200 border-gray-400 text-gray-700";
     
-    // Occupied cells are always gray regardless of row
-    if (cell.status === "OCCUPIED") return "bg-gray-200 text-black";
+    // Color based on cell role - different intensity for available vs occupied
+    const isOccupied = cell.status === "OCCUPIED";
     
-    if (cell.status === "AVAILABLE") {
-      // Special rows have their own color schemes for available cells
-      if (cell.row === "R") {
-        // R row (Rejected): Red-based colors
-        return "bg-red-300 border-red-500 text-red-900";
-      }
-      if (cell.row === "T") {
-        // T row (Samples/Contramuestras): Purple-based colors
-        return "bg-purple-300 border-purple-500 text-purple-900";
-      }
-      if (cell.row === "V") {
-        // V row (Returns/Devoluciones): Blue-based colors
-        return "bg-blue-300 border-blue-500 text-blue-900";
-      }
-      
-      // Regular rows and Q row use the original color scheme
-      switch (cell.cell_role) {
-        case "DAMAGED":
-          return "bg-rose-200 border-rose-400";
-        case "EXPIRED":
-          return "bg-amber-200 border-amber-400";
-        default:
-          return "bg-emerald-400";
-      }
+    switch (cell.cell_role) {
+      case "STANDARD":
+        return isOccupied 
+          ? "bg-emerald-200 border-emerald-300 text-emerald-800" 
+          : "bg-emerald-400 border-emerald-500 text-emerald-900";
+      case "DAMAGED":
+        return isOccupied 
+          ? "bg-rose-100 border-rose-200 text-rose-700" 
+          : "bg-rose-300 border-rose-500 text-rose-900";
+      case "EXPIRED":
+        return isOccupied 
+          ? "bg-amber-100 border-amber-200 text-amber-700" 
+          : "bg-amber-300 border-amber-500 text-amber-900";
+      case "REJECTED":
+        return isOccupied 
+          ? "bg-red-100 border-red-200 text-red-700" 
+          : "bg-red-300 border-red-500 text-red-900";
+      case "SAMPLES":
+        return isOccupied 
+          ? "bg-purple-100 border-purple-200 text-purple-700" 
+          : "bg-purple-300 border-purple-500 text-purple-900";
+      case "RETURNS":
+        return isOccupied 
+          ? "bg-blue-100 border-blue-200 text-blue-700" 
+          : "bg-blue-300 border-blue-500 text-blue-900";
+      default:
+        return isOccupied 
+          ? "bg-emerald-200 border-emerald-300 text-emerald-800" 
+          : "bg-emerald-400 border-emerald-500 text-emerald-900"; // Default to standard
     }
-    return "bg-gray-600";
   };
 
   const isDivider = (row: string, bay: number) =>
@@ -155,12 +244,49 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex flex-wrap gap-4 text-xs">
-            <LegendItem color="bg-emerald-400" label={t('warehouse:available')} />
-            <LegendItem color="bg-gray-200" label={t('warehouse:occupied')} />
-            <LegendItem color="bg-white border-gray-300" label={t('warehouse:passage')} />
-            <LegendItem color="bg-red-300 border-red-500" label={`${t('warehouse:row')} R - ${t('warehouse:rechazados')}`} />
-            <LegendItem color="bg-purple-300 border-purple-500" label={`${t('warehouse:row')} T - ${t('warehouse:contramuestras')}`} />
-            <LegendItem color="bg-blue-300 border-blue-500" label={`${t('warehouse:row')} V - ${t('warehouse:devoluciones')}`} />
+            <div className="flex items-center gap-1">
+              <div className="flex">
+                <div className="w-3 h-3 bg-emerald-400 border border-emerald-500 rounded-l-sm"></div>
+                <div className="w-3 h-3 bg-emerald-200 border border-emerald-300 rounded-r-sm"></div>
+              </div>
+              <span>{t('warehouse:standard')}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="flex">
+                <div className="w-3 h-3 bg-rose-300 border border-rose-500 rounded-l-sm"></div>
+                <div className="w-3 h-3 bg-rose-100 border border-rose-200 rounded-r-sm"></div>
+              </div>
+              <span>{t('warehouse:damaged')}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="flex">
+                <div className="w-3 h-3 bg-amber-300 border border-amber-500 rounded-l-sm"></div>
+                <div className="w-3 h-3 bg-amber-100 border border-amber-200 rounded-r-sm"></div>
+              </div>
+              <span>{t('warehouse:expired')}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="flex">
+                <div className="w-3 h-3 bg-red-300 border border-red-500 rounded-l-sm"></div>
+                <div className="w-3 h-3 bg-red-100 border border-red-200 rounded-r-sm"></div>
+              </div>
+              <span>{t('warehouse:rejected')}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="flex">
+                <div className="w-3 h-3 bg-purple-300 border border-purple-500 rounded-l-sm"></div>
+                <div className="w-3 h-3 bg-purple-100 border border-purple-200 rounded-r-sm"></div>
+              </div>
+              <span>{t('warehouse:samples')}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="flex">
+                <div className="w-3 h-3 bg-blue-300 border border-blue-500 rounded-l-sm"></div>
+                <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded-r-sm"></div>
+              </div>
+              <span>{t('warehouse:returns')}</span>
+            </div>
+            <LegendItem color="bg-gray-200 border-gray-400" label={t('warehouse:passage')} />
           </div>
           <div className="text-xs text-gray-600 flex gap-4">
             <span><strong>{t('warehouse:total_cells')}:</strong> {filtered.filter(cell => !cell.is_passage).length}</span>
@@ -246,15 +372,17 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
                                 "h-6 sm:h-8 border text-[7px] sm:text-[9px] text-center relative",
                                 "w-[1.8rem] sm:w-10 px-0.5",
                                 style,
-                                divClass
+                                divClass,
+                                isAdmin && cell && !cell.is_passage && "cursor-pointer hover:opacity-80"
                               )}
                               title={
                                 cell
                                   ? `${formatId(row, bay, pos)} - ${
                                       cell.cell_role
-                                    } - ${cell.status}`
+                                    } - ${cell.status}${isAdmin ? ' (Click to change role)' : ''}`
                                   : `No cell at ${formatId(row, bay, pos)}`
                               }
+                              onClick={() => cell && handleCellClick(cell)}
                             >
                               {cell ? (
                                 <div className="flex flex-col items-center justify-center h-full">
@@ -298,6 +426,80 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
           </table>
         </div>
       </div>
+
+      {/* Role Change Dropdown */}
+      {showRoleDropdown && selectedCell && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              {t('warehouse:change_cell_role')}
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {t('warehouse:cell')}: {formatId(selectedCell.row, selectedCell.bay, selectedCell.position)}
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              {t('warehouse:current_role')}: {selectedCell.cell_role || 'STANDARD'}
+            </p>
+            
+            <div className="space-y-2 mb-6">
+              {cellRoles.map((role) => (
+                <button
+                  key={role.value}
+                  onClick={() => handleRoleSelect(role.value)}
+                  className="w-full text-left px-4 py-2 rounded-md border border-gray-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  disabled={role.value === selectedCell.cell_role}
+                >
+                  <span className={role.value === selectedCell.cell_role ? 'text-gray-400' : 'text-gray-900'}>
+                    {role.label}
+                    {role.value === selectedCell.cell_role && ' (Current)'}
+                  </span>
+                </button>
+              ))}
+            </div>
+            
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={cancelRoleChange}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                {t('common:cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmDialog.show && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4 text-red-600">
+              {t('warehouse:confirm_role_change')}
+            </h3>
+            <p className="text-sm text-gray-600 mb-4">
+              {t('warehouse:change_role_confirmation', {
+                oldRole: confirmDialog.oldRole,
+                newRole: confirmDialog.newRole
+              })}
+            </p>
+            
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={cancelRoleChange}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                {t('common:cancel')}
+              </button>
+              <button
+                onClick={confirmRoleChange}
+                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+              >
+                {t('warehouse:confirm_change')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

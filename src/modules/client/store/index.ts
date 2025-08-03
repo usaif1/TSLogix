@@ -13,10 +13,13 @@ export type ClientLoaderTypes =
   | "clients/fetch-available-cells-with-assignments"
   | "clients/fetch-warehouses"
   | "clients/assign-cell"
-  | "clients/remove-cell-assignment";
+  | "clients/remove-cell-assignment"
+  | "clients/change-password"
+  | "clients/fetch-next-code";
 
 export interface Client {
   client_id: string;
+  client_code?: string; // Auto-generated client code (C001, C002, etc.)
   client_type: "JURIDICO" | "NATURAL";
   
   // Juridico client fields (formerly Commercial)
@@ -190,6 +193,8 @@ const clientInitialState: ClientStore = {
     "clients/fetch-warehouses": false,
     "clients/assign-cell": false,
     "clients/remove-cell-assignment": false,
+    "clients/change-password": false,
+    "clients/fetch-next-code": false,
   },
 };
 

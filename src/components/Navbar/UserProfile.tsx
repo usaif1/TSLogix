@@ -1,10 +1,16 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import { AuthStore } from "@/globalStore";
 
 const UserProfile: React.FC = () => {
   const { t } = useTranslation(['common']);
   const { authUser } = AuthStore();
+  const navigate = useNavigate();
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+  };
   
   // Get user data with fallbacks
   const getUserInfo = () => {
@@ -147,7 +153,11 @@ const UserProfile: React.FC = () => {
 
   return (
     <div className="px-4 py-3 min-h-[4rem]">
-      <div className="flex items-center space-x-3">
+      <div 
+        className="flex items-center space-x-3 cursor-pointer hover:bg-primary-600 hover:bg-opacity-50 rounded-lg p-2 transition-colors duration-200"
+        onClick={handleProfileClick}
+        title={t('view_profile')}
+      >
         {/* Avatar with Initials - consistent size */}
         <div className="flex-shrink-0">
           <div className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center border border-gray-600">

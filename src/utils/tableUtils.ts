@@ -11,6 +11,7 @@ export function createTableColumns<T extends object>(
     header: string;
     // eslint-disable-next-line  @typescript-eslint/no-explicit-any
     cell?: (info: any) => React.ReactNode;
+    meta?: { isFixed?: boolean };
   }[]
   // eslint-disable-next-line  @typescript-eslint/no-explicit-any
 ): ColumnDef<T, any>[] {
@@ -21,6 +22,7 @@ export function createTableColumns<T extends object>(
     return columnHelper.accessor(definition.accessor as any, {
       header: definition.header,
       cell: definition.cell || (info => info.getValue()),
+      meta: definition.meta,
     });
   });
 }

@@ -14,6 +14,7 @@ import { ClientStore, Client } from "@/modules/client/store";
 
 interface FormData {
   client_type: "JURIDICO" | "NATURAL" | "";
+  client_code: string; // Auto-generated client code
   
   // Juridico fields (formerly Commercial)
   company_name: string;
@@ -75,6 +76,7 @@ const ClientForm: React.FC = () => {
 
   const [formData, setFormData] = useState<FormData>({
     client_type: "",
+    client_code: "", // Auto-generated client code
     // Commercial fields
     company_name: "",
     company_type: "",
@@ -103,18 +105,32 @@ const ClientForm: React.FC = () => {
 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // Load form fields on component mount
+  // Load form fields and client code on component mount
   useEffect(() => {
-    const loadFormFields = async () => {
+    const loadFormData = async () => {
       try {
-        await ClientService.fetchClientFormFields();
+        // Load form fields and client code in parallel
+        const [, clientCodeResponse] = await Promise.all([
+          ClientService.fetchClientFormFields(),
+          ClientService.fetchNextClientCode()
+        ]);
+        
+        // Set the auto-generated client code
+        console.log("Client code response:", clientCodeResponse);
+        const clientCode = clientCodeResponse.data?.next_client_code || clientCodeResponse.next_client_code || "";
+        console.log("Extracted client code:", clientCode);
+        
+        setFormData(prev => ({
+          ...prev,
+          client_code: clientCode
+        }));
       } catch (error) {
-        console.error("Error loading form fields:", error);
-        toast.error("Failed to load form fields");
+        console.error("Error loading form data:", error);
+        toast.error("Failed to load form data");
       }
     };
 
-    loadFormFields();
+    loadFormData();
   }, []);
 
   // Auto-select "Active" state when form fields load
@@ -280,6 +296,7 @@ const ClientForm: React.FC = () => {
       if (formData.client_type === "JURIDICO") {
         clientPayload = {
           client_type: "JURIDICO",
+          client_code: formData.client_code,
           company_name: formData.company_name,
           company_type: formData.company_type,
           establishment_type: formData.establishment_type,
@@ -296,6 +313,7 @@ const ClientForm: React.FC = () => {
       } else {
         clientPayload = {
           client_type: "NATURAL",
+          client_code: formData.client_code,
           first_names: formData.first_names,
           last_name: formData.last_name,
           mothers_last_name: formData.mothers_last_name,
@@ -337,6 +355,7 @@ const ClientForm: React.FC = () => {
       // Reset form
       setFormData({
         client_type: "",
+        client_code: "", // Will be auto-loaded when needed
         company_name: "",
         company_type: "",
         establishment_type: "",
@@ -383,8 +402,21 @@ const ClientForm: React.FC = () => {
       <div className="max-w-6xl mx-auto p-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Client Type Selection */}
+            {/* Client Code and Type Selection */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('client:fields.client_code')}
+                </label>
+                <TextInput
+                  name="client_code"
+                  value={formData.client_code}
+                  placeholder={t('client:placeholders.client_code')}
+                  disabled
+                  additionalClass="bg-gray-100 text-gray-600 cursor-not-allowed"
+                />
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   {t('client:fields.client_type')} *

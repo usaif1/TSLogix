@@ -15,6 +15,7 @@ const {
 
 export interface JuridicoClientPayload {
   client_type: "JURIDICO";
+  client_code?: string;
   company_name: string;
   company_type: string;
   establishment_type: string;
@@ -31,6 +32,7 @@ export interface JuridicoClientPayload {
 
 export interface NaturalClientPayload {
   client_type: "NATURAL";
+  client_code?: string;
   first_names: string;
   last_name: string;
   mothers_last_name: string;
@@ -106,6 +108,20 @@ export interface ClientCellAssignment {
 }
 
 export const ClientService = {
+  // Get next client code for auto-population
+  fetchNextClientCode: async () => {
+    try {
+      startLoader("clients/fetch-next-code");
+      const response = await api.get(`${baseURL}/next-code`);
+      return response.data;
+    } catch (error) {
+      console.error("Fetch next client code error:", error);
+      throw error;
+    } finally {
+      stopLoader("clients/fetch-next-code");
+    }
+  },
+
   // Fetch all clients with filters
   fetchClients: async (filters?: {
     client_type?: string;
@@ -521,6 +537,31 @@ export const ClientService = {
       throw error;
     } finally {
       stopLoader("clients/fetch-available-cells-with-assignments");
+    }
+  },
+
+  // Change client password (CLIENT role only)
+  changePassword: async (currentPassword: string, newPassword: string) => {
+    try {
+      startLoader("clients/change-password");
+      
+      const payload = {
+        current_password: currentPassword,
+        new_password: newPassword,
+      };
+
+      const response = await api.put(`${baseURL}/change-password`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Change password error:", error);
+      throw error;
+    } finally {
+      stopLoader("clients/change-password");
     }
   },
 };
