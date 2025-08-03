@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import Select, { SingleValue } from "react-select";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { Download } from "@phosphor-icons/react";
 
 // Components
 import { Button, Text, TextInput } from "@/components";
@@ -34,6 +37,7 @@ const ClientList: React.FC = () => {
   const { setFilters, resetFilters } = ClientStore.getState();
 
   const [searchTerm, setSearchTerm] = useState(filters.search);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   // Load initial clients on component mount
   useEffect(() => {
@@ -111,6 +115,97 @@ const ClientList: React.FC = () => {
     navigate(`/maintenance/client/${clientId}`);
   };
 
+  // PDF Download functionality
+  const handleDownloadPDF = async () => {
+    if (clients.length === 0) {
+      toast.error(t('client:list.no_data_to_export'));
+      return;
+    }
+
+    setIsDownloading(true);
+    
+    try {
+      // Create new PDF document
+      const doc = new jsPDF();
+      
+      // Add title
+      doc.setFontSize(20);
+      doc.text(t('client:list.client_list_title'), 14, 22);
+      
+      // Add generation date
+      doc.setFontSize(10);
+      const currentDate = new Date().toLocaleDateString();
+      doc.text(`${t('client:list.generated_on')}: ${currentDate}`, 14, 32);
+      
+      // Prepare table data
+      const tableColumns = [
+        t('client:table.code'),
+        t('client:table.name'),
+        t('client:table.type'),
+        'RUC/DNI',
+        t('client:table.email'),
+        t('client:table.phone'),
+        t('client:table.created_at')
+      ];
+      
+      const tableRows = clients.map(client => [
+        client.client_code || 'N/A',
+        getClientDisplayName(client),
+        getClientTypeDisplay(client.client_type),
+        client.client_type === "JURIDICO" ? (client.ruc || 'N/A') : (client.individual_id || 'N/A'),
+        client.email || 'N/A',
+        client.phone || 'N/A',
+        client.created_at ? formatDate(client.created_at) : 'N/A'
+      ]);
+      
+      // Add table
+      autoTable(doc, {
+        head: [tableColumns],
+        body: tableRows,
+        startY: 40,
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [59, 130, 246], // Blue header
+          textColor: [255, 255, 255],
+          fontStyle: 'bold'
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252] // Light gray for alternate rows
+        },
+        margin: { top: 40, right: 14, bottom: 20, left: 14 }
+      });
+      
+      // Add footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(
+          `${t('client:list.page')} ${i} ${t('client:list.of')} ${pageCount} - ${t('client:list.total_clients')}: ${clients.length}`,
+          14,
+          doc.internal.pageSize.height - 10
+        );
+      }
+      
+      // Generate filename
+      const timestamp = new Date().toISOString().split('T')[0];
+      const filename = `clients_list_${timestamp}.pdf`;
+      
+      // Save the PDF
+      doc.save(filename);
+      
+      toast.success(t('client:messages.pdf_downloaded_successfully'));
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast.error(t('client:messages.pdf_download_failed'));
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="h-[calc(100vh-240px)] flex flex-col">
       {/* Filters - Compact */}
@@ -144,13 +239,31 @@ const ClientList: React.FC = () => {
           </div>
 
           {/* Actions */}
-          <div className="flex items-end">
+          <div className="flex items-end gap-2">
             <Button
               variant="action"
               onClick={handleClearFilters}
-              additionalClass="w-full h-[38px]"
+              additionalClass="flex-1 h-[38px]"
             >
               {t('client:filters.clear')}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleDownloadPDF}
+              disabled={isDownloading || clients.length === 0}
+              additionalClass="flex items-center gap-2 h-[38px] px-4"
+            >
+              {isDownloading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  <span>{t('client:buttons.downloading')}</span>
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  <span>{t('client:buttons.download_pdf')}</span>
+                </>
+              )}
             </Button>
           </div>
         </div>

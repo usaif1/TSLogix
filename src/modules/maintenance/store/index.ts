@@ -9,6 +9,7 @@ type LoaderTypes =
   | "suppliers/update-supplier"
   | "suppliers/delete-supplier"
   | "suppliers/fetch-form-fields"
+  | "suppliers/fetch-next-code"
   | "products/fetch-products"
   | "products/fetch-product"
   | "products/create-product"
@@ -94,6 +95,7 @@ const initialLoaders: Record<LoaderTypes, boolean> = {
   "suppliers/update-supplier": false,
   "suppliers/delete-supplier": false,
   "suppliers/fetch-form-fields": false,
+  "suppliers/fetch-next-code": false,
   "products/fetch-products": false,
   "products/fetch-product": false,
   "products/create-product": false,

@@ -7,7 +7,8 @@ export type LoaderTypes =
   | "cells/allocate-pallets"
   | "cells/change-role"
   | "cells/fetch-history"
-  | "cells/fetch-by-role";
+  | "cells/fetch-by-role"
+  | "cells/fetch-roles";
 
 export type WarehouseCell = {
   id: string;
@@ -49,6 +50,7 @@ const initialLoaders: Record<LoaderTypes, boolean> = {
   "cells/change-role": false,
   "cells/fetch-history": false,
   "cells/fetch-by-role": false,
+  "cells/fetch-roles": false,
 };
 
 const useWarehouseCellStore = create<

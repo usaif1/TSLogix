@@ -68,7 +68,7 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
   };
 
   const confirmRoleChange = async () => {
-    const { cellId, newRole, oldRole } = confirmDialog;
+    const { cellId, newRole } = confirmDialog;
     
     try {
       const result = await WarehouseCellService.changeCellRole(cellId, newRole);

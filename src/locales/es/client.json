@@ -80,7 +80,9 @@
     "edit_client": "Editar Cliente",
     "update_client": "Actualizar Cliente",
     "updating": "Actualizando...",
-    "change_password": "Cambiar Contraseña"
+    "change_password": "Cambiar Contraseña",
+    "download_pdf": "Descargar PDF",
+    "downloading": "Descargando..."
   },
   "validation": {
     "client_type_required": "El tipo de cliente es requerido",
@@ -105,7 +107,9 @@
     "client_creation_failed": "Error al crear el cliente",
     "loading_form_fields": "Cargando opciones del formulario...",
     "loading_clients": "Cargando clientes...",
-    "no_users_added": "Aún no se han agregado usuarios. Haga clic en 'Agregar Usuario' para añadir usuarios del cliente."
+    "no_users_added": "Aún no se han agregado usuarios. Haga clic en 'Agregar Usuario' para añadir usuarios del cliente.",
+    "pdf_downloaded_successfully": "PDF descargado exitosamente",
+    "pdf_download_failed": "Error al descargar el PDF"
   },
   "list": {
     "title": "Lista de Clientes",
@@ -117,7 +121,11 @@
     "no_clients_description": "Crea tu primer cliente para comenzar",
     "page": "Página",
     "previous": "Anterior",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "no_data_to_export": "No hay datos para exportar",
+    "client_list_title": "Lista de Clientes",
+    "generated_on": "Generado el",
+    "total_clients": "Total de clientes"
   },
   "filters": {
     "search": "Buscar",
@@ -131,6 +139,9 @@
     "name": "Nombre",
     "type": "Tipo",
     "contact": "Contacto",
+    "email": "Correo Electrónico",
+    "phone": "Teléfono",
+    "created_at": "Fecha de Creación",
     "cells": "Posiciones",
     "orders": "Órdenes",
     "created": "Creado",

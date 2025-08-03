@@ -14,7 +14,8 @@ export type ClientLoaderTypes =
   | "clients/fetch-warehouses"
   | "clients/assign-cell"
   | "clients/remove-cell-assignment"
-  | "clients/change-password";
+  | "clients/change-password"
+  | "clients/fetch-next-code";
 
 export interface Client {
   client_id: string;
@@ -193,6 +194,7 @@ const clientInitialState: ClientStore = {
     "clients/assign-cell": false,
     "clients/remove-cell-assignment": false,
     "clients/change-password": false,
+    "clients/fetch-next-code": false,
   },
 };
 

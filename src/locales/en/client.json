@@ -80,7 +80,9 @@
     "edit_client": "Edit Client",
     "update_client": "Update Client",
     "updating": "Updating...",
-    "change_password": "Change Password"
+    "change_password": "Change Password",
+    "download_pdf": "Download PDF",
+    "downloading": "Downloading..."
   },
   "validation": {
     "client_type_required": "Client type is required",
@@ -105,7 +107,9 @@
     "client_creation_failed": "Failed to create client",
     "loading_form_fields": "Loading form options...",
     "loading_clients": "Loading clients...",
-    "no_users_added": "No users added yet. Click 'Add User' to add client users."
+    "no_users_added": "No users added yet. Click 'Add User' to add client users.",
+    "pdf_downloaded_successfully": "PDF downloaded successfully",
+    "pdf_download_failed": "Failed to download PDF"
   },
   "list": {
     "title": "Client List",
@@ -117,7 +121,11 @@
     "no_clients_description": "Create your first client to get started",
     "page": "Page",
     "previous": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "no_data_to_export": "No data to export",
+    "client_list_title": "Client List",
+    "generated_on": "Generated on",
+    "total_clients": "Total clients"
   },
   "filters": {
     "search": "Search",

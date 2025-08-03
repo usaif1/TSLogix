@@ -89,7 +89,7 @@ const CellRoleChangeModal: React.FC<CellRoleChangeModalProps> = ({
     }
 
     try {
-      await WarehouseCellService.changeCellRole(cell.id, selectedRole.value, reason);
+      await WarehouseCellService.changeCellRole(cell.id, selectedRole.value);
       
       toast.success(t('cell_role_changed_successfully'));
       onSuccess();
@@ -207,8 +207,8 @@ const CellRoleChangeModal: React.FC<CellRoleChangeModalProps> = ({
                 placeholder={t('select_quality_purpose')}
                 formatOptionLabel={(option) => (
                   <div>
-                    <div className="font-medium">{option.labelEs}</div>
-                    <div className="text-sm text-gray-500">{option.descriptionEs}</div>
+                    <div className="font-medium">{option.label}</div>
+                    <div className="text-sm text-gray-500">{option.description}</div>
                   </div>
                 )}
                 className={errors.role ? 'border-red-500' : ''}

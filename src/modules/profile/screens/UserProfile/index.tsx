@@ -25,7 +25,7 @@ const UserProfilePage: React.FC = () => {
     updatePasswordForm,
     setPasswordErrors,
     togglePasswordVisibility,
-    resetPasswordForm,
+    // resetPasswordForm, // Currently unused
   } = ProfileStore();
 
   // Get user data with fallbacks

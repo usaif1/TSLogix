@@ -7,6 +7,13 @@ import {
   ColumnDef,
 } from "@tanstack/react-table";
 
+// Extend the ColumnMeta interface to include our custom properties
+declare module '@tanstack/react-table' {
+  interface ColumnMeta<TData, TValue> {
+    isFixed?: boolean;
+  }
+}
+
 interface DataTableProps<T extends object> {
   data: T[];
   columns: ColumnDef<T, unknown>[];

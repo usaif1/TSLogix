@@ -25,10 +25,10 @@ interface CountryOption {
   label: string;
 }
 
-interface CategoryOption {
-  value: string;
-  label: string;
-}
+// interface CategoryOption {
+//   value: string;
+//   label: string;
+// }
 
 interface FormData {
   // Company information
@@ -273,7 +273,7 @@ const EditSupplier: React.FC = () => {
     }
 
     // Determine document type based on RUC field
-    let documentType = "";
+    let documentType: "RUC" | "ID_FISCAL" | "" = "";
     if (supplier.ruc || supplier.tax_id) {
       // You can add logic here to determine if it's RUC or ID_FISCAL
       // For now, default to RUC if there's a value
