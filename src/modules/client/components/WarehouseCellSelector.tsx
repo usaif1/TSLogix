@@ -139,9 +139,9 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
       return "bg-blue-500 text-white border-blue-600";
     }
     
-    // Passage cells are always white and non-selectable
+    // Passage cells have a light gray background and are non-selectable
     if (cell.is_passage) {
-      return "bg-white border-gray-300 text-gray-800 cursor-not-allowed";
+      return "bg-gray-200 border-gray-400 text-gray-700 cursor-not-allowed";
     }
     
     if (cell.status === "OCCUPIED") {
@@ -401,7 +401,7 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
               <LegendItem color="bg-emerald-400" label={t('client:cell_assignment.legend.available')} />
               <LegendItem color="bg-blue-500" label={t('client:cell_assignment.legend.selected')} />
               <LegendItem color="bg-gray-200" label={t('client:cell_assignment.legend.occupied')} />
-              <LegendItem color="bg-white border-gray-300" label={t('client:cell_assignment.legend.passage')} />
+              <LegendItem color="bg-gray-200 border-gray-400" label={t('client:cell_assignment.legend.passage')} />
               <LegendItem color="bg-rose-200 border-rose-400" label={t('client:cell_assignment.legend.damaged')} />
               <LegendItem color="bg-amber-200 border-amber-400" label={t('client:cell_assignment.legend.expired')} />
               <LegendItem color="bg-red-300 border-red-500" label={`${t('client:cell_assignment.row')} R`} />

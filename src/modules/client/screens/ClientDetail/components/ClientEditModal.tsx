@@ -277,6 +277,20 @@ const ClientEditModal: React.FC<ClientEditModalProps> = ({
                 <h3 className="text-lg font-medium text-gray-900 mb-4">
                   {t('client:sections.basic_information')}
                 </h3>
+                
+                {/* Client Code - Read Only */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    {t('client:fields.client_code')}
+                  </label>
+                  <TextInput
+                    name="client_code"
+                    value={client.client_code || 'N/A'}
+                    disabled
+                    additionalClass="bg-gray-100 text-gray-600 cursor-not-allowed"
+                  />
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {isJuridico ? (
                     <>

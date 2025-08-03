@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { ArrowRight } from "@phosphor-icons/react";
 
 // components
-import { Button, Text } from "@/components";
+import Button from "@/components/Button";
+import CustomText from "@/components/Text";
 
 // service
 import { AuthService } from "@/globalService";
@@ -15,12 +16,14 @@ const LoginForm: React.FC = () => {
   });
 
   const [error, setError] = useState<string>("");
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     // Clear any previous errors
     setError("");
+    setIsLoading(true);
 
     const UserId = formData.userId.trim();
     const Password = formData.loginPassword.trim();
@@ -33,9 +36,9 @@ const LoginForm: React.FC = () => {
 
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      const errorMessage =
-        "Error al iniciar sesión. Por favor intente nuevamente.";
-      setError(errorMessage);
+      setError("Error al iniciar sesión. Por favor intente nuevamente.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,45 +55,70 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <form className="login_form" onSubmit={onSubmit}>
-      <div className="login_form_block">
-        <label htmlFor="userId">ID de Usuario</label>
+    <form className="space-y-6" onSubmit={onSubmit}>
+      <div>
+        <label htmlFor="userId" className="block text-sm font-medium text-gray-700 mb-2">
+          ID de Usuario
+        </label>
         <input
           type="text"
           onChange={onChange}
           value={formData.userId}
-          className="login_input mt-1.5"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           placeholder="Ingrese su ID de usuario"
           autoComplete="off"
           name="userId"
         />
       </div>
-      <div className="login_form_block">
-        <label htmlFor="loginPassword">Contraseña</label>
+      
+      <div>
+        <label htmlFor="loginPassword" className="block text-sm font-medium text-gray-700 mb-2">
+          Contraseña
+        </label>
         <input
           type="password"
           value={formData.loginPassword}
           onChange={onChange}
-          className="login_input mt-1.5"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          placeholder="Ingrese su contraseña"
           name="loginPassword"
         />
       </div>
 
       {/* Error message display */}
       {error && (
-        <div className="mt-2">
-          <Text size="sm" weight="font-normal" additionalClass="text-red-500">
+        <div className="rounded-md bg-red-50 p-4">
+          <CustomText size="sm" weight="font-normal" additionalClass="text-red-800">
             {error}
-          </Text>
+          </CustomText>
         </div>
       )}
 
-      <Button type="submit">
-        <div className="flex gap-x-2 items-center">
-          <Text color="text-white" weight="font-normal">
-            Iniciar Sesión
-          </Text>
-          <ArrowRight weight="bold" />
+      <Button 
+        type="submit" 
+        disabled={isLoading}
+        additionalClass={`w-full py-3 px-4 border border-transparent rounded-md shadow-sm text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+          isLoading 
+            ? 'bg-blue-400 cursor-not-allowed' 
+            : 'bg-blue-600 hover:bg-blue-700'
+        }`}
+      >
+        <div className="flex gap-x-2 items-center justify-center">
+          {isLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <CustomText color="text-white" weight="font-medium">
+                Iniciando sesión...
+              </CustomText>
+            </>
+          ) : (
+            <>
+              <CustomText color="text-white" weight="font-medium">
+                Iniciar Sesión
+              </CustomText>
+              <ArrowRight weight="bold" size={18} />
+            </>
+          )}
         </div>
       </Button>
     </form>

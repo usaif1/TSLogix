@@ -196,6 +196,9 @@ const ClientList: React.FC = () => {
                 <thead className="bg-gray-50 sticky top-0">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {t('client:table.code')}
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       {t('client:table.name')}
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -222,6 +225,15 @@ const ClientList: React.FC = () => {
                       className="hover:bg-gray-50 cursor-pointer" 
                       onClick={() => handleClientClick(client.client_id)}
                     >
+                      {/* Client Code */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <span className="inline-flex px-3 py-1 text-sm font-mono font-medium bg-gray-100 text-gray-800 rounded-md">
+                            {client.client_code || 'N/A'}
+                          </span>
+                        </div>
+                      </td>
+
                       {/* Name */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">

@@ -22,6 +22,7 @@
   },
   "fields": {
     "client_type": "Tipo de Cliente",
+    "client_code": "Código de Cliente",
     "company_name": "Nombre de la Empresa",
     "company_type": "Tipo de Empresa",
     "establishment_type": "Tipo de Establecimiento",
@@ -45,6 +46,7 @@
   },
   "placeholders": {
     "select_client_type": "Seleccione tipo de cliente",
+    "client_code": "Código generado automáticamente",
     "company_name": "Ingrese nombre de la empresa",
     "ruc": "Número RUC de 11 dígitos",
     "establishment_type": "Seleccione tipo de establecimiento",
@@ -77,7 +79,8 @@
     "remove": "Eliminar",
     "edit_client": "Editar Cliente",
     "update_client": "Actualizar Cliente",
-    "updating": "Actualizando..."
+    "updating": "Actualizando...",
+    "change_password": "Cambiar Contraseña"
   },
   "validation": {
     "client_type_required": "El tipo de cliente es requerido",
@@ -124,6 +127,7 @@
     "clear": "Limpiar Filtros"
   },
   "table": {
+    "code": "Código",
     "name": "Nombre",
     "type": "Tipo",
     "contact": "Contacto",
@@ -197,5 +201,26 @@
     "clear_all": "Limpiar Todo",
     "total_cells": "Total de Posiciones",
     "selected_count": "Seleccionado"
+  },
+  "password": {
+    "change_password": "Cambiar Contraseña",
+    "current_password": "Contraseña Actual",
+    "new_password": "Nueva Contraseña",
+    "confirm_new_password": "Confirmar Nueva Contraseña",
+    "enter_current_password": "Ingresa tu contraseña actual",
+    "enter_new_password": "Ingresa tu nueva contraseña",
+    "current_password_required": "La contraseña actual es requerida",
+    "new_password_required": "La nueva contraseña es requerida",
+    "confirm_password_required": "Por favor confirma tu nueva contraseña",
+    "passwords_do_not_match": "Las contraseñas no coinciden",
+    "new_password_must_be_different": "La nueva contraseña debe ser diferente a la contraseña actual",
+    "password_min_length": "La contraseña debe tener al menos 6 caracteres",
+    "password_requirements": "La contraseña debe tener al menos 6 caracteres",
+    "password_changed_successfully": "Contraseña cambiada exitosamente",
+    "failed_to_change_password": "Error al cambiar la contraseña",
+    "security_notice": "Aviso de Seguridad",
+    "password_change_notice": "Después de cambiar tu contraseña, necesitarás iniciar sesión nuevamente con tu nueva contraseña.",
+    "access_denied": "Acceso Denegado",
+    "only_clients_can_change_password": "Solo los clientes pueden cambiar su contraseña a través de esta interfaz."
   }
 } 

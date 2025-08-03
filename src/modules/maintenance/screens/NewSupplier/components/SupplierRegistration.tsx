@@ -18,6 +18,7 @@ const reactSelectStyle = {
 interface FormData {
   // ✅ NEW: Enhanced company information
   company_name: string;
+  supplier_code: string; // Auto-generated supplier code
   category: string; // Changed from CountryOption to string for text field
   document_type: "RUC" | "ID_FISCAL" | ""; // New field for document type selection
   
@@ -53,6 +54,7 @@ const SupplierRegistration: React.FC = () => {
   const [formData, setFormData] = useState<FormData>({
     // ✅ NEW: Initialize new fields
     company_name: "",
+    supplier_code: "",
     category: "",
     document_type: "",
     
@@ -72,7 +74,7 @@ const SupplierRegistration: React.FC = () => {
     notes: "",
   });
 
-  // Load form fields on component mount (only if not already loaded)
+  // Load form fields and generate supplier code on component mount
   useEffect(() => {
     const loadFormFields = async () => {
       try {
@@ -84,7 +86,21 @@ const SupplierRegistration: React.FC = () => {
         console.error("Error loading supplier form fields:", error);
       }
     };
+
+    const loadNextSupplierCode = async () => {
+      try {
+        const response = await SupplierService.fetchNextSupplierCode();
+        setFormData(prev => ({
+          ...prev,
+          supplier_code: response.data.next_supplier_code
+        }));
+      } catch (error) {
+        console.error("Error loading next supplier code:", error);
+      }
+    };
+
     loadFormFields();
+    loadNextSupplierCode();
   }, []);
 
 
@@ -132,6 +148,9 @@ const SupplierRegistration: React.FC = () => {
         name: formData.company_name || formData.companyName,
         company_name: formData.company_name || formData.companyName,
         
+        // ✅ NEW: Add auto-generated supplier code
+        supplier_code: formData.supplier_code,
+        
         // ✅ NEW: Add category as string
         category: formData.category,
         
@@ -154,9 +173,11 @@ const SupplierRegistration: React.FC = () => {
         notes: formData.notes,
       });
 
-      // Reset form
+      // Reset form and generate new supplier code
+      const newCodeResponse = await SupplierService.fetchNextSupplierCode();
       setFormData({
         company_name: "",
+        supplier_code: newCodeResponse.data.next_supplier_code,
         category: "",
         document_type: "",
         companyName: "",
@@ -201,6 +222,25 @@ const SupplierRegistration: React.FC = () => {
         </div>
 
         <div className="w-full flex flex-col">
+          <label htmlFor="supplier_code">{t('supplier_code')}</label>
+          <input
+            type="text"
+            id="supplier_code"
+            name="supplier_code"
+            value={formData.supplier_code}
+            onChange={handleInputChange}
+            className="h-10 border border-slate-400 rounded-md px-4 focus-visible:outline-primary-500 bg-gray-100"
+            placeholder={t('auto_generated_code')}
+            readOnly
+          />
+        </div>
+      </div>
+
+      <Divider />
+
+      {/* Section 2: Category */}
+      <div className="w-full flex items-center gap-x-6">
+        <div className="w-full flex flex-col">
           <label htmlFor="category">{t('supplier_category')}</label>
           <input
             type="text"
@@ -212,11 +252,12 @@ const SupplierRegistration: React.FC = () => {
             placeholder={t('enter_supplier_category')}
           />
         </div>
+        <div className="w-full"></div>
       </div>
 
       <Divider />
 
-      {/* Section 2: Document Type Selection */}
+      {/* Section 3: Document Type Selection */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
           <label htmlFor="document_type">{t('document_type')}</label>
@@ -267,7 +308,7 @@ const SupplierRegistration: React.FC = () => {
 
       <Divider />
 
-      {/* Section 3: Address Information */}
+      {/* Section 4: Address Information */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
           <label htmlFor="address">{t('address')}</label>
@@ -298,7 +339,7 @@ const SupplierRegistration: React.FC = () => {
 
       <Divider />
 
-      {/* Section 4: Registered Address */}
+      {/* Section 5: Registered Address */}
       <div className="w-full flex flex-col">
         <label htmlFor="registered_address">{t('registered_address')}</label>
         <textarea
@@ -314,7 +355,7 @@ const SupplierRegistration: React.FC = () => {
 
       <Divider />
 
-      {/* Section 5: Country & Contact */}
+      {/* Section 6: Country & Contact */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
           <label htmlFor="country">{t('country')}</label>
@@ -347,7 +388,7 @@ const SupplierRegistration: React.FC = () => {
 
       <Divider />
 
-      {/* Section 6: Contact Information */}
+      {/* Section 7: Contact Information */}
       <div className="w-full flex items-center gap-x-6">
         <div className="w-full flex flex-col">
           <label htmlFor="phone">{t('phone')}</label>
@@ -396,7 +437,7 @@ const SupplierRegistration: React.FC = () => {
 
       <Divider />
 
-      {/* Section 7: Email */}
+      {/* Section 8: Email */}
       <div className="w-full flex flex-col">
         <label htmlFor="email">{t('email')}</label>
         <input
@@ -413,7 +454,7 @@ const SupplierRegistration: React.FC = () => {
 
       <Divider />
 
-      {/* Section 8: Notes */}
+      {/* Section 9: Notes */}
       <div className="w-full flex flex-col">
         <label htmlFor="notes">{t('notes')}</label>
         <textarea

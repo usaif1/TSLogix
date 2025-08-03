@@ -20,9 +20,24 @@ const {
   updateProduct,
   deleteProduct,
   setCountries,
+  setCurrentSupplier,
+  setSupplierCategoryOptions,
 } = MaintenanceStore.getState();
 
 export const SupplierService = {
+  fetchNextSupplierCode: async () => {
+    try {
+      startLoader("suppliers/fetch-next-code");
+      const response = await api.get(`${supplierBaseURL}/next-code`);
+      return response.data;
+    } catch (err) {
+      console.error("Fetch next supplier code error:", err);
+      throw err;
+    } finally {
+      stopLoader("suppliers/fetch-next-code");
+    }
+  },
+
   fetchAllSuppliers: async (search?: string) => {
     try {
       startLoader("suppliers/fetch-suppliers");
@@ -61,7 +76,15 @@ export const SupplierService = {
     try {
       startLoader("suppliers/fetch-supplier");
       const response = await api.get(`${supplierBaseURL}/${id}`);
-      return response.data;
+      console.log("Raw API Response:", response.data);
+      
+      // Handle nested response structure - supplier data might be in response.data.data
+      const supplierData = response.data.data || response.data;
+      console.log("Extracted supplier data:", supplierData);
+      console.log("Setting currentSupplier in store...");
+      setCurrentSupplier(supplierData);
+      console.log("CurrentSupplier set successfully");
+      return supplierData;
     } catch (err) {
       console.error("Fetch supplier error:", err);
       throw err;
@@ -124,9 +147,7 @@ export const SupplierService = {
       }
       
       setCountries(countries);
-      
-      const state = MaintenanceStore.getState();
-      state.setSupplierCategoryOptions(supplierCategories);
+      setSupplierCategoryOptions(supplierCategories);
       
       return response.data;
     } catch (err) {

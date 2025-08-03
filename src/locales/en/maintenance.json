@@ -178,5 +178,13 @@
   "assigned": "Assigned",
   "suppliers_found": "{{count}} suppliers found",
   "assignments_found": "{{count}} assignments found",
-  "client": "Client"
+  "client": "Client",
+  "update_supplier_information": "Update supplier information",
+  "save_changes": "Save Changes",
+  "supplier_updated_successfully": "Supplier updated successfully",
+  "failed_to_update_supplier": "Failed to update supplier",
+  "failed_to_load_supplier": "Failed to load supplier data",
+  "supplier_not_found": "Supplier not found",
+  "supplier_code": "Supplier Code",
+  "auto_generated_code": "Auto-generated code"
 }

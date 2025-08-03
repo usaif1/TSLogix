@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button, Text, LoaderSync } from "@/components";
 import { ClientService } from "@/modules/client/api/client.service";
 import { ClientStore, Client } from "@/modules/client/store";
+import { ClientPasswordChangeModal } from "@/modules/client/components";
 import ClientEditModal from "./components/ClientEditModal";
 
 const ClientDetail: React.FC = () => {
@@ -20,6 +21,7 @@ const ClientDetail: React.FC = () => {
 
   // Local state
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
 
   // Load client data on mount
   useEffect(() => {
@@ -105,6 +107,15 @@ const ClientDetail: React.FC = () => {
           </div>
         </div>
         <div className="flex space-x-3">
+          {/* Show password change button only for CLIENT role */}
+          {localStorage.getItem("role") === "CLIENT" && (
+            <Button
+              variant="secondary"
+              onClick={() => setShowPasswordModal(true)}
+            >
+              {t('client:buttons.change_password')}
+            </Button>
+          )}
           <Button
             variant="primary"
             onClick={() => setShowEditModal(true)}
@@ -122,6 +133,16 @@ const ClientDetail: React.FC = () => {
             {t('client:detail.basic_information')}
           </h2>
           <div className="space-y-3">
+            {/* Client Code */}
+            <div>
+              <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.client_code')}</Text>
+              <div className="mt-1">
+                <span className="inline-flex px-3 py-1 text-sm font-mono font-medium bg-gray-100 text-gray-800 rounded-md">
+                  {currentClient.client_code || 'N/A'}
+                </span>
+              </div>
+            </div>
+
             <div>
               <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.client_type')}</Text>
               <div className="mt-1">
@@ -253,6 +274,16 @@ const ClientDetail: React.FC = () => {
           onSuccess={handleEditSuccess}
         />
       )}
+
+      {/* Password Change Modal */}
+      <ClientPasswordChangeModal
+        isOpen={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onSuccess={() => {
+          setShowPasswordModal(false);
+          toast.success(t('client:messages.password_changed_successfully'));
+        }}
+      />
     </div>
   );
 };

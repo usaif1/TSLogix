@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 // Components
@@ -16,6 +17,7 @@ import { MaintenanceStore } from "@/globalStore";
 
 const SuppliersTable: React.FC = () => {
   const { t } = useTranslation(['maintenance', 'common']);
+  const navigate = useNavigate();
   
   // Store state
   const { suppliers, loaders } = MaintenanceStore();
@@ -46,14 +48,38 @@ const SuppliersTable: React.FC = () => {
     }
   };
 
+  const handleEditSupplier = (supplierId: string) => {
+    navigate(`/maintenance/supplier/edit/${supplierId}`);
+  };
+
+  const handleDeleteSupplier = async (supplierId: string) => {
+    if (window.confirm(t('confirm_delete_supplier'))) {
+      try {
+        await SupplierService.deleteSupplier(supplierId);
+        toast.success(t('supplier_deleted_successfully'));
+        loadSuppliers(); // Refresh the list
+      } catch (error: any) {
+        console.error("Error deleting supplier:", error);
+        toast.error(error.message || t('failed_to_delete_supplier'));
+      }
+    }
+  };
+
   // Columns for suppliers table
   const columns = useMemo(
     () =>
       createTableColumns([
         {
+          accessor: "supplier_code",
+          header: t('supplier_code'),
+          cell: (info) => info.getValue() || "N/A",
+          meta: { isFixed: true },
+        },
+        {
           accessor: "name",
           header: t('supplier_name'),
           cell: (info) => info.getValue() || "N/A",
+          meta: { isFixed: true },
         },
         {
           accessor: "company_name",
@@ -98,14 +124,14 @@ const SuppliersTable: React.FC = () => {
               <div className="flex space-x-2">
                 <Button
                   variant="action"
-                  onClick={() => console.log("Edit supplier", supplier.supplier_id)}
+                  onClick={() => handleEditSupplier(supplier.supplier_id)}
                   additionalClass="text-xs px-2 py-1"
                 >
                   {t('edit')}
                 </Button>
                 <Button
                   variant="cancel"
-                  onClick={() => console.log("Delete supplier", supplier.supplier_id)}
+                  onClick={() => handleDeleteSupplier(supplier.supplier_id)}
                   additionalClass="text-xs px-2 py-1"
                 >
                   {t('delete')}
@@ -176,6 +202,7 @@ const SuppliersTable: React.FC = () => {
           )}
         </div>
       </div>
+
     </div>
   );
 };

@@ -13,6 +13,39 @@ const {
   stopLoader,
 } = useWarehouseCellStore.getState();
 
+// Quality purpose types
+export type CellQualityPurpose = 
+  | "STANDARD" 
+  | "REJECTED" 
+  | "SAMPLES" 
+  | "RETURNS" 
+  | "DAMAGED" 
+  | "EXPIRED";
+
+export interface CellRoleChangeHistory {
+  change_id: string;
+  cell_id: string;
+  old_role: CellQualityPurpose | null;
+  new_role: CellQualityPurpose;
+  changed_by: string;
+  changed_at: string;
+  reason?: string;
+  user: {
+    id: string;
+    first_name: string;
+    last_name: string;
+    role: { name: string };
+  };
+}
+
+export interface CellsByRole {
+  [key: string]: {
+    role: CellQualityPurpose;
+    cells: any[];
+    count: number;
+  };
+}
+
 export const WarehouseCellService = {
   /**
    * Fetch all warehouse metadata for dropdown
@@ -127,5 +160,160 @@ export const WarehouseCellService = {
     } finally {
       stopLoader("cells/allocate-pallets");
     }
+  },
+
+  /**
+   * Get available cell roles for dropdown (ADMIN only)
+   */
+  fetchCellRoles: async (): Promise<Array<{ value: string; label: string }>> => {
+    startLoader("cells/fetch-roles");
+    try {
+      const response = await api.get("/warehouse/cell-roles");
+      return response.data.data || response.data;
+    } catch (err) {
+      console.error("Fetch cell roles error:", err);
+      throw err;
+    } finally {
+      stopLoader("cells/fetch-roles");
+    }
+  },
+
+  /**
+   * Change cell role (ADMIN only)
+   */
+  changeCellRole: async (cellId: string, newRole: string): Promise<any> => {
+    startLoader("cells/change-role");
+    try {
+      const response = await api.put(`${cellBaseURL}/${cellId}/role`, {
+        new_cell_role: newRole,
+      });
+      return response.data;
+    } catch (err) {
+      console.error("Change cell role error:", err);
+      throw err;
+    } finally {
+      stopLoader("cells/change-role");
+    }
+  },
+
+  /**
+   * Get cell role change history
+   */
+  getCellHistory: async (cellId: string): Promise<CellRoleChangeHistory[]> => {
+    startLoader("cells/fetch-history");
+    try {
+      const response = await api.get(`${cellBaseURL}/${cellId}/history`);
+      return response.data.data || response.data;
+    } catch (err) {
+      console.error("Fetch cell history error:", err);
+      throw err;
+    } finally {
+      stopLoader("cells/fetch-history");
+    }
+  },
+
+  /**
+   * Get cells grouped by quality role
+   */
+  getCellsByRole: async (warehouseId?: string): Promise<CellsByRole> => {
+    startLoader("cells/fetch-by-role");
+    try {
+      const params = warehouseId ? { warehouse_id: warehouseId } : {};
+      const response = await api.get(`${cellBaseURL}/by-role`, { params });
+      
+      console.log("Raw API response:", response.data);
+      
+      // Handle the actual API response structure
+      const apiData = response.data.data || response.data;
+      
+      let transformedData: CellsByRole = {};
+      
+      if (warehouseId && apiData.cells_by_warehouse && apiData.cells_by_warehouse[warehouseId]) {
+        // When filtering by warehouse, use warehouse-specific data
+        const warehouseData = apiData.cells_by_warehouse[warehouseId];
+        const cellsByRole = warehouseData.cells_by_role || {};
+        
+        // Transform to expected format
+        Object.keys(cellsByRole).forEach(roleKey => {
+          const cells = cellsByRole[roleKey] || [];
+          transformedData[roleKey] = {
+            role: roleKey as any,
+            cells: cells,
+            count: cells.length
+          };
+        });
+      } else if (apiData.cells_by_role) {
+        // When not filtering by warehouse, use global data
+        const cellsByRole = apiData.cells_by_role;
+        
+        // Transform to expected format
+        Object.keys(cellsByRole).forEach(roleKey => {
+          const cells = cellsByRole[roleKey] || [];
+          transformedData[roleKey] = {
+            role: roleKey as any,
+            cells: cells,
+            count: cells.length
+          };
+        });
+      }
+      
+      console.log("Transformed data:", transformedData);
+      return transformedData;
+    } catch (err) {
+      console.error("Fetch cells by role error:", err);
+      throw err;
+    } finally {
+      stopLoader("cells/fetch-by-role");
+    }
+  },
+
+  /**
+   * Get available quality purposes with Spanish labels
+   */
+  getQualityPurposes: (): Array<{ value: CellQualityPurpose; label: string; labelEs: string; description: string; descriptionEs: string }> => {
+    return [
+      { 
+        value: "STANDARD", 
+        label: "Standard", 
+        labelEs: "Estándar",
+        description: "Regular storage",
+        descriptionEs: "Almacenamiento regular"
+      },
+      { 
+        value: "REJECTED", 
+        label: "Rejected", 
+        labelEs: "Rechazados",
+        description: "Rejected products",
+        descriptionEs: "Productos rechazados"
+      },
+      { 
+        value: "SAMPLES", 
+        label: "Samples", 
+        labelEs: "Contramuestras",
+        description: "Product samples",
+        descriptionEs: "Muestras de productos"
+      },
+      { 
+        value: "RETURNS", 
+        label: "Returns", 
+        labelEs: "Devoluciones",
+        description: "Product returns",
+        descriptionEs: "Devoluciones de productos"
+      },
+      { 
+        value: "DAMAGED", 
+        label: "Damaged", 
+        labelEs: "Dañados",
+        description: "Damaged products",
+        descriptionEs: "Productos dañados"
+      },
+      { 
+        value: "EXPIRED", 
+        label: "Expired", 
+        labelEs: "Vencidos",
+        description: "Expired products",
+        descriptionEs: "Productos vencidos"
+      },
+    ];
   },
 };

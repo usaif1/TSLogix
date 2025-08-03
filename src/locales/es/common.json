@@ -224,5 +224,12 @@
   "warehouse_assistant": "Asistente de Almacén",
   "pharmacist": "Químico Farmacéutico",
   "allocate": "Asignar",
-  "item_selected": "Artículo Seleccionado"
+  "item_selected": "Artículo Seleccionado",
+  "view_profile": "Ver Perfil",
+  "manage_your_account_settings_and_preferences": "Administra la configuración y preferencias de tu cuenta",
+  "security_settings": "Configuración de Seguridad",
+  "change_your_account_password": "Cambia la contraseña de tu cuenta",
+  "retry": "Reintentar",
+  "supplier_code": "Código de Proveedor",
+  "auto_generated_code": "Código generado automáticamente"
 }
