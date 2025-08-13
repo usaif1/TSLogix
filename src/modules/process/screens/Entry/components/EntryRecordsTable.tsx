@@ -285,21 +285,6 @@ const EntryRecordsTable: React.FC = () => {
           );
         },
       },
-      {
-        // ✅ Use organisation information from API
-        accessorFn: (row) => row.order?.organisation?.name || '-',
-        id: "organisation",
-        header: t('process:organisation'),
-        size: 160,
-        cell: ({ getValue }) => {
-          const value = getValue() as string;
-          return (
-            <div className="truncate max-w-[160px]" title={value}>
-              {value}
-            </div>
-          );
-        },
-      },
     ],
     [t, getReviewStatusText, navigateToAudit, getMainSupplier, getMainPresentation]
   );

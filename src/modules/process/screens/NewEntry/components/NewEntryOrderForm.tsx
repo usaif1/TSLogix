@@ -82,7 +82,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       users,
       products,
       suppliers,
-      temperatureRanges,
+      temperatureRangeOptions: temperatureRanges,
       orderStatusOptions: entryOrderStatus,
       presentationOptions,
     },
@@ -96,21 +96,12 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       users: users || [],
       products: products || [],
       suppliers: suppliers || [],
-      temperatureRanges: temperatureRanges || [],
+      temperatureRanges: (temperatureRanges || []).filter(temp => temp.value !== "AMBIENTE"),
       orderStatus: entryOrderStatus || [],
       presentationOptions: presentationOptions || [],
     };
   }, [origins, documentTypes, users, products, suppliers, temperatureRanges, entryOrderStatus, presentationOptions]);
 
-  // ✅ Document type options for Entry Orders
-  const ENTRY_DOCUMENT_TYPES = [
-    { value: 'LISTA_DE_EMPAQUE', label: t('process:lista_de_empaque') || 'Lista de Empaque' },
-    { value: 'FACTURA', label: t('process:factura') || 'Factura' },
-    { value: 'CERTIFICADO_DE_ANALISIS', label: t('process:certificado_de_analisis') || 'Certificado de Análisis' },
-    { value: 'RRSS', label: t('process:rrss') || 'RRSS' },
-    { value: 'PERMISO_ESPECIAL', label: t('process:permiso_especial') || 'Permiso Especial' },
-    { value: 'OTRO', label: t('process:otro') || 'Otro' }
-  ];
 
   const [loading, setLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
@@ -748,7 +739,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
               <div className="mb-4">
                 <Select
                   isMulti
-                  options={ENTRY_DOCUMENT_TYPES}
+                  options={dropdownOptions.documentTypes}
                   value={selectedDocumentTypes}
                   onChange={handleDocumentTypeChange}
                   placeholder={t("process:select_document_types_placeholder")}
