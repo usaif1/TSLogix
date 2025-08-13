@@ -82,13 +82,8 @@ const SuppliersTable: React.FC = () => {
           meta: { isFixed: true },
         },
         {
-          accessor: "company_name",
-          header: t('company_name'),
-          cell: (info) => info.getValue() || "N/A",
-        },
-        {
           accessor: "ruc",
-          header: t('ruc'),
+          header: t('ruc_id_fiscal'),
           cell: (info) => info.getValue() || "N/A",
         },
         {
