@@ -401,7 +401,6 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
               <LegendItem color="bg-emerald-400" label={t('client:cell_assignment.legend.available')} />
               <LegendItem color="bg-blue-500" label={t('client:cell_assignment.legend.selected')} />
               <LegendItem color="bg-gray-200" label={t('client:cell_assignment.legend.occupied')} />
-              <LegendItem color="bg-gray-200 border-gray-400" label={t('client:cell_assignment.legend.passage')} />
               <LegendItem color="bg-rose-200 border-rose-400" label={t('client:cell_assignment.legend.damaged')} />
               <LegendItem color="bg-amber-200 border-amber-400" label={t('client:cell_assignment.legend.expired')} />
               <LegendItem color="bg-red-300 border-red-500" label={`${t('client:cell_assignment.row')} R`} />
