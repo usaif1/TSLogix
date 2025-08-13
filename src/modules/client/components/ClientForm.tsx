@@ -685,7 +685,7 @@ const ClientForm: React.FC = () => {
                           value: state.state_id,
                           label: state.name
                         })) || []}
-                        placeholder={t('client:placeholders.active_state')}
+                        placeholder={t('client:placeholders.select_active_state')}
                         className={validationErrors.active_state_id ? "border-red-500" : ""}
                       />
                       {validationErrors.active_state_id && (
