@@ -731,5 +731,6 @@
   "document_type": "Tipo de Documento",
   "file_name": "Nombre de Archivo",
   "uploaded_at": "Subido En",
-  "content_type": "Tipo de Contenido"
+  "content_type": "Tipo de Contenido",
+  "file_selected": "Archivo Seleccionado"
 }

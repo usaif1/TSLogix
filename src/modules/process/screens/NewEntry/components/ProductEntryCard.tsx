@@ -34,7 +34,7 @@ interface ProductEntryCardProps {
   index: number;
   products: Array<{ option: string; value: string; label: string; product_code?: string }>;
   suppliers: Array<{ option: string; value: string; label: string }>;
-  temperatureRanges: Array<{ option: string; value: string; label: string }>;
+  temperatureRanges: Array<{ value: string; label: string }>;
   shouldDisableFields: boolean;
   onUpdate: (updatedProduct: Partial<ProductData>) => void;
   onRemove: () => void;
@@ -51,18 +51,13 @@ const presentationOptions = [
   { option: "OTRO", value: "OTRO", label: "Otro" },
 ];
 
-const temperatureOptions = [
-  { option: "RANGE_15_30", value: "RANGE_15_30", label: "15°C - 30°C" },
-  { option: "RANGE_15_25", value: "RANGE_15_25", label: "15°C - 25°C" },
-  { option: "RANGE_2_8", value: "RANGE_2_8", label: "2°C - 8°C" },
-  { option: "AMBIENTE", value: "AMBIENTE", label: "Ambiente" },
-];
 
 const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
   product,
   index,
   products,
   suppliers,
+  temperatureRanges,
   shouldDisableFields,
   onUpdate,
   onRemove,
@@ -93,7 +88,7 @@ const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
   const currentProduct = products.find(p => p.value === product.product_id) || null;
   const currentSupplier = suppliers.find(s => s.value === product.supplier_id) || null;
   const currentPresentation = presentationOptions.find(p => p.value === product.presentation) || null;
-  const currentTemperature = temperatureOptions.find(t => t.value === product.temperature_range) || null;
+  const currentTemperature = temperatureRanges.find(t => t.value === product.temperature_range) || null;
 
   return (
     <div className="border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
@@ -264,7 +259,7 @@ const ProductEntryCard: React.FC<ProductEntryCardProps> = ({
             {t("process:temperature_range")} *
           </label>
           <Select
-            options={temperatureOptions}
+            options={temperatureRanges}
             value={currentTemperature}
             onChange={(selectedOption) => handleSelectChange('temperature_range', selectedOption)}
             placeholder={t("process:select_temperature")}
