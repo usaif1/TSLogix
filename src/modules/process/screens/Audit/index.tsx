@@ -314,14 +314,17 @@ const Review: React.FC = () => {
       closeModal();
       await ProcessService.fetchEntryOrderByNo(orderNo);
 
-      const statusText =
-        reviewMode === "approve"
-          ? t('process:approved')
-          : reviewMode === "reject"
-          ? t('process:rejected')
-          : t('process:marked_for_revision');
+      // Set proper translated success message
+      const successMessage = reviewMode === "approve"
+        ? t('process:entry_order_approved_successfully')
+        : reviewMode === "reject"
+        ? t('process:entry_order_rejected_successfully')
+        : t('process:entry_order_revision_requested_successfully');
 
-      console.log(`${t('process:entry_order')} ${statusText} ${t('common:successfully')}!`);
+      ProcessesStore.getState().setReviewStatus({
+        success: true,
+        message: successMessage,
+      });
     } catch (err) {
       console.error(`${t('process:failed_to')} ${reviewMode} ${t('process:entry_order')}:`, err);
     } finally {

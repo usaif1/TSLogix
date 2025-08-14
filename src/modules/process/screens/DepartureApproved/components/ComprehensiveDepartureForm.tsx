@@ -318,7 +318,7 @@ const ComprehensiveDepartureForm: React.FC = () => {
       return;
     }
     if (!selectedDocumentTypes || selectedDocumentTypes.length === 0) {
-      setDepartureFormError("Please select at least one document type");
+      setDepartureFormError(t('process:please_select_at_least_one_document_type'));
       return;
     }
     if (products.length === 0) {
