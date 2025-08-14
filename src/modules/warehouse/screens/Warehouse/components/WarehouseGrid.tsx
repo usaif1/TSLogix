@@ -232,6 +232,41 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
     }
   };
 
+  // Translation functions for cell role and status
+  const translateCellRole = (role: string) => {
+    switch (role) {
+      case "STANDARD":
+        return t('warehouse:standard');
+      case "REJECTED":
+        return t('warehouse:rechazados');
+      case "SAMPLES":
+        return t('warehouse:contramuestras'); 
+      case "RETURNS":
+        return t('warehouse:devoluciones');
+      case "DAMAGED":
+        return t('warehouse:damaged');
+      case "EXPIRED":
+        return t('warehouse:expired');
+      default:
+        return role;
+    }
+  };
+
+  const translateCellStatus = (status: string) => {
+    switch (status) {
+      case "AVAILABLE":
+        return t('common:available');
+      case "OCCUPIED":
+        return t('warehouse:occupied');
+      case "DAMAGED":
+        return t('warehouse:damaged');
+      case "EXPIRED":
+        return t('warehouse:expired');
+      default:
+        return status;
+    }
+  };
+
   const isDivider = (row: string, bay: number) =>
     row === "Q" && (bay === 20 || bay === 24);
   
@@ -377,9 +412,7 @@ function WarehouseGrid({ warehouse_id }: WarehouseGridProps) {
                               )}
                               title={
                                 cell
-                                  ? `${formatId(row, bay, pos)} - ${
-                                      cell.cell_role
-                                    } - ${cell.status}${isAdmin ? ' (Click to change role)' : ''}`
+                                  ? `${formatId(row, bay, pos)} - ${translateCellRole(cell.cell_role)} ${translateCellStatus(cell.status)}${isAdmin ? ` (${t('warehouse:click_to_change_role')})` : ''}`
                                   : `No cell at ${formatId(row, bay, pos)}`
                               }
                               onClick={() => cell && handleCellClick(cell)}

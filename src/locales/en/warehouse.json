@@ -110,8 +110,13 @@
   "color_codes": "Color Codes",
   "warehouse_coordinator": "Warehouse Coordinator",
   "devoluciones": "Returns",
-  "contramuestras": "Samples",
+  "contramuestras": "Samples", 
   "rechazados": "Rejected",
   "no_warehouses_available": "No warehouses available",
-  "passage": "Passage"
+  "passage": "Passage",
+  "standard": "Standard",
+  "occupied": "Occupied",
+  "damaged": "Damaged",
+  "expired": "Expired",
+  "click_to_change_role": "Click to change role"
 }
