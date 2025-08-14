@@ -8,7 +8,7 @@ import {
 } from "@/modules/process/types";
 import ProcessesStore from "@/modules/process/store";
 import { ProcessService } from "@/globalService";
-import { ExpiryUrgencyIndicator } from "@/modules/process/screens/DepartureApproved/components";
+import { ExpiryUrgencyIndicator } from "@/modules/process/screens/DepartureCreate/components";
 
 interface DepartureWorkflowManagerProps {
   order: DepartureOrder;
