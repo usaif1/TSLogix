@@ -1,4 +1,4 @@
-export { default as DepartureApprovedForm } from "./DepartureApprovedForm";
+export { default as DepartureCreateForm } from "./DepartureCreateForm";
 export { default as ComprehensiveDepartureForm } from "./ComprehensiveDepartureForm";
 export { default as ExpiryUrgencyIndicator } from "./ExpiryUrgencyIndicator";
 export { default as FifoAllocationSummary } from "./FifoAllocationSummary";

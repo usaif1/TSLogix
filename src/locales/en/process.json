@@ -676,5 +676,16 @@
   "entry_order_revision_requested_successfully": "Entry order revision requested successfully",
   "please_select_at_least_one_document_type": "Please select at least one document type",
   "available_units_location": "Available Units Location",
-  "day_to_expirary_status": "Days to Expiry Status"
+  "day_to_expirary_status": "Days to Expiry Status",
+  "available_units_locations": "{{units}} units in {{locations}} locations",
+  "days_to_expiry_status": "{{days}} days to expire ({{status}})",
+  "paq": "pkg",
+  "quality_status": "Quality Status", 
+  "available": "Available",
+  "expired": "Expired",
+  "near_expiry": "Near Expiry",
+  "normal": "Normal",
+  "no_issues": "No issues",
+  "status_available": "AVAILABLE",
+  "status_blocked": "BLOCKED"
 }

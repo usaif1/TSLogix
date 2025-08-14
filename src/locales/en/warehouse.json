@@ -112,5 +112,6 @@
   "devoluciones": "Returns",
   "contramuestras": "Samples",
   "rechazados": "Rejected",
-  "no_warehouses_available": "No warehouses available"
+  "no_warehouses_available": "No warehouses available",
+  "passage": "Passage"
 }

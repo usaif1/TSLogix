@@ -453,8 +453,6 @@ const DepartureWarehouseDispatch: React.FC = () => {
                   <th className="w-32 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.available')}</th>
                   <th className="w-32 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.stored')}</th>
                   <th className="w-24 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.locations')}</th>
-                  <th className="w-24 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.priority')}</th>
-                  <th className="w-24 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.urgency')}</th>
                   <th className="w-28 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.status')}</th>
                   <th className="w-28 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.fulfillment')}</th>
                   <th className="w-32 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.dispatch_qty')}</th>
@@ -505,7 +503,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
                     {/* Requested Quantities */}
                     <td className="p-2 text-xs text-center">
                       <div>{row.requested_quantity} units</div>
-                      <div className="text-gray-500">{row.requested_packages} pkg</div>
+                      <div className="text-gray-500">{row.requested_packages} {t('process:paq')}</div>
                       <div className="text-gray-500">{row.requested_weight} kg</div>
                     </td>
 
@@ -514,14 +512,14 @@ const DepartureWarehouseDispatch: React.FC = () => {
                       <div className={row.available_quantity > 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
                         {row.available_quantity} units
                       </div>
-                      <div className="text-gray-500">{row.available_packages} pkg</div>
+                      <div className="text-gray-500">{row.available_packages} {t('process:paq')}</div>
                       <div className="text-gray-500">{row.available_weight.toFixed(1)} kg</div>
                     </td>
 
                     {/* Total Stored */}
                     <td className="p-2 text-xs text-center">
                       <div>{row.total_stored_quantity} units</div>
-                      <div className="text-gray-500">{row.total_stored_packages} pkg</div>
+                      <div className="text-gray-500">{row.total_stored_packages} {t('process:paq')}</div>
                       <div className="text-gray-500">{row.total_stored_weight} kg</div>
                     </td>
 
@@ -530,28 +528,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
                       {row.storage_locations}
                     </td>
 
-                    {/* Priority */}
-                    <td className="p-2 text-xs text-center">
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${
-                        row.dispatch_priority === 'URGENT' ? 'bg-red-100 text-red-800' :
-                        row.dispatch_priority === 'HIGH' ? 'bg-orange-100 text-orange-800' :
-                        row.dispatch_priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {row.dispatch_priority}
-                      </span>
-                    </td>
 
-                    {/* Urgency */}
-                    <td className="p-2 text-xs text-center">
-                      <span className={`px-2 py-1 text-xs font-medium rounded ${
-                        row.urgency_level === 'high' ? 'bg-red-100 text-red-800' :
-                        row.urgency_level === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-green-100 text-green-800'
-                      }`}>
-                        {row.has_expired ? 'Expired' : row.has_near_expiry ? 'Near Expiry' : 'Normal'}
-                      </span>
-                    </td>
 
                     {/* Status */}
                     <td className="p-2 text-xs text-center">
@@ -559,7 +536,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
                         row.inventory_status === 'AVAILABLE' ? 'bg-green-100 text-green-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {row.inventory_status}
+                        {t(`common:${row.inventory_status.toLowerCase()}`) || row.inventory_status}
                       </span>
                     </td>
 
@@ -622,17 +599,34 @@ const DepartureWarehouseDispatch: React.FC = () => {
                     <td className="p-2 text-xs">
                       {row.blocking_reasons.length > 0 ? (
                         <div className="space-y-1">
-                          {row.blocking_reasons.slice(0, 2).map((reason, idx) => (
-                            <div key={idx} className="text-red-600 truncate" title={reason}>
-                              {reason}
-                            </div>
-                          ))}
+                          {row.blocking_reasons.slice(0, 2).map((reason, idx) => {
+                            // Translate blocking reason texts (handle "Quality status: STATUS" format)
+                            const getTranslatedReason = (reasonText: string) => {
+                              // Handle "Quality status: CUARENTENA" format
+                              if (reasonText.startsWith('Quality status:')) {
+                                const status = reasonText.split(':')[1]?.trim();
+                                return `${t('process:quality_status')}: ${status}`;
+                              }
+                              // Handle exact match
+                              if (reasonText === 'Quality status') {
+                                return t('process:quality_status');
+                              }
+                              // Return as-is for other reasons
+                              return reasonText;
+                            };
+                            
+                            return (
+                              <div key={idx} className="text-red-600 truncate" title={reason}>
+                                {getTranslatedReason(reason)}
+                              </div>
+                            );
+                          })}
                           {row.blocking_reasons.length > 2 && (
                             <div className="text-gray-500">+{row.blocking_reasons.length - 2} more</div>
                           )}
                         </div>
                       ) : (
-                        <div className="text-green-600">No issues</div>
+                        <div className="text-green-600">{t('process:no_issues')}</div>
                       )}
                     </td>
 

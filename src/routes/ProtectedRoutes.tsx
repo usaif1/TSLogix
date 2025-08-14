@@ -14,7 +14,7 @@ import {
   MassEntry,
   // departure
   Departure,
-  DepartureApproved,
+  DepartureCreate,
   DepartureCounter,
   DepartureReturned,
   DepartureDispatch,
@@ -102,7 +102,7 @@ const ProtectedRoutes: React.FC = () => {
           </Route>
           <Route path="departure">
             <Route index element={<Departure />} />
-            <Route path="approved" element={<DepartureApproved />} />
+            <Route path="create" element={<DepartureCreate />} />
             <Route path="returned" element={<DepartureReturned />} />
             <Route path="counter" element={<DepartureCounter />} />
             <Route path="dispatch" element={<DepartureDispatch />} />

@@ -9,10 +9,10 @@ import ComprehensiveDepartureForm from "./components/ComprehensiveDepartureForm"
 // service
 import { ProcessService } from "@/modules/process/api/process.service";
 
-const DepartureApproved: React.FC = () => {
+const DepartureCreate: React.FC = () => {
   const { t } = useTranslation("process");
   
-  console.log("DepartureApproved component loaded");
+  console.log("DepartureCreate component loaded");
 
   useEffect(() => {
     ProcessService.loadDepartureFormFields();
@@ -31,4 +31,4 @@ const DepartureApproved: React.FC = () => {
   );
 };
 
-export default DepartureApproved;
+export default DepartureCreate;

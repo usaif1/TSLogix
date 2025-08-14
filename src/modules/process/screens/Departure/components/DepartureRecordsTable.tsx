@@ -220,18 +220,6 @@ const DepartureRecordsTable: React.FC = () => {
         }
       },
       { 
-        accessor: 'priority_level', 
-        header: t('process:priority'),
-        cell: (info: any) => {
-          const order = info.row.original;
-          const priority = order.priority_level || 'MEDIUM';
-          const priorityColor = priority === 'URGENT' ? 'text-red-600 font-bold' : 
-                               priority === 'HIGH' ? 'text-orange-600 font-semibold' : 
-                               priority === 'MEDIUM' ? 'text-yellow-600' : 'text-green-600';
-          return <span className={priorityColor}>{priority}</span>;
-        }
-      },
-      { 
         accessor: 'warehouse', 
         header: t('process:warehouse'),
         cell: (info: any) => {
