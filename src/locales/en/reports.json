@@ -145,5 +145,9 @@
   "location_count": "Location Count",
   "locations": "locations",
   "from_date": "From Date",
-  "to_date": "To Date"
+  "to_date": "To Date",
+  "balance_inicial": "Opening Balance",
+  "balance_final": "Closing Balance",
+  "saldo_inicial": "Opening Balance",
+  "saldo_final": "Closing Balance"
 } 

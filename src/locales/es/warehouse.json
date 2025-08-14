@@ -114,5 +114,10 @@
   "contramuestras": "Contramuestras",
   "rechazados": "Rechazados",
   "no_warehouses_available": "No hay almacenes disponibles",
-  "passage": "Pasillo"
+  "passage": "Pasillo",
+  "standard": "Estándar",
+  "occupied": "Ocupado",
+  "damaged": "Dañado",
+  "expired": "Vencido",
+  "click_to_change_role": "Haz clic para cambiar el rol"
 }

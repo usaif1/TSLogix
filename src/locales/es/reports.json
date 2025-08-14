@@ -142,5 +142,9 @@
   "location_count": "Cantidad de Ubicaciones",
   "locations": "ubicaciones",
   "from_date": "Fecha Desde",
-  "to_date": "Fecha Hasta"
-}
+  "to_date": "Fecha Hasta",
+  "balance_inicial": "Saldo Inicial",
+  "balance_final": "Saldo Final",
+  "saldo_inicial": "Saldo Inicial",
+  "saldo_final": "Saldo Final"
+} 

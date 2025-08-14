@@ -240,6 +240,7 @@
   "warehouse_selection": "Selección de almacén",
   "customer_selection": "Selección de cliente",
   "personnel_selection": "Selección de personal",
+  "client": "Cliente",
   "personnel_incharge": "Personal Responsable",
   "document_type_selection": "Selección de tipo de documento", 
   "at_least_one_product_required": "Al menos un producto con asignación",

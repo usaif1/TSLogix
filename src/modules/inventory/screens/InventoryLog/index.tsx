@@ -208,7 +208,7 @@ const InventoryLog: React.FC = () => {
           return (
             <div className="text-sm space-y-1">
               <div className={`${changeColor} font-medium`}>
-                {data.change > 0 ? '+' : ''}{data.change} units
+                {data.change > 0 ? '+' : ''}{data.change} {t('inventory:units')}
               </div>
               <div className="text-xs text-gray-700">
                 {t('inventory:current')}: {data.current.toLocaleString()}

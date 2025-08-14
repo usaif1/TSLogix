@@ -6,7 +6,7 @@ import Button from '@/components/Button';
 import { exportToExcel, exportToPDF, convertArrayToExportData } from '../../utils/exportUtils';
 
 const CardexReport: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(['reports', 'common']);
   const { cardexReports, loadingStates } = useReportsStore();
 
   const handleExport = async (format: 'excel' | 'pdf') => {
@@ -25,14 +25,14 @@ const CardexReport: React.FC = () => {
         t('reports:category') || 'Categoría',
         t('reports:lot_number') || 'Lote',
         t('reports:expiry_date') || 'Fecha de Vencimiento',
-        'Balance Inicial (Cant.)',
-        'Balance Inicial (Valor)',
+        t('reports:saldo_inicial') + ' (Cant.)',
+        t('reports:saldo_inicial') + ' (Valor)',
         'Entradas (Cant.)',
         'Entradas (Valor)',
         'Salidas (Cant.)',
         'Salidas (Valor)',
-        'Balance Final (Cant.)',
-        'Balance Final (Valor)'
+        t('reports:saldo_final') + ' (Cant.)',
+        t('reports:saldo_final') + ' (Valor)'
       ];
 
       // Prepare data from cardex reports
@@ -57,10 +57,10 @@ const CardexReport: React.FC = () => {
       // Prepare summary
       const summaryData = [
         { label: t('reports:total_products') || 'Total de Productos', value: cardexReports.data.length },
-        { label: 'Total Balance Inicial', value: `$${cardexReports.data.reduce((sum, item) => sum + item.opening_balance.financial_value, 0).toFixed(2)}` },
+        { label: 'Total ' + t('reports:saldo_inicial'), value: `$${cardexReports.data.reduce((sum, item) => sum + item.opening_balance.financial_value, 0).toFixed(2)}` },
         { label: 'Total Entradas', value: `$${cardexReports.data.reduce((sum, item) => sum + item.stock_in.financial_value, 0).toFixed(2)}` },
         { label: 'Total Salidas', value: `$${cardexReports.data.reduce((sum, item) => sum + item.stock_out.financial_value, 0).toFixed(2)}` },
-        { label: 'Total Balance Final', value: `$${cardexReports.data.reduce((sum, item) => sum + item.closing_balance.financial_value, 0).toFixed(2)}` }
+        { label: 'Total ' + t('reports:saldo_final'), value: `$${cardexReports.data.reduce((sum, item) => sum + item.closing_balance.financial_value, 0).toFixed(2)}` }
       ];
 
       // Prepare metadata
@@ -134,7 +134,7 @@ const CardexReport: React.FC = () => {
         
         <div className="bg-green-50 p-2 rounded border border-green-200">
           <Text size="xs" additionalClass="text-green-600 mb-1">
-            Balance Inicial
+            {t('reports:saldo_inicial')}
           </Text>
           <Text size="lg" weight="font-bold" additionalClass="text-green-900">
             ${cardexReports?.data?.reduce((sum, item) => sum + item.opening_balance.financial_value, 0).toFixed(2) || '0.00'}
@@ -164,7 +164,7 @@ const CardexReport: React.FC = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
         <div className="bg-purple-50 p-2 rounded border border-purple-200">
           <Text size="xs" additionalClass="text-purple-600 mb-1">
-            Balance Final
+            {t('reports:saldo_final')}
           </Text>
           <Text size="lg" weight="font-bold" additionalClass="text-purple-900">
             ${cardexReports?.data?.reduce((sum, item) => sum + item.closing_balance.financial_value, 0).toFixed(2) || '0.00'}
@@ -228,7 +228,7 @@ const CardexReport: React.FC = () => {
                     {t('reports:expiry_date') || 'Vencimiento'}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
-                    Balance Inicial
+                    {t('reports:saldo_inicial')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
                     Entradas
@@ -237,7 +237,7 @@ const CardexReport: React.FC = () => {
                     Salidas
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
-                    Balance Final
+                    {t('reports:saldo_final')}
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sticky top-0 bg-gray-50">
                     {t('reports:movements') || 'Movimientos'}
