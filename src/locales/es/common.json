@@ -231,5 +231,16 @@
   "change_your_account_password": "Cambia la contraseña de tu cuenta",
   "retry": "Reintentar",
   "supplier_code": "Código de Proveedor",
-  "auto_generated_code": "Código generado automáticamente"
+  "auto_generated_code": "Código generado automáticamente",
+  "available": "Disponible",
+  "blocked": "Bloqueado",
+  "occupied": "Ocupado",
+  "damaged": "Dañado",
+  "expired": "Vencido",
+  "pending": "Pendiente",
+  "approved": "Aprobado",
+  "rejected": "Rechazado",
+  "in_progress": "En Progreso",
+  "completed": "Completado",
+  "failed": "Fallido"
 }

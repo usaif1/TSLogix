@@ -233,7 +233,7 @@
   "product_details": "Detalles del Producto",
   "inventory_details": "Detalles del Inventario",
   "location_allocation": "Ubicación y Asignación",
-  "quality_status": "Estado de calidad",
+  "quality_status": "Estado de Calidad",
   "timeline": "Cronología",
   "units": "unidades",
   "pkg": "paq",
@@ -335,5 +335,7 @@
   "client": "Cliente",
   "item_will_remain_same_location": "El artículo permanecerá en la misma ubicación",
   "quarantine_approval_info": "Información de Aprobación de Cuarentena",
-  "choose_action": "Elegir Acción"
+  "choose_action": "Elegir Acción",
+  "current": "Actual",
+  "dispatched": "Despachado"
 }

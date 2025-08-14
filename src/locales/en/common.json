@@ -120,5 +120,16 @@
   "phone": "Phone",
   "retry": "Retry",
   "supplier_code": "Supplier Code",
-  "auto_generated_code": "Auto-generated code"
+  "auto_generated_code": "Auto-generated code",
+  "available": "Available",
+  "blocked": "Blocked",
+  "occupied": "Occupied",
+  "damaged": "Damaged",
+  "expired": "Expired",
+  "pending": "Pending",
+  "approved": "Approved",
+  "rejected": "Rejected",
+  "in_progress": "In Progress",
+  "completed": "Completed",
+  "failed": "Failed"
 }

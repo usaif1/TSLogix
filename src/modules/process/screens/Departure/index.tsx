@@ -52,7 +52,7 @@ const Departure: React.FC = () => {
       <Divider />
       <div className="flex gap-4">
         <Link
-          to={"/processes/departure/approved"}
+          to={"/processes/departure/create"}
           className="!w-56 bg-action-nav hover:bg-[#0F2F47] text-white px-2 py-2 rounded-md font-bold flex justify-center cursor-pointer "
         >
           <div className="flex items-center gap-x-2">

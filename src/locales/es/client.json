@@ -177,6 +177,7 @@
     "rejected": "Rechazados",
     "samples": "Contramuestras",
     "returns": "Devoluciones",
+    "passage_cell_error": "No se pueden seleccionar celdas de pasillo",
     "legend": {
       "title": "Leyenda de Colores",
       "available": "Disponible",

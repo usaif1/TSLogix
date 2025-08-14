@@ -42,7 +42,7 @@ const routes = [
 
 const Breadcrumbs: React.FC = () => {
   const breadcrumbs = useBreadcrumbs(routes);
-  const { t } = useTranslation(['common']);
+  const { t } = useTranslation(['common', 'process']);
 
   // Function to translate breadcrumb text
   const translateBreadcrumb = (breadcrumb: React.ReactNode): string => {
@@ -84,6 +84,8 @@ const Breadcrumbs: React.FC = () => {
       'client': t('common:client'),
       'clients': t('common:client'),
       'new': t('common:new'),
+      'warehouse-dispatch': t('process:warehouse_dispatch_center'),
+      'warehouse dispatch': t('process:warehouse_dispatch_center'),
     };
 
     return translationMap[normalizedText] || text;

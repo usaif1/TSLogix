@@ -120,6 +120,27 @@ const InventoryLog: React.FC = () => {
     }
   };
 
+  const getOrderStatusText = (status: string) => {
+    switch (status) {
+      case "COMPLETED":
+        return t('common:completed');
+      case "PENDING":
+        return t('common:pending');
+      case "DISPATCHED":
+        return t('inventory:dispatched');
+      case "APPROVED":
+        return t('common:approved');
+      case "REJECTED":
+        return t('common:rejected');
+      case "IN_PROGRESS":
+        return t('common:in_progress');
+      case "FAILED":
+        return t('common:failed');
+      default:
+        return status;
+    }
+  };
+
   // Clean, simple columns - Reduced for better viewport fit
   const columns = useMemo<ColumnDef<any, any>[]>(
     () => [
@@ -190,7 +211,7 @@ const InventoryLog: React.FC = () => {
                 {data.change > 0 ? '+' : ''}{data.change} units
               </div>
               <div className="text-xs text-gray-700">
-                Current: {data.current.toLocaleString()}
+                {t('inventory:current')}: {data.current.toLocaleString()}
               </div>
               <div className="text-xs text-gray-500">
                 {data.weight_change > 0 ? '+' : ''}{data.weight_change} kg → {data.current_weight} kg
@@ -254,7 +275,7 @@ const InventoryLog: React.FC = () => {
               </div>
               {data.order_status && (
                 <span className={`inline-block px-2 py-0.5 rounded-full text-xs border ${statusColor}`}>
-                  {data.order_status}
+                  {getOrderStatusText(data.order_status)}
                 </span>
               )}
               {data.destination_point && (
@@ -336,7 +357,7 @@ const InventoryLog: React.FC = () => {
         size: 110,
       },
     ],
-    [t, getMovementTypeText, getProductStatusText, getQualityStatusInfo, getInventoryStatusInfo]
+    [t, getMovementTypeText, getProductStatusText, getQualityStatusInfo, getInventoryStatusInfo, getOrderStatusText]
   );
 
   const handleNavigateToQuarantine = () => navigate("/inventory/quarantine");

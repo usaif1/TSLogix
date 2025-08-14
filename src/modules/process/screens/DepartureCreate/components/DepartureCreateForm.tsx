@@ -26,11 +26,11 @@ interface ProductSelectionRow {
   error?: string;
 }
 
-const DepartureApprovedForm: React.FC = () => {
+const DepartureCreateForm: React.FC = () => {
   const { t } = useTranslation(['process', 'common']);
   const navigate = useNavigate();
   
-  console.log("DepartureApprovedForm rendered");
+  console.log("DepartureCreateForm rendered");
   
   const {
     departureFormFields,
@@ -924,4 +924,4 @@ const DepartureApprovedForm: React.FC = () => {
   );
 };
 
-export default DepartureApprovedForm; 
+export default DepartureCreateForm; 

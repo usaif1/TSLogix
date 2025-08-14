@@ -311,5 +311,7 @@
   "fully_completed": "Fully Completed",
   "partially_completed": "Partially Completed",
   "dispatcher": "Dispatcher",
-  "client": "Client"
+  "client": "Client",
+  "current": "Current",
+  "dispatched": "Dispatched"
 }
