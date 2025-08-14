@@ -670,5 +670,11 @@
   "blocking_reason": "Blocking Reason",
   "no_fifo_plan_available": "No FIFO plan available",
   "near_expiry": "Near Expiry",
-  "normal": "Normal"
+  "normal": "Normal",
+  "entry_order_approved_successfully": "Entry order approved successfully",
+  "entry_order_rejected_successfully": "Entry order rejected successfully",
+  "entry_order_revision_requested_successfully": "Entry order revision requested successfully",
+  "please_select_at_least_one_document_type": "Please select at least one document type",
+  "available_units_location": "Available Units Location",
+  "day_to_expirary_status": "Days to Expiry Status"
 }
