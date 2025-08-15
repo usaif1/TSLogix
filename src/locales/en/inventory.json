@@ -313,5 +313,9 @@
   "dispatcher": "Dispatcher",
   "client": "Client",
   "current": "Current",
-  "dispatched": "Dispatched"
+  "dispatched": "Dispatched",
+  "search_client": "Search Client",
+  "search_product": "Search Product",
+  "search_by_client_name": "Search by client name...",
+  "search_by_product_name_or_code": "Search by product name or code..."
 }

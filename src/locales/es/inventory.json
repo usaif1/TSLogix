@@ -337,5 +337,9 @@
   "quarantine_approval_info": "Información de Aprobación de Cuarentena",
   "choose_action": "Elegir Acción",
   "current": "Actual",
-  "dispatched": "Despachado"
+  "dispatched": "Despachado",
+  "search_client": "Buscar Cliente",
+  "search_product": "Buscar Producto",
+  "search_by_client_name": "Buscar por nombre del cliente...",
+  "search_by_product_name_or_code": "Buscar por nombre o código del producto..."
 }
