@@ -481,7 +481,7 @@ const SimplifiedInventoryAllocation: React.FC = () => {
   // Entry order options
   const entryOrderOptions = entryOrders.map(order => ({
     value: order.entry_order_id,
-    label: `${order.entry_order_no} - ${order.creator_name} (${order.products_needing_allocation || 0} pending)`
+    label: `${order.entry_order_no} - ${order.creator_name} (${order.products_needing_allocation || 0} ${t('process:pending')})`
   }));
 
   const validRowsCount = allocationRows.filter(row => row.isValid && row.inventory_quantity > 0).length;

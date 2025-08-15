@@ -57,9 +57,11 @@ const ClientDetail: React.FC = () => {
     }
   };
 
-  const getClientTypeDisplay = (clientType: string): string => {
-    return clientType === "JURIDICO" ? t('client:types.commercial') : t('client:types.individual');
+  const getTranslatedClientType = (clientType: string): string => {
+    if (!clientType) return '';
+    return t(`client:types.${clientType.toLowerCase()}`, clientType);
   };
+
 
   const formatDate = (dateString: string): string => {
     return new Date(dateString).toLocaleDateString();
@@ -151,7 +153,7 @@ const ClientDetail: React.FC = () => {
                     ? "bg-blue-100 text-blue-800" 
                     : "bg-green-100 text-green-800"
                 }`}>
-                  {getClientTypeDisplay(currentClient.client_type)}
+                  {getTranslatedClientType(currentClient.client_type)}
                 </span>
               </div>
             </div>

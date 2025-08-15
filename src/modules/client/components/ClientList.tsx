@@ -25,8 +25,8 @@ const ClientList: React.FC = () => {
   
   // Hardcoded client type options (no need for API call)
   const clientTypeOptions = [
-    { value: "JURIDICO", label: t('client:types.commercial') },
-    { value: "NATURAL", label: t('client:types.individual') },
+    { value: "JURIDICO", label: t('client:types.juridico') },
+    { value: "NATURAL", label: t('client:types.natural') },
   ];
   
   // Store state
@@ -104,7 +104,8 @@ const ClientList: React.FC = () => {
     }
   };
   const getClientTypeDisplay = (clientType: string): string => {
-    return clientType === "JURIDICO" ? t('client:types.commercial') : t('client:types.individual');
+    if (!clientType) return '';
+    return t(`client:types.${clientType.toLowerCase()}`, clientType);
   };
 
   const formatDate = (dateString: string): string => {

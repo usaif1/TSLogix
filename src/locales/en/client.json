@@ -68,7 +68,9 @@
   },
   "types": {
     "commercial": "Commercial",
-    "individual": "Individual"
+    "individual": "Individual",
+    "juridico": "Legal Entity",
+    "natural": "Natural Person"
   },
   "buttons": {
     "create_client": "Create Client",
