@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useCallback, useMemo } from "react";
+import React, { useEffect, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { InventoryLogService } from "@/modules/inventory/api/inventory.service";
@@ -18,12 +18,38 @@ const InventoryLog: React.FC = () => {
     loaders
   } = useInventoryLogStore();
   const navigate = useNavigate();
+  
+  // Search states
+  const [clientSearch, setClientSearch] = useState("");
+  const [productSearch, setProductSearch] = useState("");
 
-  const loadLogs = useCallback(() => {
-    InventoryLogService.fetchAllLogs().catch(console.error);
+  const loadLogs = useCallback((filters?: { client_search?: string; product_search?: string }) => {
+    InventoryLogService.fetchAllLogs(filters).catch(console.error);
   }, []);
 
   useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
+
+  // Handle search
+  const handleSearch = useCallback(() => {
+    const filters: { client_name?: string; product_search?: string } = {};
+    
+    if (clientSearch.trim()) {
+      filters.client_name = clientSearch.trim();
+    }
+    
+    if (productSearch.trim()) {
+      filters.product_search = productSearch.trim();
+    }
+    
+    loadLogs(filters);
+  }, [clientSearch, productSearch, loadLogs]);
+
+  // Handle search reset
+  const handleResetSearch = useCallback(() => {
+    setClientSearch("");
+    setProductSearch("");
     loadLogs();
   }, [loadLogs]);
 
@@ -380,6 +406,57 @@ const InventoryLog: React.FC = () => {
             <Button onClick={handleNavigateToAllocate}>
               + {t('inventory:assign_product')}
             </Button>
+          </div>
+        </div>
+        
+        {/* Search Section */}
+        <div className="mt-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col space-y-3 lg:flex-row lg:space-y-0 lg:space-x-4 lg:items-end">
+            <div className="flex-1 min-w-0">
+              <label htmlFor="client-search" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('inventory:search_client')}
+              </label>
+              <input
+                type="text"
+                id="client-search"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder={t('inventory:search_by_client_name')}
+                value={clientSearch}
+                onChange={(e) => setClientSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <label htmlFor="product-search" className="block text-sm font-medium text-gray-700 mb-1">
+                {t('inventory:search_product')}
+              </label>
+              <input
+                type="text"
+                id="product-search"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                placeholder={t('inventory:search_by_product_name_or_code')}
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                onClick={handleSearch}
+                className="px-4 py-2"
+                disabled={isLoading}
+              >
+                {t('common:search')}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleResetSearch}
+                className="px-4 py-2"
+                disabled={isLoading}
+              >
+                {t('common:reset')}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
