@@ -66,7 +66,7 @@ export const InventoryLogService = {
   },
 
   // ✅ UPDATED: Fetch inventory logs with simplified structure and search functionality
-  fetchAllLogs: async (filters?: Filters & { client_name?: string; product_search?: string }) => {
+  fetchAllLogs: async (filters?: Filters & { client_name?: string; product_name?: string }) => {
     try {
       startLoader("inventoryLogs/fetch-logs");
       const response = await api.get(`${baseURL}/summary`, { params: filters });

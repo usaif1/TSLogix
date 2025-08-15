@@ -23,7 +23,7 @@ const InventoryLog: React.FC = () => {
   const [clientSearch, setClientSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
 
-  const loadLogs = useCallback((filters?: { client_search?: string; product_search?: string }) => {
+  const loadLogs = useCallback((filters?: { client_search?: string; product_name?: string }) => {
     InventoryLogService.fetchAllLogs(filters).catch(console.error);
   }, []);
 
@@ -33,14 +33,14 @@ const InventoryLog: React.FC = () => {
 
   // Handle search
   const handleSearch = useCallback(() => {
-    const filters: { client_name?: string; product_search?: string } = {};
+    const filters: { client_name?: string; product_name?: string } = {};
     
     if (clientSearch.trim()) {
       filters.client_name = clientSearch.trim();
     }
     
     if (productSearch.trim()) {
-      filters.product_search = productSearch.trim();
+      filters.product_name = productSearch.trim();
     }
     
     loadLogs(filters);
