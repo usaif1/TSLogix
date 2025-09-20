@@ -11,6 +11,7 @@ import WarehouseReport from './WarehouseReport';
 import ProductCategoryReport from './ProductCategoryReport';
 import ProductWiseReport from './ProductWiseReport';
 import CardexReport from './CardexReport';
+import MasterReport from '../../components/MasterReport';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -27,6 +28,8 @@ const Reports: React.FC = () => {
     fetchProductCategoryReports,
     fetchProductWiseReports,
     fetchCardexReports,
+    fetchMasterReports,
+    masterReports,
   } = useReportsStore();
 
   const [dateFrom, setDateFrom] = useState('');
@@ -35,6 +38,10 @@ const Reports: React.FC = () => {
   const [customerCode, setCustomerCode] = useState('');
   const [productName, setProductName] = useState('');
   const [productCode, setProductCode] = useState('');
+  const [supplierName, setSupplierName] = useState('');
+  const [supplierCode, setSupplierCode] = useState('');
+  const [dateFilterType, setDateFilterType] = useState<'entry' | 'dispatch' | 'both'>('dispatch');
+  const [includeUnallocated, setIncludeUnallocated] = useState(false);
 
   // Get user role from authUser or localStorage as fallback
   const userRole = authUser?.role || localStorage.getItem('role') || '';
@@ -50,6 +57,7 @@ const Reports: React.FC = () => {
     { key: 'product-category', label: t('reports:product_category_report_title') || t('reports:product_category_report') || 'Reporte de Categoría de Productos' },
     { key: 'product-wise', label: t('reports:product_wise_report_title') || t('reports:product_wise_report') || 'Reporte de Productos por Movimiento' },
     { key: 'cardex', label: t('reports:cardex_report_title') || t('reports:cardex_report') || 'Reporte Cardex' },
+    { key: 'master', label: t('reports:master_report_title') || t('reports:master_report') || 'Reporte Maestro' },
   ];
 
   // Filter reports based on user role
@@ -60,7 +68,7 @@ const Reports: React.FC = () => {
   // Apply filters and fetch data
   const applyFilters = () => {
     const newFilters: ReportFilters = {};
-    
+
     if (dateFrom) newFilters.date_from = dateFrom;
     if (dateTo) newFilters.date_to = dateTo;
     if (customerName) newFilters.customer_name = customerName;
@@ -84,6 +92,16 @@ const Reports: React.FC = () => {
       case 'cardex':
         fetchCardexReports(newFilters);
         break;
+      case 'master':
+        const masterFilters = {
+          ...newFilters,
+          supplier_name: supplierName,
+          supplier_code: supplierCode,
+          date_filter_type: dateFilterType,
+          include_unallocated: includeUnallocated,
+        };
+        fetchMasterReports(masterFilters);
+        break;
     }
   };
 
@@ -96,10 +114,14 @@ const Reports: React.FC = () => {
     setCustomerCode('');
     setProductName('');
     setProductCode('');
-    
+    setSupplierName('');
+    setSupplierCode('');
+    setDateFilterType('dispatch');
+    setIncludeUnallocated(false);
+
     // Clear store filters
     clearStoreFilters();
-    
+
     // Fetch data with empty filters
     const emptyFilters = {};
     switch (selectedReportType) {
@@ -115,11 +137,14 @@ const Reports: React.FC = () => {
       case 'cardex':
         fetchCardexReports(emptyFilters);
         break;
+      case 'master':
+        fetchMasterReports(emptyFilters);
+        break;
     }
   };
 
   // Handle report type change
-  const handleReportTypeChange = (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex') => {
+  const handleReportTypeChange = (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master') => {
     setSelectedReportType(type);
     // Clear previous data when switching report types
     switch (type) {
@@ -134,6 +159,16 @@ const Reports: React.FC = () => {
         break;
       case 'cardex':
         fetchCardexReports(filters);
+        break;
+      case 'master':
+        const masterFilters = {
+          ...filters,
+          supplier_name: supplierName,
+          supplier_code: supplierCode,
+          date_filter_type: dateFilterType,
+          include_unallocated: includeUnallocated,
+        };
+        fetchMasterReports(masterFilters);
         break;
     }
   };
@@ -171,6 +206,9 @@ const Reports: React.FC = () => {
           break;
         case 'cardex':
           fetchCardexReports(initialFilters);
+          break;
+        case 'master':
+          fetchMasterReports(initialFilters);
           break;
       }
     }, 100); // Small delay to ensure state is updated
@@ -309,6 +347,74 @@ const Reports: React.FC = () => {
             </div>
           </div>
 
+          {/* Third Row - Master Report Specific Filters */}
+          {selectedReportType === 'master' && (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+                {/* Supplier Name */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Nombre del Proveedor
+                  </label>
+                  <TextInput
+                    value={supplierName}
+                    onChange={(e) => setSupplierName(e.target.value)}
+                    placeholder="Ingrese nombre del proveedor"
+                    className="w-full text-sm"
+                  />
+                </div>
+
+                {/* Supplier Code */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Código del Proveedor
+                  </label>
+                  <TextInput
+                    value={supplierCode}
+                    onChange={(e) => setSupplierCode(e.target.value)}
+                    placeholder="Ingrese código del proveedor"
+                    className="w-full text-sm"
+                  />
+                </div>
+
+                {/* Date Filter Type */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Filtro de Fecha
+                  </label>
+                  <select
+                    value={dateFilterType}
+                    onChange={(e) => setDateFilterType(e.target.value as 'entry' | 'dispatch' | 'both')}
+                    className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                  >
+                    <option value="dispatch">Fecha de Despacho</option>
+                    <option value="entry">Fecha de Entrada</option>
+                    <option value="both">Ambas Fechas</option>
+                  </select>
+                </div>
+
+                {/* Include Unallocated */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Opciones
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="includeUnallocated"
+                      checked={includeUnallocated}
+                      onChange={(e) => setIncludeUnallocated(e.target.checked)}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="includeUnallocated" className="text-xs text-gray-700">
+                      Incluir No Asignados
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Action Buttons */}
           <div className="flex justify-end space-x-2">
             <Button
@@ -346,6 +452,25 @@ const Reports: React.FC = () => {
               {selectedReportType === 'product-category' && <ProductCategoryReport />}
               {selectedReportType === 'product-wise' && <ProductWiseReport />}
               {selectedReportType === 'cardex' && <CardexReport />}
+              {selectedReportType === 'master' && masterReports && (
+                <MasterReport
+                  data={masterReports.data || []}
+                  summary={masterReports.summary}
+                  filters={{
+                    date_from: dateFrom,
+                    date_to: dateTo,
+                    customer_name: customerName,
+                    customer_code: customerCode,
+                    product_name: productName,
+                    product_code: productCode,
+                    supplier_name: supplierName,
+                    supplier_code: supplierCode,
+                    date_filter_type: dateFilterType,
+                    include_unallocated: includeUnallocated,
+                  }}
+                  isLoading={loadingStates['master-reports'] || false}
+                />
+              )}
             </>
           )}
         </div>

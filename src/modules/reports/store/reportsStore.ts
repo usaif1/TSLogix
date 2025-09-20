@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { reportsService, ReportFilters, WarehouseReportResponse, ProductCategoryReportResponse, ProductWiseReportResponse } from '../api/reportsService';
+import { MasterReportResponse, MasterReportFilters } from '@/types';
+import masterReportService from '@/utils/api/masterReportService';
 
 interface ReportsState {
   // Loading states
@@ -11,24 +13,26 @@ interface ReportsState {
   productCategoryReports: ProductCategoryReportResponse | null;
   productWiseReports: ProductWiseReportResponse | null;
   cardexReports: { success: boolean; message: string; data: any[]; summary: any; filters_applied: any; user_role: string; is_client_filtered: boolean; report_generated_at: string; processing_time_ms: number; } | null;
+  masterReports: MasterReportResponse | null;
   
   // Filters
   filters: ReportFilters;
   
   // Selected report type
-  selectedReportType: 'warehouse' | 'product-category' | 'product-wise' | 'cardex';
+  selectedReportType: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master';
   
   // Actions
   setLoading: (key: string, loading: boolean) => void;
   setFilters: (filters: Partial<ReportFilters>) => void;
   clearFilters: () => void;
-  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex') => void;
+  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master') => void;
   
   // Fetch reports
   fetchWarehouseReports: (filters?: ReportFilters) => Promise<void>;
   fetchProductCategoryReports: (filters?: ReportFilters) => Promise<void>;
   fetchProductWiseReports: (filters?: ReportFilters) => Promise<void>;
   fetchCardexReports: (filters?: ReportFilters) => Promise<void>;
+  fetchMasterReports: (filters?: MasterReportFilters) => Promise<void>;
   
   // Export reports
   exportReport: (reportType: string, format: 'excel' | 'pdf') => Promise<boolean>;
@@ -45,6 +49,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   productCategoryReports: null,
   productWiseReports: null,
   cardexReports: null,
+  masterReports: null,
   filters: {},
   selectedReportType: 'warehouse',
 
@@ -69,7 +74,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     set({ filters: {} });
   },
 
-  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex') => {
+  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master') => {
     set({ selectedReportType: type });
   },
 
@@ -125,7 +130,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   fetchCardexReports: async (filters?: ReportFilters) => {
     const { setLoading } = get();
     setLoading('cardex-reports', true);
-    
+
     try {
       const currentFilters = filters || get().filters;
       const reports = await reportsService.getCardexReport(currentFilters);
@@ -135,6 +140,22 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       set({ cardexReports: null });
     } finally {
       setLoading('cardex-reports', false);
+    }
+  },
+
+  fetchMasterReports: async (filters?: MasterReportFilters) => {
+    const { setLoading } = get();
+    setLoading('master-reports', true);
+
+    try {
+      const currentFilters = filters || get().filters;
+      const reports = await masterReportService.getMasterReport(currentFilters);
+      set({ masterReports: reports });
+    } catch (error) {
+      console.error('Error fetching master reports:', error);
+      set({ masterReports: null });
+    } finally {
+      setLoading('master-reports', false);
     }
   },
 
@@ -165,6 +186,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       productCategoryReports: null,
       productWiseReports: null,
       cardexReports: null,
+      masterReports: null,
       filters: {},
     });
   },
