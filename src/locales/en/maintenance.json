@@ -5,6 +5,7 @@
   "product_registry": "Product Registry",
   "product_page": "Product Page",
   "add_new_product": "Add New Product",
+  "bulk_upload_products": "Bulk Upload Products",
   "new_supplier": "New Supplier",
   "edit_supplier": "Edit Supplier",
   "new_product": "New Product",
@@ -186,5 +187,24 @@
   "failed_to_load_supplier": "Failed to load supplier data",
   "supplier_not_found": "Supplier not found",
   "supplier_code": "Supplier Code",
-  "auto_generated_code": "Auto-generated code"
+  "auto_generated_code": "Auto-generated code",
+
+  "_comment_bulk_upload_fields": "=== BULK UPLOAD FIELDS ===",
+  "bulk_upload_instructions": "Bulk Upload Instructions",
+  "download_template_instruction": "Download the Excel template below",
+  "fill_template_instruction": "Fill in your product data in the template",
+  "upload_file_instruction": "Upload the completed file",
+  "step_1_download_template": "Step 1: Download Template",
+  "step_2_upload_file": "Step 2: Upload File",
+  "template_description": "Download the Excel template with all required columns and reference data.",
+  "download_excel_template": "Download Excel Template",
+  "drag_drop_file": "Drag and drop your Excel file here",
+  "or": "or",
+  "uploading": "Uploading...",
+  "upload_products": "Upload Products",
+  "upload_results": "Upload Results",
+  "successful_products": "Successful Products",
+  "failed_products": "Failed Products",
+  "error_details": "Error Details",
+  "row": "Row"
 }

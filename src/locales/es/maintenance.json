@@ -5,6 +5,7 @@
   "product_registry": "Registro de Productos",
   "product_page": "Página de Productos",
   "add_new_product": "Agregar Nuevo Producto",
+  "bulk_upload_products": "Carga Masiva de Productos",
   "new_supplier": "Nuevo Proveedor",
   "edit_supplier": "Editar Proveedor",
   "new_product": "Nuevo Producto",
@@ -186,5 +187,24 @@
   "failed_to_load_supplier": "Error al cargar los datos del proveedor",
   "supplier_not_found": "Proveedor no encontrado",
   "supplier_code": "Código de Proveedor",
-  "auto_generated_code": "Código generado automáticamente"
+  "auto_generated_code": "Código generado automáticamente",
+
+  "_comment_bulk_upload_fields": "=== CAMPOS DE CARGA MASIVA ===",
+  "bulk_upload_instructions": "Instrucciones de Carga Masiva",
+  "download_template_instruction": "Descarga la plantilla de Excel a continuación",
+  "fill_template_instruction": "Completa tus datos de productos en la plantilla",
+  "upload_file_instruction": "Sube el archivo completado",
+  "step_1_download_template": "Paso 1: Descargar Plantilla",
+  "step_2_upload_file": "Paso 2: Subir Archivo",
+  "template_description": "Descarga la plantilla de Excel con todas las columnas requeridas y datos de referencia.",
+  "download_excel_template": "Descargar Plantilla de Excel",
+  "drag_drop_file": "Arrastra y suelta tu archivo de Excel aquí",
+  "or": "o",
+  "uploading": "Subiendo...",
+  "upload_products": "Subir Productos",
+  "upload_results": "Resultados de Carga",
+  "successful_products": "Productos Exitosos",
+  "failed_products": "Productos Fallidos",
+  "error_details": "Detalles del Error",
+  "row": "Fila"
 }

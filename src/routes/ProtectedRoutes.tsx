@@ -12,6 +12,7 @@ import {
   ProcessHome,
   NewEntry,
   MassEntry,
+  BulkEntry,
   // departure
   Departure,
   DepartureCreate,
@@ -19,6 +20,7 @@ import {
   DepartureReturned,
   DepartureDispatch,
   DepartureWarehouseDispatch,
+  BulkDeparture,
   Audit,
   DepartureAudit,
 } from "@/modules/process/screens";
@@ -31,6 +33,7 @@ import {
   MaintenanceHome,
   Product,
   NewProduct,
+  BulkProductUpload,
 } from "@/modules/maintenance/screens";
 
 import {
@@ -98,6 +101,7 @@ const ProtectedRoutes: React.FC = () => {
             <Route index element={<Entry />} />
             <Route path="new" element={<NewEntry />} />
             <Route path="mass" element={<MassEntry />} />
+            <Route path="bulk" element={<BulkEntry />} />
             <Route path="audit" element={<Audit />} />
           </Route>
           <Route path="departure">
@@ -106,15 +110,16 @@ const ProtectedRoutes: React.FC = () => {
             <Route path="returned" element={<DepartureReturned />} />
             <Route path="counter" element={<DepartureCounter />} />
             <Route path="dispatch" element={<DepartureDispatch />} />
-            <Route 
-              path="warehouse-dispatch" 
+            <Route
+              path="warehouse-dispatch"
               element={
-                <RoleProtectedRoute 
-                  element={<DepartureWarehouseDispatch />} 
+                <RoleProtectedRoute
+                  element={<DepartureWarehouseDispatch />}
                   allowedRoles={["ADMIN", "WAREHOUSE_INCHARGE"]}
                 />
-              } 
+              }
             />
+            <Route path="bulk-upload" element={<BulkDeparture />} />
             <Route path="audit" element={<DepartureAudit />} />
           </Route>
         </Route>
@@ -128,6 +133,7 @@ const ProtectedRoutes: React.FC = () => {
           <Route path="product">
             <Route index element={<Product />} />
             <Route path="new" element={<NewProduct />} />
+            <Route path="bulk-upload" element={<BulkProductUpload />} />
           </Route>
           <Route path="client">
             <Route index element={<Client />} />
