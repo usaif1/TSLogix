@@ -32,6 +32,11 @@ const DepartureOptions: React.FC = () => {
       route: "/processes/departure/counter",
       htmlFor: "counter_sample",
     },
+    {
+      label: "Bulk Upload Departure Orders",
+      route: "/processes/departure/bulk-upload",
+      htmlFor: "bulk_upload",
+    },
   ];
 
   return (

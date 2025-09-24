@@ -73,6 +73,17 @@ const Departure: React.FC = () => {
             </div>
           </Link>
         )}
+
+        {/* Bulk Upload Departure Orders Button */}
+        <Link
+          to={"/processes/departure/bulk-upload"}
+          className="!w-64 bg-action-nav hover:bg-[#0F2F47] text-white px-2 py-2 rounded-md font-bold flex justify-center cursor-pointer "
+        >
+          <div className="flex items-center gap-x-2">
+            <Text color="text-white">Bulk Upload Orders</Text>
+            <Plus className="text-white" weight="bold" size={16} />
+          </div>
+        </Link>
       </div>
       <Divider />
       <div className="h-4/5 bg-white rounded-md px-2 py-1.5">

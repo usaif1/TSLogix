@@ -354,12 +354,12 @@ const Reports: React.FC = () => {
                 {/* Supplier Name */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Nombre del Proveedor
+                    {t('reports:supplier_name') || 'Nombre del Proveedor'}
                   </label>
                   <TextInput
                     value={supplierName}
                     onChange={(e) => setSupplierName(e.target.value)}
-                    placeholder="Ingrese nombre del proveedor"
+                    placeholder={t('reports:enter_supplier_name') || 'Ingrese nombre del proveedor'}
                     className="w-full text-sm"
                   />
                 </div>
@@ -367,12 +367,12 @@ const Reports: React.FC = () => {
                 {/* Supplier Code */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Código del Proveedor
+                    {t('reports:supplier_code') || 'Código del Proveedor'}
                   </label>
                   <TextInput
                     value={supplierCode}
                     onChange={(e) => setSupplierCode(e.target.value)}
-                    placeholder="Ingrese código del proveedor"
+                    placeholder={t('reports:enter_supplier_code') || 'Ingrese código del proveedor'}
                     className="w-full text-sm"
                   />
                 </div>
@@ -380,23 +380,23 @@ const Reports: React.FC = () => {
                 {/* Date Filter Type */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Filtro de Fecha
+                    {t('reports:date_filter') || 'Filtro de Fecha'}
                   </label>
                   <select
                     value={dateFilterType}
                     onChange={(e) => setDateFilterType(e.target.value as 'entry' | 'dispatch' | 'both')}
                     className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                   >
-                    <option value="dispatch">Fecha de Despacho</option>
-                    <option value="entry">Fecha de Entrada</option>
-                    <option value="both">Ambas Fechas</option>
+                    <option value="dispatch">{t('reports:dispatch_date') || 'Fecha de Despacho'}</option>
+                    <option value="entry">{t('reports:entry_date') || 'Fecha de Entrada'}</option>
+                    <option value="both">{t('reports:both_dates') || 'Ambas Fechas'}</option>
                   </select>
                 </div>
 
                 {/* Include Unallocated */}
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
-                    Opciones
+                    {t('reports:filter_options') || 'Opciones'}
                   </label>
                   <div className="flex items-center space-x-2">
                     <input
@@ -407,7 +407,7 @@ const Reports: React.FC = () => {
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                     <label htmlFor="includeUnallocated" className="text-xs text-gray-700">
-                      Incluir No Asignados
+                      {t('reports:include_unallocated') || 'Incluir No Asignados'}
                     </label>
                   </div>
                 </div>

@@ -5,7 +5,7 @@ import { Divider } from "@/components";
 import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
 import { OrderBtnGroup } from "@/modules/process/components";
-import { Plus } from "@phosphor-icons/react";
+import { Plus, Upload } from "@phosphor-icons/react";
 
 interface ProductRegisterProps {
   products: any[];
@@ -146,6 +146,11 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
         title: t('add_new_product'),
         icon: Plus,
         route: "/maintenance/product/new",
+      },
+      {
+        title: t('bulk_upload_products'),
+        icon: Upload,
+        route: "/maintenance/product/bulk-upload",
       },
     ],
     [t]

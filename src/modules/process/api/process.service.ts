@@ -2784,6 +2784,54 @@ export const ProcessService = {
       throw error;
     }
   },
+
+  // ✅ NEW: Bulk Entry Operations
+  /**
+   * Download bulk entry template
+   */
+  downloadBulkTemplate: async () => {
+    const response = await api.get(`${entryBaseURL}/bulk-template`, {
+      responseType: 'blob'
+    });
+    return response;
+  },
+
+  /**
+   * Process bulk entry orders from Excel
+   */
+  processBulkEntryOrders: async (formData: FormData) => {
+    const response = await api.post(`${entryBaseURL}/bulk-upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      timeout: 300000 // 5 minute timeout for large files
+    });
+    return response.data;
+  },
+
+  // ✅ NEW: Bulk Departure Operations
+  /**
+   * Download bulk departure template
+   */
+  downloadBulkDepartureTemplate: async () => {
+    const response = await api.get(`${departureBaseURL}/bulk-template`, {
+      responseType: 'blob'
+    });
+    return response;
+  },
+
+  /**
+   * Process bulk departure orders from Excel
+   */
+  processBulkDepartureOrders: async (formData: FormData) => {
+    const response = await api.post(`${departureBaseURL}/bulk-upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      },
+      timeout: 300000 // 5 minute timeout for large files
+    });
+    return response.data;
+  },
 };
 
 export default ProcessService;

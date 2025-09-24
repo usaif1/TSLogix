@@ -7,9 +7,9 @@ import {
   Clock,
   Package,
   Truck,
-  AlertTriangle,
   CheckCircle
 } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import type { MasterReportItem, MasterReportSummary, MasterReportFilters } from '@/types';
 import masterReportService from '@/utils/api/masterReportService';
@@ -28,6 +28,7 @@ const MasterReport: React.FC<MasterReportProps> = ({
   filters,
   isLoading
 }) => {
+  const { t } = useTranslation(['reports', 'common']);
   const [isExporting, setIsExporting] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,10 +72,10 @@ const MasterReport: React.FC<MasterReportProps> = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success('Excel report downloaded successfully');
+      toast.success(t('export_successful'));
     } catch (error: any) {
       console.error('Export error:', error);
-      toast.error(error.message || 'Failed to export Excel report');
+      toast.error(error.message || t('export_failed'));
     } finally {
       setIsExporting(false);
     }
@@ -95,10 +96,10 @@ const MasterReport: React.FC<MasterReportProps> = ({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      toast.success('PDF report downloaded successfully');
+      toast.success(t('export_successful'));
     } catch (error: any) {
       console.error('Export error:', error);
-      toast.error(error.message || 'Failed to export PDF report');
+      toast.error(error.message || t('export_failed'));
     } finally {
       setIsExporting(false);
     }
@@ -163,8 +164,8 @@ const MasterReport: React.FC<MasterReportProps> = ({
     return (
       <div className="text-center py-12">
         <Table size={48} className="mx-auto text-gray-400 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No data found</h3>
-        <p className="text-gray-500">Try adjusting your filters to see more results.</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t('no_data_available')}</h3>
+        <p className="text-gray-500">{t('try_adjusting_filters')}</p>
       </div>
     );
   }
@@ -179,7 +180,7 @@ const MasterReport: React.FC<MasterReportProps> = ({
               <Package className="h-8 w-8 text-blue-500" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Total Transactions</p>
+              <p className="text-sm font-medium text-gray-500">{t('total_transactions')}</p>
               <p className="text-2xl font-semibold text-gray-900">{summary.total_transactions}</p>
             </div>
           </div>
@@ -191,7 +192,7 @@ const MasterReport: React.FC<MasterReportProps> = ({
               <Truck className="h-8 w-8 text-green-500" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Dispatched</p>
+              <p className="text-sm font-medium text-gray-500">{t('dispatched')}</p>
               <p className="text-2xl font-semibold text-gray-900">{summary.dispatched_transactions}</p>
             </div>
           </div>
@@ -231,7 +232,7 @@ const MasterReport: React.FC<MasterReportProps> = ({
             className="inline-flex items-center px-4 py-2 text-sm font-medium text-green-700 bg-green-100 border border-green-300 rounded-md hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50"
           >
             <Download size={16} className="mr-2" />
-            {isExporting ? 'Exporting...' : 'Export Excel'}
+            {isExporting ? t('generating_report') : t('export_excel')}
           </button>
 
           <button
@@ -240,7 +241,7 @@ const MasterReport: React.FC<MasterReportProps> = ({
             className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-100 border border-red-300 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
           >
             <FileText size={16} className="mr-2" />
-            {isExporting ? 'Exporting...' : 'Export PDF'}
+            {isExporting ? t('generating_report') : t('export_pdf')}
           </button>
         </div>
 
@@ -313,12 +314,27 @@ const MasterReport: React.FC<MasterReportProps> = ({
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {paginatedData.map((item, index) => {
-                const actualIndex = (currentPage - 1) * itemsPerPage + index;
-                const isExpanded = expandedRows.has(actualIndex);
+              {paginatedData.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-6 py-12 text-center">
+                    <div className="flex flex-col items-center">
+                      <Table size={48} className="text-gray-300 mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        {t('no_data_available')}
+                      </h3>
+                      <p className="text-gray-500">
+                        {t('try_adjusting_filters')}
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                paginatedData.map((item, index) => {
+                  const actualIndex = (currentPage - 1) * itemsPerPage + index;
+                  const isExpanded = expandedRows.has(actualIndex);
 
-                return (
-                  <React.Fragment key={actualIndex}>
+                  return (
+                    <React.Fragment key={actualIndex}>
                     {/* Main Row */}
                     <tr className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -455,8 +471,9 @@ const MasterReport: React.FC<MasterReportProps> = ({
                       </tr>
                     )}
                   </React.Fragment>
-                );
-              })}
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

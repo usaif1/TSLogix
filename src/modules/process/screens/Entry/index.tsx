@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useCallback } from "react";
-import { Plus } from "@phosphor-icons/react";
+import { Plus, FileArrowUp } from "@phosphor-icons/react";
 import debounce from "lodash.debounce";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +24,11 @@ const Entry: React.FC = () => {
         title: t("process:generate_order"),
         icon: Plus,
         route: "/processes/entry/new",
+      },
+      {
+        title: "Bulk Upload",
+        icon: FileArrowUp,
+        route: "/processes/entry/bulk",
       },
     ],
     [t]
