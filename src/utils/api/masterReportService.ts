@@ -118,7 +118,7 @@ class MasterReportService {
       }
 
       // Use dynamic imports for PDF libraries
-      const [jsPDF, autoTable] = await Promise.all([
+      const [jsPDF] = await Promise.all([
         import('jspdf'),
         import('jspdf-autotable')
       ]);
