@@ -50,6 +50,16 @@ export interface Client {
     name: string;
     created_at?: string;
   }>;
+
+  // Client users data (from backend sync)
+  client_users_data?: Array<{
+    name: string;
+    email: string;
+    username: string;
+    is_primary: boolean;
+    is_active: boolean;
+    created_at: string;
+  }>;
   
   // Relations
   active_state?: {
