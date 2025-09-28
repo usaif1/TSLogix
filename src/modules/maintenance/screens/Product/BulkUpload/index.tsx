@@ -13,6 +13,7 @@ import {
   Spinner
 } from '@phosphor-icons/react';
 import { Text, Divider } from '@/components';
+import { ProductService } from '@/modules/maintenance/api/maintenance.service';
 
 interface BulkUploadResult {
   success: boolean;
@@ -71,19 +72,12 @@ const BulkProductUpload: React.FC = () => {
   // Download template
   const handleDownloadTemplate = useCallback(async () => {
     try {
-      // TODO: Implement template download API call
-      const response = await fetch('/api/product/bulk-template', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-        },
+      const response = await ProductService.downloadBulkTemplate();
+
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to download template');
-      }
-
-      const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -114,16 +108,8 @@ const BulkProductUpload: React.FC = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // TODO: Implement bulk upload API call
-      const response = await fetch('/api/product/bulk-upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-        },
-        body: formData,
-      });
-
-      const result = await response.json();
+      const response = await ProductService.processBulkProductUpload(formData);
+      const result = response.data;
       setUploadResult(result);
 
       if (result.success) {
@@ -131,12 +117,13 @@ const BulkProductUpload: React.FC = () => {
       } else {
         toast.error(result.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Bulk upload error:', error);
-      toast.error('Failed to upload products');
+      const errorMessage = error.response?.data?.message || 'Failed to upload products';
+      toast.error(errorMessage);
       setUploadResult({
         success: false,
-        message: 'Failed to upload products'
+        message: errorMessage
       });
     } finally {
       setIsUploading(false);

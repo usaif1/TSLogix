@@ -582,4 +582,26 @@ export const ProductService = {
       stopLoader("products/delete-product");
     }
   },
+
+  /**
+   * Download bulk product upload template
+   */
+  downloadBulkTemplate: async () => {
+    const response = await api.get(`${productBaseURL}/bulk-template`, {
+      responseType: 'blob'
+    });
+    return response;
+  },
+
+  /**
+   * Process bulk product upload from Excel
+   */
+  processBulkProductUpload: async (formData: FormData) => {
+    const response = await api.post(`${productBaseURL}/bulk-upload`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response;
+  },
 };
