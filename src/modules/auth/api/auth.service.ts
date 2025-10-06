@@ -59,6 +59,14 @@ export const AuthService = {
     if (userData.token) {
       localStorage.setItem("token", userData.token);
     }
+
+    // Store client-specific data for CLIENT users
+    if (userData.client_id) {
+      localStorage.setItem("client_id", userData.client_id);
+    }
+    if (userData.is_primary_user !== undefined) {
+      localStorage.setItem("is_primary_user", userData.is_primary_user.toString());
+    }
     
     return response.data;
   },
@@ -75,5 +83,7 @@ export const AuthService = {
     localStorage.removeItem("user_id");
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    localStorage.removeItem("client_id");
+    localStorage.removeItem("is_primary_user");
   },
 };

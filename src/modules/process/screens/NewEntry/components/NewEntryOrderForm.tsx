@@ -63,6 +63,10 @@ interface EntryFormData {
   guide_number: string;
   type: string;
 
+  // ✅ NEW: Multi-user client support
+  client: { option: string; value: string; label: string };
+  client_user: { option: string; value: string; label: string };
+
   // Products Array
   products: ProductData[];
 }
@@ -85,6 +89,8 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       temperatureRangeOptions: temperatureRanges,
       orderStatusOptions: entryOrderStatus,
       presentationOptions,
+      clients, // ✅ NEW: Client options for admin users
+      clientUsers, // ✅ NEW: Client user options for multi-user support
     },
     currentEntryOrderNo,
   } = ProcessesStore();
@@ -99,8 +105,10 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       temperatureRanges: (temperatureRanges || []).filter(temp => temp.value !== "AMBIENTE"),
       orderStatus: entryOrderStatus || [],
       presentationOptions: presentationOptions || [],
+      clients: clients || [], // ✅ NEW: Client options
+      clientUsers: clientUsers || [], // ✅ NEW: Client user options
     };
-  }, [origins, documentTypes, users, products, suppliers, temperatureRanges, entryOrderStatus, presentationOptions]);
+  }, [origins, documentTypes, users, products, suppliers, temperatureRanges, entryOrderStatus, presentationOptions, clients, clientUsers]);
 
 
   const [loading, setLoading] = useState(false);
@@ -124,7 +132,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     personnel_incharge_id: { option: "", value: "", label: "" },
     document_status: {
       option: "Registered",
-      value: "REGISTERED", 
+      value: "REGISTERED",
       label: "REGISTERED",
     },
     observation: "",
@@ -133,6 +141,9 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     certificate_protocol_analysis: "",
     guide_number: "",
     type: "",
+    // ✅ NEW: Multi-user client support
+    client: { option: "", value: "", label: "" },
+    client_user: { option: "", value: "", label: "" },
     products: [],
   });
 
@@ -150,6 +161,36 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
       }));
     }
   }, [currentEntryOrderNo, formData.entry_order_no]);
+
+  // ✅ NEW: Auto-populate client information for CLIENT role users
+  useEffect(() => {
+    const userRole = localStorage.getItem("role");
+    const clientId = localStorage.getItem("client_id");
+    const username = localStorage.getItem("username");
+    const isPrimaryUser = localStorage.getItem("is_primary_user") === "true";
+
+    if (userRole === "CLIENT" && clientId) {
+      // For CLIENT users, auto-select their client
+      const clientData = dropdownOptions.clients.find((client: any) => client.value === clientId);
+      if (clientData) {
+        setFormData(prev => ({
+          ...prev,
+          client: clientData
+        }));
+      }
+
+      // If user is not primary, auto-select themselves as the client user
+      if (!isPrimaryUser && username) {
+        const clientUserData = dropdownOptions.clientUsers.find((user: any) => user.username === username);
+        if (clientUserData) {
+          setFormData(prev => ({
+            ...prev,
+            client_user: clientUserData
+          }));
+        }
+      }
+    }
+  }, [dropdownOptions.clients, dropdownOptions.clientUsers]);
 
   const isReturnOrigin = useMemo(() => {
     return (
@@ -406,6 +447,9 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         cif_value: parseFloat(formData.cif_value) || null,
         total_pallets: formData.products.reduce((sum, p) => sum + parseInt(p.quantity_pallets || "0"), 0),
         observation: formData.observation,
+        // ✅ NEW: Multi-user client support
+        client_id: formData.client?.value || localStorage.getItem("client_id"),
+        client_user_id: formData.client_user?.value || null,
 
         // ✅ Products array with product_code included
         products: formData.products.map((product) => ({
@@ -677,6 +721,76 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
               {t("process:auto_filled_revision")}
             </p>
           </div>
+        </div>
+
+        <Divider />
+
+        {/* ✅ NEW: Multi-user client selection section */}
+        <div className="w-full flex items-center gap-x-6">
+          {/* Client Selection - Only for ADMIN/WAREHOUSE users */}
+          {localStorage.getItem("role") !== "CLIENT" && (
+            <div className="w-full flex flex-col">
+              <label htmlFor="client">
+                {t("process:client")} *
+              </label>
+              <Select
+                options={dropdownOptions.clients}
+                styles={reactSelectStyle}
+                inputId="client"
+                name="client"
+                value={formData.client.value ? formData.client : null}
+                onChange={(selectedOption) =>
+                  handleSelectChange("client", selectedOption)
+                }
+                placeholder={t("process:select_client")}
+                isClearable
+              />
+            </div>
+          )}
+
+          {/* Client User Selection - For primary CLIENT users or when client is selected by admin */}
+          {(localStorage.getItem("is_primary_user") === "true" || localStorage.getItem("role") !== "CLIENT") &&
+           formData.client.value && (
+            <div className="w-full flex flex-col">
+              <label htmlFor="client_user">
+                {t("process:client_user")}
+              </label>
+              <Select
+                options={dropdownOptions.clientUsers.filter((user: any) => user.client_id === formData.client.value)}
+                styles={reactSelectStyle}
+                inputId="client_user"
+                name="client_user"
+                value={formData.client_user.value ? formData.client_user : null}
+                onChange={(selectedOption) =>
+                  handleSelectChange("client_user", selectedOption)
+                }
+                placeholder={t("process:select_client_user")}
+                isClearable
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {t("process:optional_specify_which_user")}
+              </p>
+            </div>
+          )}
+
+          {/* Show client info for CLIENT users (read-only) */}
+          {localStorage.getItem("role") === "CLIENT" && formData.client.value && (
+            <div className="w-full flex flex-col">
+              <label htmlFor="client_display">
+                {t("process:client")}
+              </label>
+              <input
+                type="text"
+                id="client_display"
+                value={formData.client.label}
+                disabled
+                className="h-10 border border-slate-400 rounded-md px-4 bg-gray-100 text-gray-600"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                {t("process:auto_selected_based_on_your_account")}
+              </p>
+            </div>
+          )}
         </div>
 
         <Divider />

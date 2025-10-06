@@ -13,6 +13,7 @@ import {
   Spinner
 } from '@phosphor-icons/react';
 import { Text, Divider } from '@/components';
+import api from '@/utils/api/axios.config';
 
 interface BulkUploadResult {
   success: boolean;
@@ -71,23 +72,19 @@ const BulkProductUpload: React.FC = () => {
   // Download template
   const handleDownloadTemplate = useCallback(async () => {
     try {
-      // TODO: Implement template download API call
-      const response = await fetch('/api/product/bulk-template', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
-        },
+      // Use the API service to download template properly
+      const response = await api.get('/products/bulk-template', {
+        responseType: 'blob'
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to download template');
-      }
-
-      const blob = await response.blob();
+      // Create blob and download - matching entry template pattern
+      const blob = new Blob([response.data], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      });
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'product_bulk_upload_template.xlsx';
+      link.download = `product_bulk_upload_template_${new Date().toISOString().split('T')[0]}.xlsx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -114,16 +111,14 @@ const BulkProductUpload: React.FC = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-      // TODO: Implement bulk upload API call
-      const response = await fetch('/api/product/bulk-upload', {
-        method: 'POST',
+      // Use the API service for proper upload handling
+      const response = await api.post('/products/bulk-upload', formData, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
+          'Content-Type': 'multipart/form-data',
         },
-        body: formData,
       });
 
-      const result = await response.json();
+      const result = response.data;
       setUploadResult(result);
 
       if (result.success) {
