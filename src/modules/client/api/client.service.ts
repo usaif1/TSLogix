@@ -14,6 +14,7 @@ const {
 } = ClientStore.getState();
 
 export interface JuridicoClientPayload {
+  
   client_type: "JURIDICO";
   client_code?: string;
   company_name: string;
