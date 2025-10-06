@@ -564,4 +564,28 @@ export const ClientService = {
       stopLoader("clients/change-password");
     }
   },
+
+  // Change password for individual client user
+  changeClientUserPassword: async (clientId: string, username: string, newPassword: string) => {
+    try {
+      startLoader("clients/change-password");
+
+      const payload = {
+        new_password: newPassword,
+      };
+
+      const response = await api.put(`${baseURL}/${clientId}/users/${username}/change-password`, payload, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error("Change client user password error:", error);
+      throw error;
+    } finally {
+      stopLoader("clients/change-password");
+    }
+  },
 };

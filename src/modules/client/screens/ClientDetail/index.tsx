@@ -9,6 +9,7 @@ import { ClientService } from "@/modules/client/api/client.service";
 import { ClientStore, Client } from "@/modules/client/store";
 import { ClientPasswordChangeModal } from "@/modules/client/components";
 import ClientEditModal from "./components/ClientEditModal";
+import ClientUserPasswordChangeModal from "@/modules/client/components/ClientUserPasswordChangeModal";
 
 const ClientDetail: React.FC = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -22,6 +23,15 @@ const ClientDetail: React.FC = () => {
   // Local state
   const [showEditModal, setShowEditModal] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [showUserPasswordModal, setShowUserPasswordModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<{
+    name: string;
+    email: string;
+    username: string;
+    is_primary: boolean;
+    is_active: boolean;
+    created_at: string;
+  } | null>(null);
 
   // Load client data on mount
   useEffect(() => {
@@ -266,6 +276,66 @@ const ClientDetail: React.FC = () => {
         )}
       </div>
 
+      {/* Client Users */}
+      <div className="bg-white rounded-lg shadow-sm p-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          {t('client:detail.client_users')} ({currentClient.client_users_data?.length || 0})
+        </h2>
+        {currentClient.client_users_data && currentClient.client_users_data.length > 0 ? (
+          <div className="space-y-3">
+            {currentClient.client_users_data.map((user, index) => (
+              <div key={user.username || index} className="border rounded-lg p-4 hover:bg-gray-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <Text weight="font-medium" additionalClass="text-sm">
+                            {user.name || user.email?.split('@')[0]}
+                          </Text>
+                          {user.is_primary && (
+                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                              Primary
+                            </span>
+                          )}
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            user.is_active
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}>
+                            {user.is_active ? 'Active' : 'Inactive'}
+                          </span>
+                        </div>
+                        <Text additionalClass="text-xs text-gray-600 mt-1">
+                          {user.email}
+                        </Text>
+                        <Text additionalClass="text-xs text-gray-500">
+                          Username: {user.username} • Created: {formatDate(user.created_at)}
+                        </Text>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setShowUserPasswordModal(true);
+                      }}
+                    >
+                      Change Password
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <Text additionalClass="text-gray-500">No users found for this client</Text>
+          </div>
+        )}
+      </div>
 
       {/* Edit Modal */}
       {showEditModal && (
@@ -285,6 +355,22 @@ const ClientDetail: React.FC = () => {
           setShowPasswordModal(false);
           toast.success(t('client:messages.password_changed_successfully'));
         }}
+      />
+
+      {/* User Password Change Modal */}
+      <ClientUserPasswordChangeModal
+        isOpen={showUserPasswordModal}
+        onClose={() => setShowUserPasswordModal(false)}
+        onSuccess={() => {
+          setShowUserPasswordModal(false);
+          setSelectedUser(null);
+          if (clientId) {
+            fetchClientData(); // Refresh client data
+          }
+          toast.success(t('client:messages.password_changed_successfully'));
+        }}
+        clientId={clientId || ""}
+        user={selectedUser}
       />
     </div>
   );
