@@ -18,7 +18,8 @@
     "contact_information": "Contact Information",
     "client_users": "Client Users",
     "basic_information": "Basic Information",
-    "cell_assignments": "Cell Assignments"
+    "cell_assignments": "Cell Assignments",
+    "user": "User"
   },
   "fields": {
     "client_type": "Client Type",
@@ -44,6 +45,19 @@
     "select_cells": "Select Cells",
     "assignment_notes": "Assignment Notes"
   },
+  "labels": {
+    "username": "Username",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm Password"
+  },
+  "hints": {
+    "email_auto_generate": "Email will be auto-generated if not provided",
+    "password_default": "A default password will be set if not provided"
+  },
+  "terms": {
+    "individual_id": "Individual ID"
+  },
   "placeholders": {
     "select_client_type": "Select client type",
     "client_code": "Auto-generated code",
@@ -60,6 +74,10 @@
     "phone": "Enter phone number",
     "cell_phone": "Enter cell phone number",
     "user_name": "Enter user name",
+    "username_example": "e.g., johndoe",
+    "user_email": "user@email.com",
+    "initial_password": "Enter initial password",
+    "repeat_password": "Repeat password",
     "select_warehouse": "Select warehouse...",
     "select_active_state": "Select active state...",
     "select_establishment_type": "Select establishment type...",

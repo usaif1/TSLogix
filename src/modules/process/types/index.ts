@@ -60,6 +60,9 @@ export interface EntryFormFields {
   orderStatusOptions: { value: string; label: string }[];
   presentationOptions: { value: string; label: string }[];
   temperatureRangeOptions: { value: string; label: string }[];
+  // ✅ NEW: Multi-user client support
+  clients: any[];
+  clientUsers: any[];
 }
 
 // ✅ UPDATED: Entry Order Review interface with warehouse_id

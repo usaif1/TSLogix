@@ -40,6 +40,9 @@ interface FormData {
   client_users: Array<{
     id: string; // temporary ID for form management
     name: string;
+    email?: string;
+    password?: string;
+    confirm_password?: string;
   }>;
 }
 
@@ -203,6 +206,9 @@ const ClientForm: React.FC = () => {
     const newUser = {
       id: `temp_${Date.now()}`, // temporary ID for form management
       name: "",
+      email: "",
+      password: "",
+      confirm_password: "",
     };
     setFormData(prev => ({
       ...prev,
@@ -217,11 +223,11 @@ const ClientForm: React.FC = () => {
     }));
   };
 
-  const updateClientUser = (userId: string, name: string) => {
+  const updateClientUser = (userId: string, field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
-      client_users: prev.client_users.map(user => 
-        user.id === userId ? { ...user, name } : user
+      client_users: prev.client_users.map(user =>
+        user.id === userId ? { ...user, [field]: value } : user
       )
     }));
   };
@@ -278,6 +284,19 @@ const ClientForm: React.FC = () => {
       }
     }
 
+    // Validate client users
+    formData.client_users.forEach((user, index) => {
+      if (user.name.trim()) {
+        // If username is provided, validate other fields
+        if (user.password && user.confirm_password && user.password !== user.confirm_password) {
+          errors[`client_user_${user.id}_password`] = `Usuario ${index + 1}: Las contraseñas no coinciden`;
+        }
+        if (user.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(user.email)) {
+          errors[`client_user_${user.id}_email`] = `Usuario ${index + 1}: Email inválido`;
+        }
+      }
+    });
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -307,7 +326,9 @@ const ClientForm: React.FC = () => {
           cell_phone: formData.cell_phone,
           active_state_id: formData.active_state_id,
           client_users: formData.client_users.filter(user => user.name.trim()).map(user => ({
-            name: user.name.trim()
+            name: user.name.trim(),
+            email: user.email || `${user.name.toLowerCase().replace(/\s+/g, '.')}@${formData.email.split('@')[1]}`,
+            password: user.password || formData.ruc || 'TempPass123!' // Use RUC as default password for JURIDICO
           })),
         };
       } else {
@@ -325,7 +346,9 @@ const ClientForm: React.FC = () => {
           cell_phone: formData.cell_phone,
           active_state_id: formData.active_state_id,
           client_users: formData.client_users.filter(user => user.name.trim()).map(user => ({
-            name: user.name.trim()
+            name: user.name.trim(),
+            email: user.email || `${user.name.toLowerCase().replace(/\s+/g, '.')}@${formData.email.split('@')[1]}`,
+            password: user.password || formData.individual_id || 'TempPass123!' // Use individual_id as default password for NATURAL
           })),
         };
       }
@@ -735,25 +758,97 @@ const ClientForm: React.FC = () => {
                   </div>
 
                   {formData.client_users.length > 0 && (
-                    <div className="space-y-3">
-                      {formData.client_users.map((user) => (
-                        <div key={user.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-md">
-                          <div className="flex-1">
-                            <TextInput
-                              value={user.name}
-                              onChange={(e) => updateClientUser(user.id, e.target.value)}
-                              placeholder={t('client:placeholders.user_name')}
-                              className="w-full"
-                            />
+                    <div className="space-y-4">
+                      {formData.client_users.map((user, index) => (
+                        <div key={user.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="flex justify-between items-center mb-3">
+                            <Text size="sm" weight="font-medium" additionalClass="text-gray-700">
+                              {t('client:sections.user')} {index + 1}
+                            </Text>
+                            <Button
+                              type="button"
+                              variant="cancel"
+                              onClick={() => removeClientUser(user.id)}
+                              additionalClass="text-sm px-2 py-1"
+                            >
+                              {t('client:buttons.remove')}
+                            </Button>
                           </div>
-                          <Button
-                            type="button"
-                            variant="cancel"
-                            onClick={() => removeClientUser(user.id)}
-                            additionalClass="text-sm px-2 py-1"
-                          >
-                            {t('client:buttons.remove')}
-                          </Button>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {/* User Name */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {t('client:labels.username')} *
+                              </label>
+                              <TextInput
+                                value={user.name}
+                                onChange={(e) => updateClientUser(user.id, 'name', e.target.value)}
+                                placeholder={t('client:placeholders.username_example')}
+                                className="w-full"
+                              />
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {t('client:labels.email')}
+                              </label>
+                              <TextInput
+                                value={user.email || ''}
+                                onChange={(e) => updateClientUser(user.id, 'email', e.target.value)}
+                                placeholder={t('client:placeholders.user_email')}
+                                type="email"
+                                className="w-full"
+                              />
+                              {validationErrors[`client_user_${user.id}_email`] && (
+                                <p className="text-xs text-red-600 mt-1">
+                                  {validationErrors[`client_user_${user.id}_email`]}
+                                </p>
+                              )}
+                              <p className="text-xs text-gray-500 mt-1">
+                                {t('client:hints.email_auto_generate')}
+                              </p>
+                            </div>
+
+                            {/* Password */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {t('client:labels.password')}
+                              </label>
+                              <TextInput
+                                value={user.password || ''}
+                                onChange={(e) => updateClientUser(user.id, 'password', e.target.value)}
+                                placeholder={t('client:placeholders.initial_password')}
+                                type="password"
+                                className="w-full"
+                              />
+                              <p className="text-xs text-gray-500 mt-1">
+                                {t('client:hints.password_default', {
+                                  type: formData.client_type === 'JURIDICO' ? 'RUC' : t('client:terms.individual_id')
+                                })}
+                              </p>
+                            </div>
+
+                            {/* Confirm Password */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {t('client:labels.confirm_password')}
+                              </label>
+                              <TextInput
+                                value={user.confirm_password || ''}
+                                onChange={(e) => updateClientUser(user.id, 'confirm_password', e.target.value)}
+                                placeholder={t('client:placeholders.repeat_password')}
+                                type="password"
+                                className="w-full"
+                              />
+                              {validationErrors[`client_user_${user.id}_password`] && (
+                                <p className="text-xs text-red-600 mt-1">
+                                  {validationErrors[`client_user_${user.id}_password`]}
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>

@@ -153,6 +153,27 @@ export const ProcessService = {
           value: pres.value,
           label: pres.label,
           option: pres.label
+        })) || [],
+
+        // ✅ NEW: Multi-user client support
+        clients: formFields.clients?.map(client => ({
+          value: client.client_id || client.id,
+          label: client.client_type === "JURIDICO"
+            ? client.company_name
+            : `${client.first_names || ''} ${client.last_name || ''}`.trim(),
+          option: client.client_type === "JURIDICO"
+            ? client.company_name
+            : `${client.first_names || ''} ${client.last_name || ''}`.trim()
+        })) || [],
+
+        clientUsers: formFields.clientUsers?.map(clientUser => ({
+          value: clientUser.client_user_id || clientUser.id,
+          label: `${clientUser.username} (${clientUser.user?.email || 'N/A'})`,
+          option: `${clientUser.username} (${clientUser.user?.email || 'N/A'})`,
+          username: clientUser.username,
+          client_id: clientUser.client_id,
+          is_primary: clientUser.is_primary,
+          is_active: clientUser.is_active
         })) || []
       };
       

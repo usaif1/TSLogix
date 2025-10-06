@@ -371,6 +371,9 @@ const processesInitialState: ProcessesStore = {
     orderStatusOptions: [],
     presentationOptions: [],
     temperatureRangeOptions: [],
+    // ✅ NEW: Multi-user client support
+    clients: [],
+    clientUsers: [],
   },
 
   // Entry Order Creation
