@@ -279,38 +279,38 @@ const ClientDetail: React.FC = () => {
       {/* Client Users */}
       <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
-          {t('client:detail.client_users')} ({currentClient.client_users_data?.length || 0})
+          {t('client:detail.client_users')} ({currentClient.clientUsers?.length || 0})
         </h2>
-        {currentClient.client_users_data && currentClient.client_users_data.length > 0 ? (
+        {currentClient.clientUsers && currentClient.clientUsers.length > 0 ? (
           <div className="space-y-3">
-            {currentClient.client_users_data.map((user, index) => (
-              <div key={user.username || index} className="border rounded-lg p-4 hover:bg-gray-50">
+            {currentClient.clientUsers.map((clientUser, index) => (
+              <div key={clientUser.username || index} className="border rounded-lg p-4 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3">
                       <div>
                         <div className="flex items-center space-x-2">
                           <Text weight="font-medium" additionalClass="text-sm">
-                            {user.name || user.email?.split('@')[0]}
+                            {clientUser.user.email?.split('@')[0] || clientUser.username}
                           </Text>
-                          {user.is_primary && (
+                          {clientUser.is_primary && (
                             <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                               Primary
                             </span>
                           )}
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            user.is_active
+                            clientUser.is_active
                               ? "bg-green-100 text-green-800"
                               : "bg-gray-100 text-gray-800"
                           }`}>
-                            {user.is_active ? 'Active' : 'Inactive'}
+                            {clientUser.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </div>
                         <Text additionalClass="text-xs text-gray-600 mt-1">
-                          {user.email}
+                          {clientUser.user.email}
                         </Text>
                         <Text additionalClass="text-xs text-gray-500">
-                          Username: {user.username} • Created: {formatDate(user.created_at)}
+                          Username: {clientUser.username} • Created: {formatDate(clientUser.created_at)}
                         </Text>
                       </div>
                     </div>
@@ -319,7 +319,14 @@ const ClientDetail: React.FC = () => {
                     <Button
                       variant="secondary"
                       onClick={() => {
-                        setSelectedUser(user);
+                        setSelectedUser({
+                          name: clientUser.user.email?.split('@')[0] || clientUser.username,
+                          email: clientUser.user.email,
+                          username: clientUser.username,
+                          is_primary: clientUser.is_primary,
+                          is_active: clientUser.is_active,
+                          created_at: clientUser.created_at
+                        });
                         setShowUserPasswordModal(true);
                       }}
                     >
