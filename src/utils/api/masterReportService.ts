@@ -98,9 +98,9 @@ class MasterReportService {
       XLSX.utils.book_append_sheet(workbook, metadataSheet, "Report Info");
 
       // Auto-size columns for better readability
-      this.autoSizeColumns(mainSheet);
-      this.autoSizeColumns(summarySheet);
-      this.autoSizeColumns(metadataSheet);
+      this.autoSizeColumns(mainSheet, XLSX);
+      this.autoSizeColumns(summarySheet, XLSX);
+      this.autoSizeColumns(metadataSheet, XLSX);
 
       // Generate file
       const excelBuffer = XLSX.write(workbook, {
@@ -138,16 +138,15 @@ class MasterReportService {
       }
 
       // Use dynamic imports for PDF libraries
-      const [jsPDF] = await Promise.all([
-        import("jspdf"),
-        import("jspdf-autotable"),
-      ]);
+      const { default: jsPDF } = await import("jspdf");
+      // Import autoTable to extend jsPDF prototype
+      await import("jspdf-autotable");
 
-      const doc = new jsPDF.default({
+      const doc = new jsPDF({
         orientation: "landscape",
         unit: "mm",
         format: "a4",
-      });
+      }) as any;
 
       // Add title
       doc.setFontSize(16);
@@ -163,7 +162,7 @@ class MasterReportService {
       const tableData = this.prepareDataForPDF(reportData);
 
       // Add main table
-      (doc as any).autoTable({
+      doc.autoTable({
         head: [tableData.headers],
         body: tableData.rows,
         startY: 45,
@@ -365,13 +364,11 @@ class MasterReportService {
   /**
    * Auto-size columns for Excel sheets
    */
-  private autoSizeColumns(sheet: any) {
+  private async autoSizeColumns(sheet: any, XLSX: any) {
     const range = sheet["!ref"];
     if (!range) return;
 
     const cols: any[] = [];
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const XLSX = require("xlsx");
     const range_obj = XLSX.utils.decode_range(range);
 
     for (let col = range_obj.s.c; col <= range_obj.e.c; col++) {

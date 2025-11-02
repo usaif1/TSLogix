@@ -51,7 +51,7 @@ export interface Client {
     created_at?: string;
   }>;
 
-  // Client users data (from backend sync)
+  // Client users data (from backend sync) - DEPRECATED, use clientUsers
   client_users_data?: Array<{
     name: string;
     email: string;
@@ -60,7 +60,28 @@ export interface Client {
     is_active: boolean;
     created_at: string;
   }>;
-  
+
+  // Client users relation (actual data from clientUsers table)
+  clientUsers?: Array<{
+    client_user_id: string;
+    client_id: string;
+    user_id: string;
+    username: string;
+    is_primary: boolean;
+    is_active: boolean;
+    created_at: string;
+    created_by: string;
+    notes?: string;
+    user: {
+      id: string;
+      user_id: string;
+      email: string;
+      role: {
+        name: string;
+      };
+    };
+  }>;
+
   // Relations
   active_state?: {
     name: string;

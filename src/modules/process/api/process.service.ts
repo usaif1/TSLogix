@@ -755,10 +755,10 @@ export const ProcessService = {
           option: customer.name || customer.company_name
         })) || [],
         
-        personnel: formFields.users?.map((user: any, index: number) => ({
-          value: user.user_id || user.id || user.name || `user_${index}`,
-          label: user.name,
-          option: user.name
+        personnel: formFields.users?.map((user: any) => ({
+          value: user.id,
+          label: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || user.username,
+          option: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || user.username
         })) || [],
         
         documentTypes: formFields.documentTypes?.map((doc: any) => ({
