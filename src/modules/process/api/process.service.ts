@@ -2822,9 +2822,7 @@ export const ProcessService = {
    */
   processBulkEntryOrders: async (formData: FormData) => {
     const response = await api.post(`${entryBaseURL}/bulk-upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
+      // DO NOT set Content-Type header - let axios/browser set it with correct boundary
       timeout: 300000 // 5 minute timeout for large files
     });
     return response.data;
@@ -2846,9 +2844,7 @@ export const ProcessService = {
    */
   processBulkDepartureOrders: async (formData: FormData) => {
     const response = await api.post(`${departureBaseURL}/bulk-upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
+      // DO NOT set Content-Type header - let axios/browser set it with correct boundary
       timeout: 300000 // 5 minute timeout for large files
     });
     return response.data;
