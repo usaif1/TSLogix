@@ -112,11 +112,8 @@ const BulkProductUpload: React.FC = () => {
       formData.append('file', file);
 
       // Use the API service for proper upload handling
-      const response = await api.post('/products/bulk-upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
+      // DO NOT set Content-Type header - let axios/browser set it with correct boundary
+      const response = await api.post('/products/bulk-upload', formData);
 
       const result = response.data;
       setUploadResult(result);
