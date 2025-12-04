@@ -143,6 +143,16 @@ const EntryRecordsTable: React.FC = () => {
         },
       },
       {
+        // ✅ Use guide_number field from API
+        accessorKey: "guide_number",
+        header: t('process:guide_number'),
+        size: 150,
+        cell: ({ getValue }) => {
+          const value = getValue() as string;
+          return value || '-';
+        },
+      },
+      {
         // ✅ Use cif_value field from API
         accessorKey: "cif_value",
         header: t('process:insured_value'),
