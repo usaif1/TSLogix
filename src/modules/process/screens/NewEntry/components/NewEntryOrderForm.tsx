@@ -447,6 +447,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         cif_value: parseFloat(formData.cif_value) || null,
         total_pallets: formData.products.reduce((sum, p) => sum + parseInt(p.quantity_pallets || "0"), 0),
         observation: formData.observation,
+        guide_number: formData.guide_number || "",
         // ✅ NEW: Multi-user client support
         client_id: formData.client?.value || localStorage.getItem("client_id"),
         client_user_id: formData.client_user?.value || null,
