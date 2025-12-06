@@ -13,11 +13,7 @@ import {
   Spinner
 } from '@phosphor-icons/react';
 import { Text, Divider } from '@/components';
-<<<<<<< HEAD
 import { ProductService } from '@/modules/maintenance/api/maintenance.service';
-=======
-import api from '@/utils/api/axios.config';
->>>>>>> origin/dev
 
 interface BulkUploadResult {
   success: boolean;
@@ -76,24 +72,12 @@ const BulkProductUpload: React.FC = () => {
   // Download template
   const handleDownloadTemplate = useCallback(async () => {
     try {
-<<<<<<< HEAD
       const response = await ProductService.downloadBulkTemplate();
 
       const blob = new Blob([response.data], {
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
 
-=======
-      // Use the API service to download template properly
-      const response = await api.get('/products/bulk-template', {
-        responseType: 'blob'
-      });
-
-      // Create blob and download - matching entry template pattern
-      const blob = new Blob([response.data], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-      });
->>>>>>> origin/dev
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -124,14 +108,7 @@ const BulkProductUpload: React.FC = () => {
       const formData = new FormData();
       formData.append('file', file);
 
-<<<<<<< HEAD
       const response = await ProductService.processBulkProductUpload(formData);
-=======
-      // Use the API service for proper upload handling
-      // DO NOT set Content-Type header - let axios/browser set it with correct boundary
-      const response = await api.post('/products/bulk-upload', formData);
-
->>>>>>> origin/dev
       const result = response.data;
       setUploadResult(result);
 
