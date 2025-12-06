@@ -59,6 +59,18 @@ export const AuthService = {
     if (userData.token) {
       localStorage.setItem("token", userData.token);
     }
+
+    // Store client-specific data for CLIENT users
+    // ✅ Fixed: client_id is inside the client object
+    if (userData.client?.client_id) {
+      localStorage.setItem("client_id", userData.client.client_id);
+    }
+    if (userData.is_primary_user !== undefined) {
+      localStorage.setItem("is_primary_user", userData.is_primary_user.toString());
+    } else if (userData.client?.is_primary !== undefined) {
+      // ✅ Fallback: check if is_primary is in client object
+      localStorage.setItem("is_primary_user", userData.client.is_primary.toString());
+    }
     
     return response.data;
   },
@@ -75,5 +87,7 @@ export const AuthService = {
     localStorage.removeItem("user_id");
     localStorage.removeItem("username");
     localStorage.removeItem("token");
+    localStorage.removeItem("client_id");
+    localStorage.removeItem("is_primary_user");
   },
 };

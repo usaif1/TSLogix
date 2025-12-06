@@ -6,10 +6,10 @@ import { AuthStore } from "@/globalStore";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  timeout: 10000,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  timeout: 60000, // Increased to 60 seconds for report generation
+  // DO NOT set default Content-Type here - let axios set it based on request data
+  // JSON requests will get application/json automatically
+  // FormData requests will get multipart/form-data with boundary automatically
 });
 
 // Add interceptors

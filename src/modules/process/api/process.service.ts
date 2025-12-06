@@ -153,6 +153,27 @@ export const ProcessService = {
           value: pres.value,
           label: pres.label,
           option: pres.label
+        })) || [],
+
+        // ✅ NEW: Multi-user client support
+        clients: formFields.clients?.map(client => ({
+          value: client.client_id || client.id,
+          label: client.client_type === "JURIDICO"
+            ? client.company_name
+            : `${client.first_names || ''} ${client.last_name || ''}`.trim(),
+          option: client.client_type === "JURIDICO"
+            ? client.company_name
+            : `${client.first_names || ''} ${client.last_name || ''}`.trim()
+        })) || [],
+
+        clientUsers: formFields.clientUsers?.map(clientUser => ({
+          value: clientUser.client_user_id || clientUser.id,
+          label: `${clientUser.username} (${clientUser.user?.email || 'N/A'})`,
+          option: `${clientUser.username} (${clientUser.user?.email || 'N/A'})`,
+          username: clientUser.username,
+          client_id: clientUser.client_id,
+          is_primary: clientUser.is_primary,
+          is_active: clientUser.is_active
         })) || []
       };
       
@@ -734,10 +755,10 @@ export const ProcessService = {
           option: customer.name || customer.company_name
         })) || [],
         
-        personnel: formFields.users?.map((user: any, index: number) => ({
-          value: user.user_id || user.id || user.name || `user_${index}`,
-          label: user.name,
-          option: user.name
+        personnel: formFields.users?.map((user: any) => ({
+          value: user.id,
+          label: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || user.username,
+          option: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email || user.username
         })) || [],
         
         documentTypes: formFields.documentTypes?.map((doc: any) => ({
@@ -2801,9 +2822,7 @@ export const ProcessService = {
    */
   processBulkEntryOrders: async (formData: FormData) => {
     const response = await api.post(`${entryBaseURL}/bulk-upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
+      // DO NOT set Content-Type header - let axios/browser set it with correct boundary
       timeout: 300000 // 5 minute timeout for large files
     });
     return response.data;
@@ -2825,9 +2844,7 @@ export const ProcessService = {
    */
   processBulkDepartureOrders: async (formData: FormData) => {
     const response = await api.post(`${departureBaseURL}/bulk-upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
+      // DO NOT set Content-Type header - let axios/browser set it with correct boundary
       timeout: 300000 // 5 minute timeout for large files
     });
     return response.data;

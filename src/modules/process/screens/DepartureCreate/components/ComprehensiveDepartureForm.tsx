@@ -331,10 +331,16 @@ const ComprehensiveDepartureForm: React.FC = () => {
     try {
       // ✅ Use FormData for multipart upload with multiple documents
       const formDataToSend = new FormData();
-      
+
+      // ✅ Get client_id from localStorage for CLIENT users
+      const userRole = localStorage.getItem('role');
+      const clientId = localStorage.getItem('client_id');
+
       const orderData = {
         departure_order_code: formData.departure_order_code,
-        customer_id: formData.personnel_in_charge_id.value,
+        // ✅ FIXED: Send client_id for CLIENT users, not personnel user ID
+        client_id: userRole === 'CLIENT' ? clientId : undefined,
+        personnel_in_charge_id: formData.personnel_in_charge_id?.value || undefined,
         warehouse_id: selectedWarehouse.value,
         document_number: formData.document_number,
         document_date: formData.document_date,
