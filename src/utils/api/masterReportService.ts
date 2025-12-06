@@ -138,16 +138,9 @@ class MasterReportService {
       }
 
       // Use dynamic imports for PDF libraries
-<<<<<<< HEAD
-      const [jsPDF] = await Promise.all([
-        import('jspdf'),
-        import('jspdf-autotable')
-      ]);
-=======
       const { default: jsPDF } = await import("jspdf");
       // Import autoTable to extend jsPDF prototype
       await import("jspdf-autotable");
->>>>>>> origin/dev
 
       const doc = new jsPDF({
         orientation: "landscape",
