@@ -9,7 +9,28 @@ import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
 import { formatDate } from "@/utils/dateUtils";
 
-const DepartureRecordsTable: React.FC = () => {
+// Props interface for pagination
+interface PaginationState {
+  currentPage: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+interface DepartureRecordsTableProps {
+  pagination: PaginationState;
+  onPageChange: (page: number) => void;
+  isLoading: boolean;
+  pageSize: number;
+}
+
+const DepartureRecordsTable: React.FC<DepartureRecordsTableProps> = ({
+  pagination,
+  onPageChange,
+  isLoading,
+  pageSize,
+}) => {
   const { t } = useTranslation(['process', 'common']);
   const departureOrders = ProcessesStore.use.departureOrders();
   const navigate = useNavigate();
@@ -255,14 +276,19 @@ const DepartureRecordsTable: React.FC = () => {
 
   return (
     <div className="max-w-full h-full">
-      <DataTable 
-        data={transformedData} 
+      <DataTable
+        data={transformedData}
         columns={columns}
         showPagination={true}
+        pageSize={pageSize}
         emptyMessage={t('common:no_data', 'No departure orders found')}
         onRowClick={(order: any) => {
           navigateToDepartureAudit(order.departure_order_no || order.departure_order_code);
         }}
+        // Server-side pagination props
+        serverPagination={pagination}
+        onPageChange={onPageChange}
+        isLoading={isLoading}
       />
     </div>
   );

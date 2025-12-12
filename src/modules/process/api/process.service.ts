@@ -1789,33 +1789,56 @@ export const ProcessService = {
   /**
    * Fetch comprehensive departure orders with workflow status (with caching optimization)
    */
-  fetchComprehensiveDepartureOrders: async (filters?: { 
+  fetchComprehensiveDepartureOrders: async (filters?: {
     status?: import("../types").DepartureOrderStatus;
-    organisationId?: string; 
+    organisationId?: string;
     orderNo?: string;
     priority?: string;
     warehouse_id?: string;
     customer_id?: string;
     created_by?: string;
     forceRefresh?: boolean;
-  }) => {
-    const { 
-      startLoader, 
-      stopLoader, 
-      setDepartureOrders, 
+    page?: number;
+    limit?: number;
+  }): Promise<{
+    orders: import("../types").DepartureOrder[];
+    pagination: {
+      current_page: number;
+      per_page: number;
+      total_items: number;
+      total_pages: number;
+      has_next_page: boolean;
+      has_previous_page: boolean;
+    };
+  }> => {
+    const {
+      startLoader,
+      stopLoader,
+      setDepartureOrders,
       isDepartureOrdersCacheValid,
-      comprehensiveDepartureOrders 
+      comprehensiveDepartureOrders
     } = ProcessesStore.getState();
 
-    // Check if we can use cached data (unless force refresh or specific filters)
+    // Check if we can use cached data (unless force refresh, specific filters, or pagination)
     const hasSpecificFilters = filters && (
-      filters.status || filters.orderNo || filters.priority || 
+      filters.status || filters.orderNo || filters.priority ||
       filters.warehouse_id || filters.customer_id || filters.created_by
     );
-    
-    if (!filters?.forceRefresh && !hasSpecificFilters && isDepartureOrdersCacheValid()) {
+    const hasPagination = filters?.page !== undefined || filters?.limit !== undefined;
+
+    if (!filters?.forceRefresh && !hasSpecificFilters && !hasPagination && isDepartureOrdersCacheValid()) {
       console.log("Using cached departure orders data");
-      return comprehensiveDepartureOrders;
+      return {
+        orders: comprehensiveDepartureOrders,
+        pagination: {
+          current_page: 1,
+          per_page: comprehensiveDepartureOrders.length,
+          total_items: comprehensiveDepartureOrders.length,
+          total_pages: 1,
+          has_next_page: false,
+          has_previous_page: false,
+        }
+      };
     }
 
     startLoader("processes/fetch-departure-orders");
@@ -1829,12 +1852,23 @@ export const ProcessService = {
       if (filters?.warehouse_id) params.append("warehouse_id", filters.warehouse_id);
       if (filters?.customer_id) params.append("customer_id", filters.customer_id);
       if (filters?.created_by) params.append("created_by", filters.created_by);
+      // Add pagination parameters
+      if (filters?.page) params.append("page", filters.page.toString());
+      if (filters?.limit) params.append("limit", filters.limit.toString());
 
       const response = await api.get(`${departureBaseURL}/comprehensive-orders?${params.toString()}`);
       const orders: import("../types").DepartureOrder[] = response.data.data || response.data;
+      const pagination = response.data.pagination || {
+        current_page: 1,
+        per_page: orders.length,
+        total_items: orders.length,
+        total_pages: 1,
+        has_next_page: false,
+        has_previous_page: false,
+      };
 
       setDepartureOrders(orders);
-      return orders;
+      return { orders, pagination };
     } catch (error) {
       console.error("Failed to fetch comprehensive departure orders:", error);
       throw error;

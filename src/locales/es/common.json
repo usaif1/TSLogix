@@ -242,5 +242,6 @@
   "rejected": "Rechazado",
   "in_progress": "En Progreso",
   "completed": "Completado",
-  "failed": "Fallido"
+  "failed": "Fallido",
+  "loading_orders": "Cargando órdenes..."
 }

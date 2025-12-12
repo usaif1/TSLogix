@@ -6,28 +6,74 @@ import { Plus } from "@phosphor-icons/react";
 import { Text, Divider } from "@/components";
 import Searchbar from "@/components/Searchbar";
 import DepartureRecordsTable from "./components/DepartureRecordsTable";
+import LoaderSync from "@/components/Loaders/LoaderSync";
 import { ProcessService } from "@/modules/process/api/process.service";
 import { useDebounce } from "@/hooks/useDebounce";
+
+// Pagination state interface
+interface PaginationState {
+  currentPage: number;
+  totalItems: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+const PAGE_SIZE = 10; // Items per page
 
 const Departure: React.FC = () => {
   const { t } = useTranslation(['process', 'common']);
   const [searchQuery, setSearchQuery] = useState("");
-  
+  const [isLoading, setIsLoading] = useState(false);
+  const [pagination, setPagination] = useState<PaginationState>({
+    currentPage: 1,
+    totalItems: 0,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  });
+
   // Get user role from localStorage
   const userRole = localStorage.getItem("role");
-  
+
   // Debounce the search query with 500ms delay
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  // Single effect that handles both initial load and search
+  // Function to fetch departure orders with pagination
+  const fetchDepartureOrders = useCallback(async (page: number, searchTerm?: string) => {
+    setIsLoading(true);
+    try {
+      const organisationId = localStorage.getItem("organisation_id");
+      const result = await ProcessService.fetchComprehensiveDepartureOrders({
+        organisationId: organisationId || undefined,
+        orderNo: searchTerm || undefined,
+        page,
+        limit: PAGE_SIZE,
+      });
+
+      setPagination({
+        currentPage: result.pagination.current_page,
+        totalItems: result.pagination.total_items,
+        totalPages: result.pagination.total_pages,
+        hasNextPage: result.pagination.has_next_page,
+        hasPreviousPage: result.pagination.has_previous_page,
+      });
+    } catch (error) {
+      console.error("Failed to fetch departure orders:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Effect for initial load and search changes - reset to page 1
   useEffect(() => {
-    // Use comprehensive departure orders to match the audit screen
-    const organisationId = localStorage.getItem("organisation_id");
-    ProcessService.fetchComprehensiveDepartureOrders({ 
-      organisationId: organisationId || undefined,
-      orderNo: debouncedSearchQuery || undefined
-    });
-  }, [debouncedSearchQuery]);
+    fetchDepartureOrders(1, debouncedSearchQuery || undefined);
+  }, [debouncedSearchQuery, fetchDepartureOrders]);
+
+  // Handle page change
+  const handlePageChange = useCallback((newPage: number) => {
+    fetchDepartureOrders(newPage, debouncedSearchQuery || undefined);
+  }, [debouncedSearchQuery, fetchDepartureOrders]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -86,8 +132,18 @@ const Departure: React.FC = () => {
         </Link>
       </div>
       <Divider />
-      <div className="h-4/5 bg-white rounded-md px-2 py-1.5">
-        <DepartureRecordsTable />
+      <div className="h-4/5 bg-white rounded-md px-2 py-1.5 relative">
+        {isLoading && (
+          <div className="absolute inset-0 bg-white/70 z-10 flex items-center justify-center rounded-md">
+            <LoaderSync loaderText={t('common:loading_orders')} size="lg" />
+          </div>
+        )}
+        <DepartureRecordsTable
+          pagination={pagination}
+          onPageChange={handlePageChange}
+          isLoading={isLoading}
+          pageSize={PAGE_SIZE}
+        />
       </div>
     </div>
   );
