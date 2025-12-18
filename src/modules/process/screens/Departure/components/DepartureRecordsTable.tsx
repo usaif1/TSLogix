@@ -134,11 +134,11 @@ const DepartureRecordsTable: React.FC<DepartureRecordsTableProps> = ({
         }
       },
       {
-        accessor: 'guide_number',
-        header: t('process:guide_number'),
+        accessor: 'dispatch_document_number',
+        header: t('process:dispatch_document_number'),
         cell: (info: any) => {
           const order = info.row.original;
-          return order.guide_number || '-';
+          return order.dispatch_document_number || '-';
         }
       },
       {
