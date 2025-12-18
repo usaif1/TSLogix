@@ -115,8 +115,8 @@ const DepartureRecordsTable: React.FC<DepartureRecordsTableProps> = ({
   
   const columns = useMemo(() => 
     createTableColumns([
-      { 
-        accessor: 'departure_order_no', 
+      {
+        accessor: 'departure_order_no',
         header: t('process:departure_order_no'),
         cell: (info: any) => {
           const order = info.row.original;
@@ -133,7 +133,15 @@ const DepartureRecordsTable: React.FC<DepartureRecordsTableProps> = ({
           );
         }
       },
-      { 
+      {
+        accessor: 'guide_number',
+        header: t('process:guide_number'),
+        cell: (info: any) => {
+          const order = info.row.original;
+          return order.guide_number || '-';
+        }
+      },
+      {
         accessor: 'order_status',
         header: t('process:order_status'),
         cell: (info: any) => {
