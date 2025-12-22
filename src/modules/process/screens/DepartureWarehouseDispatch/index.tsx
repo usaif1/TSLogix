@@ -52,6 +52,7 @@ interface DispatchRow {
     inventory_id: string;
     cell_reference: string;
     warehouse_name: string;
+    lot_series: string;
     quantity_to_dispatch: number;
     weight_to_dispatch: number;
     removal_priority: string;
@@ -448,7 +449,6 @@ const DepartureWarehouseDispatch: React.FC = () => {
                   <th className="w-16 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.select')}</th>
                   <th className="w-52 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.product')}</th>
                   <th className="w-36 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.manufacturer')}</th>
-                  <th className="w-28 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.lot_series')}</th>
                   <th className="w-32 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.requested')}</th>
                   <th className="w-32 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.available')}</th>
                   <th className="w-32 p-3 text-xs font-medium text-gray-600">{t('process:table_headers.stored')}</th>
@@ -493,11 +493,6 @@ const DepartureWarehouseDispatch: React.FC = () => {
                     {/* Manufacturer */}
                     <td className="p-2 text-xs truncate" title={row.manufacturer}>
                       {row.manufacturer}
-                    </td>
-
-                    {/* Lot Series */}
-                    <td className="p-2 text-xs text-center">
-                      {row.lot_series}
                     </td>
 
                     {/* Requested Quantities */}
@@ -635,13 +630,20 @@ const DepartureWarehouseDispatch: React.FC = () => {
                       {row.fifo_dispatch_plan.length > 0 ? (
                         <div className="space-y-1">
                           {row.fifo_dispatch_plan.map((item, planIndex) => (
-                            <div key={planIndex} className="flex items-center space-x-2">
-                              <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
-                                {item.cell_reference}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                ({item.quantity_to_dispatch} {t('process:units')})
-                              </span>
+                            <div key={planIndex} className="flex flex-col space-y-0.5 border-b border-gray-100 pb-1 last:border-0">
+                              <div className="flex items-center space-x-2">
+                                <span className="font-mono text-xs bg-gray-100 px-2 py-1 rounded">
+                                  {item.cell_reference}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  ({item.quantity_to_dispatch} {t('process:units')})
+                                </span>
+                              </div>
+                              {item.lot_series && (
+                                <span className="text-xs text-blue-600 font-medium pl-1">
+                                  Lot: {item.lot_series}
+                                </span>
+                              )}
                             </div>
                           ))}
                         </div>
