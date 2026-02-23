@@ -108,9 +108,11 @@ const MasterReport: React.FC<MasterReportProps> = ({
   // Format currency
   const formatCurrency = useCallback((amount: string | number, currency = 'USD') => {
     const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+    // Validate currency code - must be 3 letter ISO 4217 code, default to USD
+    const validCurrency = currency && currency.length === 3 ? currency : 'USD';
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: validCurrency,
       minimumFractionDigits: 2
     }).format(num);
   }, []);

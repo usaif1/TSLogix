@@ -12,6 +12,7 @@ import ProductCategoryReport from './ProductCategoryReport';
 import ProductWiseReport from './ProductWiseReport';
 import CardexReport from './CardexReport';
 import MasterReport from '../../components/MasterReport';
+import MasterStatusReport from './MasterStatusReport';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -29,7 +30,9 @@ const Reports: React.FC = () => {
     fetchProductWiseReports,
     fetchCardexReports,
     fetchMasterReports,
+    fetchMasterStatusReports,
     masterReports,
+    masterStatusReports,
   } = useReportsStore();
 
   const [dateFrom, setDateFrom] = useState('');
@@ -42,6 +45,7 @@ const Reports: React.FC = () => {
   const [supplierCode, setSupplierCode] = useState('');
   const [dateFilterType, setDateFilterType] = useState<'entry' | 'dispatch' | 'both'>('dispatch');
   const [includeUnallocated, setIncludeUnallocated] = useState(false);
+  const [qualityStatus, setQualityStatus] = useState('');
 
   // Get user role from authUser or localStorage as fallback
   const userRole = authUser?.role || localStorage.getItem('role') || '';
@@ -58,6 +62,7 @@ const Reports: React.FC = () => {
     { key: 'product-wise', label: t('reports:product_wise_report_title') || t('reports:product_wise_report') || 'Reporte de Productos por Movimiento' },
     { key: 'cardex', label: t('reports:cardex_report_title') || t('reports:cardex_report') || 'Reporte Cardex' },
     { key: 'master', label: t('reports:master_report_title') || t('reports:master_report') || 'Reporte Maestro' },
+    { key: 'master-status', label: t('reports:master_status_report_title') || 'Estado Maestro' },
   ];
 
   // Filter reports based on user role
@@ -102,6 +107,13 @@ const Reports: React.FC = () => {
         };
         fetchMasterReports(masterFilters);
         break;
+      case 'master-status':
+        const masterStatusFilters = {
+          ...newFilters,
+          quality_status: qualityStatus || undefined,
+        };
+        fetchMasterStatusReports(masterStatusFilters);
+        break;
     }
   };
 
@@ -118,6 +130,7 @@ const Reports: React.FC = () => {
     setSupplierCode('');
     setDateFilterType('dispatch');
     setIncludeUnallocated(false);
+    setQualityStatus('');
 
     // Clear store filters
     clearStoreFilters();
@@ -140,11 +153,14 @@ const Reports: React.FC = () => {
       case 'master':
         fetchMasterReports(emptyFilters);
         break;
+      case 'master-status':
+        fetchMasterStatusReports(emptyFilters);
+        break;
     }
   };
 
   // Handle report type change
-  const handleReportTypeChange = (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master') => {
+  const handleReportTypeChange = (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status') => {
     setSelectedReportType(type);
     // Clear previous data when switching report types
     switch (type) {
@@ -169,6 +185,13 @@ const Reports: React.FC = () => {
           include_unallocated: includeUnallocated,
         };
         fetchMasterReports(masterFilters);
+        break;
+      case 'master-status':
+        const masterStatusFilters = {
+          ...filters,
+          quality_status: qualityStatus || undefined,
+        };
+        fetchMasterStatusReports(masterStatusFilters);
         break;
     }
   };
@@ -209,6 +232,9 @@ const Reports: React.FC = () => {
           break;
         case 'master':
           fetchMasterReports(initialFilters);
+          break;
+        case 'master-status':
+          fetchMasterStatusReports(initialFilters);
           break;
       }
     }, 100); // Small delay to ensure state is updated
@@ -347,7 +373,31 @@ const Reports: React.FC = () => {
             </div>
           </div>
 
-          {/* Third Row - Master Report Specific Filters */}
+          {/* Third Row - Master Status Report Specific Filters */}
+          {selectedReportType === 'master-status' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+              {/* Quality Status */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  {t('reports:position_type') || 'Tipo de Posición'}
+                </label>
+                <select
+                  value={qualityStatus}
+                  onChange={(e) => setQualityStatus(e.target.value)}
+                  className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
+                >
+                  <option value="">{t('reports:all') || 'Todos'}</option>
+                  <option value="APROBADO">{t('reports:approved') || 'Aprobado'}</option>
+                  <option value="CUARENTENA">{t('reports:quarantine') || 'Cuarentena'}</option>
+                  <option value="RECHAZADOS">{t('reports:rejected') || 'Rechazados'}</option>
+                  <option value="CONTRAMUESTRAS">{t('reports:sample') || 'Contramuestras'}</option>
+                  <option value="DEVOLUCIONES">{t('reports:returns') || 'Devoluciones'}</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Fourth Row - Master Report Specific Filters */}
           {selectedReportType === 'master' && (
             <>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
@@ -471,6 +521,7 @@ const Reports: React.FC = () => {
                   isLoading={loadingStates['master-reports'] || false}
                 />
               )}
+              {selectedReportType === 'master-status' && <MasterStatusReport />}
             </>
           )}
         </div>

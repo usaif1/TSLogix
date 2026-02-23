@@ -13,3 +13,12 @@ export type {
   MasterReportResponse,
   MasterReportExportData,
 } from "./MasterReportTypes";
+
+// master status report types
+export type {
+  MasterStatusReportItem,
+  MasterStatusReportSummary,
+  MasterStatusReportFilters,
+  MasterStatusReportResponse,
+  MasterStatusReportExportData,
+} from "./MasterStatusReportTypes";

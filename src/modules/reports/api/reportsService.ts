@@ -1,5 +1,6 @@
 // API base URL
 import api from "@/utils/api/axios.config";
+import type { MasterStatusReportResponse, MasterStatusReportFilters } from "@/types";
 
 export interface ReportFilters {
   date_from?: string;
@@ -410,6 +411,45 @@ class ReportsService {
       return response.data;
     } catch (error) {
       console.error('Error in getCardexReport:', error);
+      throw error;
+    }
+  }
+
+  // Master Status Report
+  async getMasterStatusReport(filters: MasterStatusReportFilters = {}): Promise<MasterStatusReportResponse> {
+    try {
+      const params = new URLSearchParams();
+
+      if (filters.date_from) {
+        params.append('date_from', filters.date_from);
+      }
+      if (filters.date_to) {
+        params.append('date_to', filters.date_to);
+      }
+      if (filters.product_code) {
+        params.append('product_code', filters.product_code);
+      }
+      if (filters.product_name) {
+        params.append('product_name', filters.product_name);
+      }
+      if (filters.customer_name) {
+        params.append('customer_name', filters.customer_name);
+      }
+      if (filters.customer_code) {
+        params.append('customer_code', filters.customer_code);
+      }
+      if (filters.quality_status) {
+        params.append('quality_status', filters.quality_status);
+      }
+      if (filters.warehouse_id) {
+        params.append('warehouse_id', filters.warehouse_id);
+      }
+
+      const response = await api.get(`/reports/master-status?${params.toString()}`);
+
+      return response.data;
+    } catch (error) {
+      console.error('Error in getMasterStatusReport:', error);
       throw error;
     }
   }
