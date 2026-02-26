@@ -160,7 +160,7 @@ const StockInReport: React.FC = () => {
               <Text size="xs" additionalClass="text-gray-600 mb-1">
                 {status}
               </Text>
-              <Text size="md" weight="font-bold" additionalClass="text-gray-900">
+              <Text size="base" weight="font-bold" additionalClass="text-gray-900">
                 {count as number}
               </Text>
             </div>
