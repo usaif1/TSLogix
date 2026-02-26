@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { reportsService, ReportFilters, WarehouseReportResponse, ProductCategoryReportResponse, ProductWiseReportResponse } from '../api/reportsService';
-import { MasterReportResponse, MasterReportFilters, MasterStatusReportResponse, MasterStatusReportFilters } from '@/types';
+import { MasterReportResponse, MasterReportFilters, MasterStatusReportResponse, MasterStatusReportFilters, MasterOccupancyReportResponse, MasterOccupancyReportFilters } from '@/types';
 import masterReportService from '@/utils/api/masterReportService';
 
 interface ReportsState {
@@ -15,18 +15,19 @@ interface ReportsState {
   cardexReports: { success: boolean; message: string; data: any[]; summary: any; filters_applied: any; user_role: string; is_client_filtered: boolean; report_generated_at: string; processing_time_ms: number; } | null;
   masterReports: MasterReportResponse | null;
   masterStatusReports: MasterStatusReportResponse | null;
+  masterOccupancyReports: MasterOccupancyReportResponse | null;
   
   // Filters
   filters: ReportFilters;
   
   // Selected report type
-  selectedReportType: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status';
+  selectedReportType: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy';
 
   // Actions
   setLoading: (key: string, loading: boolean) => void;
   setFilters: (filters: Partial<ReportFilters>) => void;
   clearFilters: () => void;
-  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status') => void;
+  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy') => void;
   
   // Fetch reports
   fetchWarehouseReports: (filters?: ReportFilters) => Promise<void>;
@@ -35,6 +36,7 @@ interface ReportsState {
   fetchCardexReports: (filters?: ReportFilters) => Promise<void>;
   fetchMasterReports: (filters?: MasterReportFilters) => Promise<void>;
   fetchMasterStatusReports: (filters?: MasterStatusReportFilters) => Promise<void>;
+  fetchMasterOccupancyReports: (filters?: MasterOccupancyReportFilters) => Promise<void>;
   
   // Export reports
   exportReport: (reportType: string, format: 'excel' | 'pdf') => Promise<boolean>;
@@ -53,6 +55,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   cardexReports: null,
   masterReports: null,
   masterStatusReports: null,
+  masterOccupancyReports: null,
   filters: {},
   selectedReportType: 'warehouse',
 
@@ -77,7 +80,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     set({ filters: {} });
   },
 
-  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status') => {
+  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy') => {
     set({ selectedReportType: type });
   },
 
@@ -178,6 +181,22 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     }
   },
 
+  fetchMasterOccupancyReports: async (filters?: MasterOccupancyReportFilters) => {
+    const { setLoading } = get();
+    setLoading('master-occupancy-reports', true);
+
+    try {
+      const currentFilters = filters || get().filters;
+      const reports = await reportsService.getMasterOccupancyReport(currentFilters);
+      set({ masterOccupancyReports: reports });
+    } catch (error) {
+      console.error('Error fetching master occupancy reports:', error);
+      set({ masterOccupancyReports: null });
+    } finally {
+      setLoading('master-occupancy-reports', false);
+    }
+  },
+
   // Export reports
   exportReport: async (reportType: string, format: 'excel' | 'pdf') => {
     const { setLoading } = get();
@@ -207,6 +226,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       cardexReports: null,
       masterReports: null,
       masterStatusReports: null,
+      masterOccupancyReports: null,
       filters: {},
     });
   },

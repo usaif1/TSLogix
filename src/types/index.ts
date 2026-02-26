@@ -22,3 +22,12 @@ export type {
   MasterStatusReportResponse,
   MasterStatusReportExportData,
 } from "./MasterStatusReportTypes";
+
+// master occupancy report types
+export type {
+  MasterOccupancyReportItem,
+  MasterOccupancyReportSummary,
+  MasterOccupancyReportFilters,
+  MasterOccupancyReportResponse,
+  MasterOccupancyReportExportData,
+} from "./MasterOccupancyReportTypes";

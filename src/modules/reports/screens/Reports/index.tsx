@@ -13,6 +13,7 @@ import ProductWiseReport from './ProductWiseReport';
 import CardexReport from './CardexReport';
 import MasterReport from '../../components/MasterReport';
 import MasterStatusReport from './MasterStatusReport';
+import MasterOccupancyReport from './MasterOccupancyReport';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -31,6 +32,7 @@ const Reports: React.FC = () => {
     fetchCardexReports,
     fetchMasterReports,
     fetchMasterStatusReports,
+    fetchMasterOccupancyReports,
     masterReports,
     masterStatusReports,
   } = useReportsStore();
@@ -63,6 +65,7 @@ const Reports: React.FC = () => {
     { key: 'cardex', label: t('reports:cardex_report_title') || t('reports:cardex_report') || 'Reporte Cardex' },
     { key: 'master', label: t('reports:master_report_title') || t('reports:master_report') || 'Reporte Maestro' },
     { key: 'master-status', label: t('reports:master_status_report_title') || 'Estado Maestro' },
+    { key: 'master-occupancy', label: t('reports:master_occupancy_report_title') || 'Ocupacion Maestro' },
   ];
 
   // Filter reports based on user role
@@ -114,6 +117,9 @@ const Reports: React.FC = () => {
         };
         fetchMasterStatusReports(masterStatusFilters);
         break;
+      case 'master-occupancy':
+        fetchMasterOccupancyReports({});
+        break;
     }
   };
 
@@ -156,11 +162,14 @@ const Reports: React.FC = () => {
       case 'master-status':
         fetchMasterStatusReports(emptyFilters);
         break;
+      case 'master-occupancy':
+        fetchMasterOccupancyReports({});
+        break;
     }
   };
 
   // Handle report type change
-  const handleReportTypeChange = (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status') => {
+  const handleReportTypeChange = (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy') => {
     setSelectedReportType(type);
     // Clear previous data when switching report types
     switch (type) {
@@ -192,6 +201,9 @@ const Reports: React.FC = () => {
           quality_status: qualityStatus || undefined,
         };
         fetchMasterStatusReports(masterStatusFilters);
+        break;
+      case 'master-occupancy':
+        fetchMasterOccupancyReports({});
         break;
     }
   };
@@ -235,6 +247,9 @@ const Reports: React.FC = () => {
           break;
         case 'master-status':
           fetchMasterStatusReports(initialFilters);
+          break;
+        case 'master-occupancy':
+          fetchMasterOccupancyReports({});
           break;
       }
     }, 100); // Small delay to ensure state is updated
@@ -522,6 +537,7 @@ const Reports: React.FC = () => {
                 />
               )}
               {selectedReportType === 'master-status' && <MasterStatusReport />}
+              {selectedReportType === 'master-occupancy' && <MasterOccupancyReport />}
             </>
           )}
         </div>

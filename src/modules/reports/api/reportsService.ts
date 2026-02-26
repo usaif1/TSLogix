@@ -1,6 +1,6 @@
 // API base URL
 import api from "@/utils/api/axios.config";
-import type { MasterStatusReportResponse, MasterStatusReportFilters } from "@/types";
+import type { MasterStatusReportResponse, MasterStatusReportFilters, MasterOccupancyReportResponse, MasterOccupancyReportFilters } from "@/types";
 
 export interface ReportFilters {
   date_from?: string;
@@ -450,6 +450,24 @@ class ReportsService {
       return response.data;
     } catch (error) {
       console.error('Error in getMasterStatusReport:', error);
+      throw error;
+    }
+  }
+
+  // Master Occupancy Report
+  async getMasterOccupancyReport(filters: MasterOccupancyReportFilters = {}): Promise<MasterOccupancyReportResponse> {
+    try {
+      const params = new URLSearchParams();
+
+      if (filters.warehouse_id) {
+        params.append('warehouse_id', filters.warehouse_id);
+      }
+
+      const response = await api.get(`/reports/master-occupancy?${params.toString()}`);
+
+      return response.data;
+    } catch (error) {
+      console.error('Error in getMasterOccupancyReport:', error);
       throw error;
     }
   }
