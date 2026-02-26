@@ -14,6 +14,8 @@ import CardexReport from './CardexReport';
 import MasterReport from '../../components/MasterReport';
 import MasterStatusReport from './MasterStatusReport';
 import MasterOccupancyReport from './MasterOccupancyReport';
+import StockInReport from './StockInReport';
+import StockOutReport from './StockOutReport';
 
 const Reports: React.FC = () => {
   const { t } = useTranslation();
@@ -33,6 +35,8 @@ const Reports: React.FC = () => {
     fetchMasterReports,
     fetchMasterStatusReports,
     fetchMasterOccupancyReports,
+    fetchStockInReports,
+    fetchStockOutReports,
     masterReports,
     masterStatusReports,
   } = useReportsStore();
@@ -66,6 +70,8 @@ const Reports: React.FC = () => {
     { key: 'master', label: t('reports:master_report_title') || t('reports:master_report') || 'Reporte Maestro' },
     { key: 'master-status', label: t('reports:master_status_report_title') || 'Estado Maestro' },
     { key: 'master-occupancy', label: t('reports:master_occupancy_report_title') || 'Ocupacion Maestro' },
+    { key: 'stock-in', label: t('reports:stock_in_report_title') || 'Stock In' },
+    { key: 'stock-out', label: t('reports:stock_out_report_title') || 'Stock Out' },
   ];
 
   // Filter reports based on user role
@@ -120,6 +126,12 @@ const Reports: React.FC = () => {
       case 'master-occupancy':
         fetchMasterOccupancyReports({});
         break;
+      case 'stock-in':
+        fetchStockInReports(newFilters);
+        break;
+      case 'stock-out':
+        fetchStockOutReports(newFilters);
+        break;
     }
   };
 
@@ -165,11 +177,17 @@ const Reports: React.FC = () => {
       case 'master-occupancy':
         fetchMasterOccupancyReports({});
         break;
+      case 'stock-in':
+        fetchStockInReports(emptyFilters);
+        break;
+      case 'stock-out':
+        fetchStockOutReports(emptyFilters);
+        break;
     }
   };
 
   // Handle report type change
-  const handleReportTypeChange = (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy') => {
+  const handleReportTypeChange = (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy' | 'stock-in' | 'stock-out') => {
     setSelectedReportType(type);
     // Clear previous data when switching report types
     switch (type) {
@@ -204,6 +222,12 @@ const Reports: React.FC = () => {
         break;
       case 'master-occupancy':
         fetchMasterOccupancyReports({});
+        break;
+      case 'stock-in':
+        fetchStockInReports(filters);
+        break;
+      case 'stock-out':
+        fetchStockOutReports(filters);
         break;
     }
   };
@@ -251,6 +275,12 @@ const Reports: React.FC = () => {
         case 'master-occupancy':
           fetchMasterOccupancyReports({});
           break;
+        case 'stock-in':
+          fetchStockInReports(initialFilters);
+          break;
+        case 'stock-out':
+          fetchStockOutReports(initialFilters);
+          break;
       }
     }, 100); // Small delay to ensure state is updated
   }, []);
@@ -268,7 +298,7 @@ const Reports: React.FC = () => {
       <div className="max-w-full mx-auto">
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-3 mb-3">
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between">
             <div>
               <Text size="lg" weight="font-bold" additionalClass="text-gray-900">
                 {t('reports:reports') || 'Reportes'}
@@ -277,23 +307,24 @@ const Reports: React.FC = () => {
                 {t('reports:reports_description') || 'Gestión y generación de reportes del sistema'}
               </Text>
             </div>
-          </div>
 
-          {/* Report Type Tabs */}
-          <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-            {reportTypes.map((type) => (
-              <button
-                key={type.key}
-                onClick={() => handleReportTypeChange(type.key as any)}
-                className={`flex-1 flex items-center justify-center px-3 py-2 rounded-md text-xs font-medium transition-colors ${
-                  selectedReportType === type.key
-                    ? 'bg-white text-blue-600 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+            {/* Report Type Dropdown */}
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">
+                {t('reports:select_report_type') || 'Tipo de Reporte'}:
+              </label>
+              <select
+                value={selectedReportType}
+                onChange={(e) => handleReportTypeChange(e.target.value as 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy' | 'stock-in' | 'stock-out')}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white min-w-[250px]"
               >
-                <span>{type.label}</span>
-              </button>
-            ))}
+                {reportTypes.map((type) => (
+                  <option key={type.key} value={type.key}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -538,6 +569,8 @@ const Reports: React.FC = () => {
               )}
               {selectedReportType === 'master-status' && <MasterStatusReport />}
               {selectedReportType === 'master-occupancy' && <MasterOccupancyReport />}
+              {selectedReportType === 'stock-in' && <StockInReport />}
+              {selectedReportType === 'stock-out' && <StockOutReport />}
             </>
           )}
         </div>

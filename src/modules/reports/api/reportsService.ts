@@ -1,6 +1,15 @@
 // API base URL
 import api from "@/utils/api/axios.config";
-import type { MasterStatusReportResponse, MasterStatusReportFilters, MasterOccupancyReportResponse, MasterOccupancyReportFilters } from "@/types";
+import type {
+  MasterStatusReportResponse,
+  MasterStatusReportFilters,
+  MasterOccupancyReportResponse,
+  MasterOccupancyReportFilters,
+  StockInReportResponse,
+  StockInReportFilters,
+  StockOutReportResponse,
+  StockOutReportFilters,
+} from "@/types";
 
 export interface ReportFilters {
   date_from?: string;
@@ -468,6 +477,60 @@ class ReportsService {
       return response.data;
     } catch (error) {
       console.error('Error in getMasterOccupancyReport:', error);
+      throw error;
+    }
+  }
+
+  // Stock In Report
+  async getStockInReport(filters: StockInReportFilters = {}): Promise<StockInReportResponse> {
+    try {
+      const params = new URLSearchParams();
+
+      if (filters.date_from) {
+        params.append('date_from', filters.date_from);
+      }
+      if (filters.date_to) {
+        params.append('date_to', filters.date_to);
+      }
+      if (filters.customer_name) {
+        params.append('customer_name', filters.customer_name);
+      }
+      if (filters.customer_code) {
+        params.append('customer_code', filters.customer_code);
+      }
+
+      const response = await api.get(`/reports/stock-in?${params.toString()}`);
+
+      return response.data;
+    } catch (error) {
+      console.error('Error in getStockInReport:', error);
+      throw error;
+    }
+  }
+
+  // Stock Out Report
+  async getStockOutReport(filters: StockOutReportFilters = {}): Promise<StockOutReportResponse> {
+    try {
+      const params = new URLSearchParams();
+
+      if (filters.date_from) {
+        params.append('date_from', filters.date_from);
+      }
+      if (filters.date_to) {
+        params.append('date_to', filters.date_to);
+      }
+      if (filters.customer_name) {
+        params.append('customer_name', filters.customer_name);
+      }
+      if (filters.customer_code) {
+        params.append('customer_code', filters.customer_code);
+      }
+
+      const response = await api.get(`/reports/stock-out?${params.toString()}`);
+
+      return response.data;
+    } catch (error) {
+      console.error('Error in getStockOutReport:', error);
       throw error;
     }
   }

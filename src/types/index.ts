@@ -31,3 +31,21 @@ export type {
   MasterOccupancyReportResponse,
   MasterOccupancyReportExportData,
 } from "./MasterOccupancyReportTypes";
+
+// stock in report types
+export type {
+  StockInReportItem,
+  StockInReportSummary,
+  StockInReportFilters,
+  StockInReportResponse,
+  StockInReportExportData,
+} from "./StockInReportTypes";
+
+// stock out report types
+export type {
+  StockOutReportItem,
+  StockOutReportSummary,
+  StockOutReportFilters,
+  StockOutReportResponse,
+  StockOutReportExportData,
+} from "./StockOutReportTypes";

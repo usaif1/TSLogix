@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { reportsService, ReportFilters, WarehouseReportResponse, ProductCategoryReportResponse, ProductWiseReportResponse } from '../api/reportsService';
-import { MasterReportResponse, MasterReportFilters, MasterStatusReportResponse, MasterStatusReportFilters, MasterOccupancyReportResponse, MasterOccupancyReportFilters } from '@/types';
+import { MasterReportResponse, MasterReportFilters, MasterStatusReportResponse, MasterStatusReportFilters, MasterOccupancyReportResponse, MasterOccupancyReportFilters, StockInReportResponse, StockInReportFilters, StockOutReportResponse, StockOutReportFilters } from '@/types';
 import masterReportService from '@/utils/api/masterReportService';
 
 interface ReportsState {
@@ -16,18 +16,20 @@ interface ReportsState {
   masterReports: MasterReportResponse | null;
   masterStatusReports: MasterStatusReportResponse | null;
   masterOccupancyReports: MasterOccupancyReportResponse | null;
-  
+  stockInReports: StockInReportResponse | null;
+  stockOutReports: StockOutReportResponse | null;
+
   // Filters
   filters: ReportFilters;
   
   // Selected report type
-  selectedReportType: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy';
+  selectedReportType: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy' | 'stock-in' | 'stock-out';
 
   // Actions
   setLoading: (key: string, loading: boolean) => void;
   setFilters: (filters: Partial<ReportFilters>) => void;
   clearFilters: () => void;
-  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy') => void;
+  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy' | 'stock-in' | 'stock-out') => void;
   
   // Fetch reports
   fetchWarehouseReports: (filters?: ReportFilters) => Promise<void>;
@@ -37,7 +39,9 @@ interface ReportsState {
   fetchMasterReports: (filters?: MasterReportFilters) => Promise<void>;
   fetchMasterStatusReports: (filters?: MasterStatusReportFilters) => Promise<void>;
   fetchMasterOccupancyReports: (filters?: MasterOccupancyReportFilters) => Promise<void>;
-  
+  fetchStockInReports: (filters?: StockInReportFilters) => Promise<void>;
+  fetchStockOutReports: (filters?: StockOutReportFilters) => Promise<void>;
+
   // Export reports
   exportReport: (reportType: string, format: 'excel' | 'pdf') => Promise<boolean>;
   
@@ -56,6 +60,8 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   masterReports: null,
   masterStatusReports: null,
   masterOccupancyReports: null,
+  stockInReports: null,
+  stockOutReports: null,
   filters: {},
   selectedReportType: 'warehouse',
 
@@ -80,7 +86,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     set({ filters: {} });
   },
 
-  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy') => {
+  setSelectedReportType: (type: 'warehouse' | 'product-category' | 'product-wise' | 'cardex' | 'master' | 'master-status' | 'master-occupancy' | 'stock-in' | 'stock-out') => {
     set({ selectedReportType: type });
   },
 
@@ -197,6 +203,38 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     }
   },
 
+  fetchStockInReports: async (filters?: StockInReportFilters) => {
+    const { setLoading } = get();
+    setLoading('stock-in-reports', true);
+
+    try {
+      const currentFilters = filters || get().filters;
+      const reports = await reportsService.getStockInReport(currentFilters);
+      set({ stockInReports: reports });
+    } catch (error) {
+      console.error('Error fetching stock in reports:', error);
+      set({ stockInReports: null });
+    } finally {
+      setLoading('stock-in-reports', false);
+    }
+  },
+
+  fetchStockOutReports: async (filters?: StockOutReportFilters) => {
+    const { setLoading } = get();
+    setLoading('stock-out-reports', true);
+
+    try {
+      const currentFilters = filters || get().filters;
+      const reports = await reportsService.getStockOutReport(currentFilters);
+      set({ stockOutReports: reports });
+    } catch (error) {
+      console.error('Error fetching stock out reports:', error);
+      set({ stockOutReports: null });
+    } finally {
+      setLoading('stock-out-reports', false);
+    }
+  },
+
   // Export reports
   exportReport: async (reportType: string, format: 'excel' | 'pdf') => {
     const { setLoading } = get();
@@ -227,6 +265,8 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       masterReports: null,
       masterStatusReports: null,
       masterOccupancyReports: null,
+      stockInReports: null,
+      stockOutReports: null,
       filters: {},
     });
   },
