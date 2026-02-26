@@ -150,8 +150,12 @@
   "balance_final": "Closing Balance",
   "saldo_inicial": "Opening Balance",
   "saldo_final": "Closing Balance",
-  "master_report": "Master Report",
-  "master_report_title": "Master Report",
+  "master_report": "Master Activity Report",
+  "master_report_title": "Master Activity Report",
+  "master_status_report_title": "Master Status Report",
+  "master_occupancy_report_title": "Master Occupancy Report",
+  "stock_in_report_title": "Stock In Report",
+  "stock_out_report_title": "Stock Out Report",
   "master_report_description": "Comprehensive master report with all warehouse data and analytics",
   "supplier_name": "Supplier Name",
   "enter_supplier_name": "Enter supplier name",
@@ -177,5 +181,6 @@
   "dispatched": "Dispatched",
   "try_adjusting_filters": "Try adjusting your filters to see more results",
   "include_unallocated": "Include Unallocated",
-  "both_dates": "Both Dates"
+  "both_dates": "Both Dates",
+  "select_report": "Select Report"
 } 

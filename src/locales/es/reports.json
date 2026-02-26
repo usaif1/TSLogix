@@ -147,8 +147,12 @@
   "balance_final": "Saldo Final",
   "saldo_inicial": "Saldo Inicial",
   "saldo_final": "Saldo Final",
-  "master_report": "Reporte Maestro",
-  "master_report_title": "Reporte Maestro",
+  "master_report": "Reporte de Movimientos",
+  "master_report_title": "Reporte de Movimientos",
+  "master_status_report_title": "Reporte de Estatus",
+  "master_occupancy_report_title": "Reporte de Posiciones",
+  "stock_in_report_title": "Reporte de Ingresos",
+  "stock_out_report_title": "Reporte de Salidas",
   "master_report_description": "Reporte maestro completo con todos los datos y analíticas del almacén",
   "supplier_name": "Nombre del Proveedor",
   "enter_supplier_name": "Ingrese nombre del proveedor",
@@ -174,5 +178,6 @@
   "dispatched": "Despachado",
   "try_adjusting_filters": "Intente ajustar sus filtros para ver más resultados",
   "include_unallocated": "Incluir No Asignados",
-  "both_dates": "Ambas Fechas"
+  "both_dates": "Ambas Fechas",
+  "select_report": "Seleccionar Reporte"
 } 

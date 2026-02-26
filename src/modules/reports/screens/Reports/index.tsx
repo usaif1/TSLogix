@@ -97,23 +97,23 @@ const Reports: React.FC = () => {
       label:
         t("reports:master_report_title") ||
         t("reports:master_report") ||
-        "Reporte Maestro",
+        "Reporte de Movimientos",
     },
     {
       key: "master-status",
-      label: t("reports:master_status_report_title") || "Estado Maestro",
+      label: t("reports:master_status_report_title") || "Reporte de Estatus",
     },
     {
       key: "master-occupancy",
-      label: t("reports:master_occupancy_report_title") || "Ocupacion Maestro",
+      label: t("reports:master_occupancy_report_title") || "Reporte de Posiciones",
     },
     {
       key: "stock-in",
-      label: t("reports:stock_in_report_title") || "Stock In",
+      label: t("reports:stock_in_report_title") || "Reporte de Ingresos",
     },
     {
       key: "stock-out",
-      label: t("reports:stock_out_report_title") || "Stock Out",
+      label: t("reports:stock_out_report_title") || "Reporte de Salidas",
     },
   ];
 
@@ -376,7 +376,7 @@ const Reports: React.FC = () => {
             {/* Report Type Dropdown */}
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-gray-700">
-                {t("reports:select_report_type") || "Tipo de Reporte"}:
+                {t("reports:select_report") || "Seleccionar Reporte"}:
               </label>
               <select
                 value={selectedReportType}
