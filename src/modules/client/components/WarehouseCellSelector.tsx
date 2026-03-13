@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import Select, { SingleValue } from "react-select";
 import { toast } from "sonner";
+import clsx from "clsx";
 
 // Components
 import { Button, Text } from "@/components";
@@ -96,7 +97,7 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
   }, [warehouseId]);
 
   const formatCellReference = (cell: Cell): string => {
-    return `${cell.row}.${String(cell.bay).padStart(2, "0")}.${String(cell.position).padStart(2, "0")}`;
+    return formatId(cell.row, cell.bay, cell.position);
   };
 
   const handleWarehouseSelect = (selectedOption: SingleValue<{ value: string; label: string }>) => {
@@ -134,45 +135,55 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
     onCellSelectionChange([]);
   };
 
-  const getCellStatusColor = (cell: Cell, isSelected: boolean) => {
+  // Get cell style matching WarehouseGrid exactly
+  const getCellStyle = (cell: Cell | undefined, isSelected: boolean) => {
+    if (!cell) return "bg-gray-100";
+
+    // Selected cells override everything
     if (isSelected) {
       return "bg-blue-500 text-white border-blue-600";
     }
-    
-    // Passage cells have a light gray background and are non-selectable
-    if (cell.is_passage) {
-      return "bg-gray-200 border-gray-400 text-gray-700 cursor-not-allowed";
+
+    // Passage cells have a light gray background for better visibility
+    if (cell.is_passage) return "bg-gray-200 border-gray-400 text-gray-700";
+
+    // Color based on cell role - different intensity for available vs occupied
+    const isOccupied = cell.status === "OCCUPIED";
+
+    switch (cell.cell_role) {
+      case "STANDARD":
+        return isOccupied
+          ? "bg-emerald-200 border-emerald-300 text-emerald-800"
+          : "bg-emerald-400 border-emerald-500 text-emerald-900";
+      case "DAMAGED":
+        return isOccupied
+          ? "bg-rose-100 border-rose-200 text-rose-700"
+          : "bg-rose-300 border-rose-500 text-rose-900";
+      case "EXPIRED":
+        return isOccupied
+          ? "bg-amber-100 border-amber-200 text-amber-700"
+          : "bg-amber-300 border-amber-500 text-amber-900";
+      case "REJECTED":
+        return isOccupied
+          ? "bg-red-100 border-red-200 text-red-700"
+          : "bg-red-300 border-red-500 text-red-900";
+      case "SAMPLES":
+        return isOccupied
+          ? "bg-purple-100 border-purple-200 text-purple-700"
+          : "bg-purple-300 border-purple-500 text-purple-900";
+      case "RETURNS":
+        return isOccupied
+          ? "bg-blue-100 border-blue-200 text-blue-700"
+          : "bg-blue-300 border-blue-500 text-blue-900";
+      default:
+        return isOccupied
+          ? "bg-emerald-200 border-emerald-300 text-emerald-800"
+          : "bg-emerald-400 border-emerald-500 text-emerald-900"; // Default to standard
     }
-    
-    if (cell.status === "OCCUPIED") {
-      return "bg-gray-200 text-gray-800 border-gray-300 cursor-not-allowed";
-    }
-    
-    if (cell.status === "AVAILABLE") {
-      // Special rows have their own color schemes for available cells
-      if (cell.row === "R") {
-        return "bg-red-300 border-red-500 text-red-900 hover:bg-red-400";
-      }
-      if (cell.row === "T") {
-        return "bg-purple-300 border-purple-500 text-purple-900 hover:bg-purple-400";
-      }
-      if (cell.row === "V") {
-        return "bg-blue-300 border-blue-500 text-blue-900 hover:bg-blue-400";
-      }
-      
-      // Regular rows and Q row use the original color scheme
-      switch (cell.cell_role) {
-        case "DAMAGED":
-          return "bg-rose-200 border-rose-400 text-rose-800 hover:bg-rose-300";
-        case "EXPIRED":
-          return "bg-amber-200 border-amber-400 text-amber-800 hover:bg-amber-300";
-        default:
-          return "bg-emerald-400 border-emerald-500 text-emerald-900 hover:bg-emerald-500";
-      }
-    }
-    
-    return "bg-gray-100 text-gray-800 border-gray-300 cursor-not-allowed";
   };
+
+  const formatId = (r: string, b: number, p: number) =>
+    `${r}.${String(b).padStart(2, "0")}.${String(p).padStart(2, "0")}`;
 
   const warehouseOptions = warehouses.map(warehouse => ({
     value: warehouse.warehouse_id,
@@ -181,39 +192,39 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
 
   const selectedWarehouse = warehouseOptions.find(option => option.value === warehouseId) || null;
 
-  // Group cells by row for better display
-  const cellsByRow = availableCells.reduce((acc, cell) => {
-    if (!acc[cell.row]) {
-      acc[cell.row] = [];
-    }
-    acc[cell.row].push(cell);
-    return acc;
-  }, {} as Record<string, Cell[]>);
-
   // Sort rows to match warehouse grid: regular rows (A-P), then Q, then special rows (R, T, V)
-  const sortedRows = Object.keys(cellsByRow).sort((a, b) => {
+  const rows = Array.from(new Set(availableCells.map((c) => c.row))).sort((a, b) => {
     const specialRows = ["Q", "R", "T", "V"];
     const aIsSpecial = specialRows.includes(a);
     const bIsSpecial = specialRows.includes(b);
-    
+
     if (!aIsSpecial && !bIsSpecial) {
-      // Both are regular rows, sort alphabetically
       return a.localeCompare(b);
     }
-    
     if (!aIsSpecial && bIsSpecial) {
-      // Regular row comes before special rows
       return -1;
     }
-    
     if (aIsSpecial && !bIsSpecial) {
-      // Special row comes after regular rows
       return 1;
     }
-    
-    // Both are special rows, sort in specific order: Q, R, T, V
     const specialOrder = { "Q": 0, "R": 1, "T": 2, "V": 3 };
     return specialOrder[a as keyof typeof specialOrder] - specialOrder[b as keyof typeof specialOrder];
+  });
+
+  const bays = Array.from(new Set(availableCells.map((c) => c.bay))).sort((a, b) => a - b);
+
+  // Get actual positions per row
+  const getPositionsForRow = (row: string) => {
+    const rowCells = availableCells.filter(c => c.row === row);
+    return Array.from(new Set(rowCells.map(c => c.position))).sort((a, b) => b - a);
+  };
+
+  // Create lookup for quick cell access
+  const lookup: Record<string, Record<number, Record<number, Cell>>> = {};
+  availableCells.forEach((c) => {
+    lookup[c.row] ||= {};
+    lookup[c.row][c.bay] ||= {};
+    lookup[c.row][c.bay][c.position] = c;
   });
 
   return (
@@ -296,7 +307,7 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
             </div>
           )}
 
-          {/* Cell Grid */}
+          {/* Cell Grid - Table Layout matching WarehouseGrid exactly */}
           {isLoadingCells ? (
             <div className="flex items-center justify-center h-32">
               <div className="text-center">
@@ -309,103 +320,208 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
               <Text additionalClass="text-gray-500">{t('client:cell_assignment.no_cells_available')}</Text>
             </div>
           ) : (
-            <div className="border border-gray-200 rounded-lg overflow-hidden">
-              <div className="max-h-96 overflow-y-auto">
-                {sortedRows.map((row) => {
-                  const cells = cellsByRow[row];
-                  const isSpecialRow = ["R", "T", "V"].includes(row);
-                  
-                  return (
-                    <div key={row}>
-                      {/* Add spacing before special sections */}
-                      {(row === "Q" || row === "R") && (
-                        <div className="h-3 bg-gray-50 border-b border-gray-100">
-                          {row === "R" && (
-                            <div className="text-center text-xs font-semibold text-gray-600 pt-1">
-                              {t('client:cell_assignment.special_section')}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                      
-                      <div className="border-b border-gray-100 last:border-b-0">
-                        <div className={`px-3 py-2 border-b border-gray-200 ${isSpecialRow ? 'bg-blue-50' : 'bg-gray-50'}`}>
-                          <div className="flex items-center justify-between">
-                            <Text weight="font-medium" additionalClass={`text-sm ${isSpecialRow ? 'text-blue-800' : 'text-gray-700'}`}>
-                              {t('client:cell_assignment.row')} {row} ({cells.length} {t('client:cell_assignment.cells')})
-                              {isSpecialRow && (
-                                <span className="ml-2 text-xs text-blue-600">
-                                  {row === "R" ? `- ${t('client:cell_assignment.rejected')}` :
-                                   row === "T" ? `- ${t('client:cell_assignment.samples')}` :
-                                   row === "V" ? `- ${t('client:cell_assignment.returns')}` : ''}
-                                </span>
-                              )}
-                            </Text>
-                            <Text additionalClass="text-xs text-gray-500">
-                              {cells.filter(c => c.status === "AVAILABLE").length} {t('client:cell_assignment.available')}
-                            </Text>
-                          </div>
-                        </div>
-                                                 <div className="p-3">
-                           <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 lg:grid-cols-12 xl:grid-cols-15 gap-1">
-                             {cells
-                               .sort((a, b) => a.bay - b.bay || b.position - a.position)
-                               .map(cell => {
-                                 const isSelected = selectedCells.some(c => c.id === cell.id);
-                                 const isAvailable = cell.status === "AVAILABLE" && !cell.is_passage;
-                                 
-                                 return (
-                                   <button
-                                     key={cell.id}
-                                     type="button"
-                                     onClick={() => isAvailable ? handleCellToggle(cell) : null}
-                                     disabled={!isAvailable}
-                                     className={`
-                                       relative w-12 h-10 text-[8px] font-medium border rounded transition-colors overflow-hidden
-                                       ${getCellStatusColor(cell, isSelected)}
-                                       ${isAvailable ? 'cursor-pointer' : 'cursor-not-allowed'}
-                                     `}
-                                     title={`${formatCellReference(cell)} - ${cell.status}${cell.is_passage ? ' - Passage' : ''} - ${t('client:cell_assignment.capacity')}: ${cell.capacity}`}
-                                   >
-                                     <div className="flex flex-col items-center justify-center h-full leading-none">
-                                       {!cell.is_passage && (
-                                         <span className="font-mono text-[7px] leading-none">
-                                           {formatCellReference(cell)}
-                                         </span>
-                                       )}
-                                     </div>
-                                     {isSelected && (
-                                       <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
-                                         <span className="text-white text-[8px]">✓</span>
-                                       </div>
-                                     )}
-                                   </button>
-                                 );
-                               })}
-                           </div>
-                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
+            <div className="bg-white border border-gray-200 rounded-lg">
+              {/* Statistics */}
+              <div className="p-3 border-b border-gray-200 bg-gray-50">
+                <div className="text-xs text-gray-600 flex gap-4">
+                  <span><strong>{t('client:cell_assignment.total_cells')}:</strong> {availableCells.filter(cell => !cell.is_passage).length}</span>
+                  <span><strong>{t('client:cell_assignment.row')}s:</strong> {rows.length}</span>
+                  <span><strong>Bays:</strong> {bays.length}</span>
+                </div>
+              </div>
+
+              {/* Grid Table */}
+              <div className="relative">
+                <div className="max-h-[50vh] overflow-auto">
+                  <table className="border-collapse text-xs w-full min-w-[600px]">
+                    <thead>
+                      <tr>
+                        <th className="sticky left-0 top-0 bg-white z-10 p-1 border font-bold text-xs w-8">{t('client:cell_assignment.row')}</th>
+                        {bays.map((bay) => (
+                          <th
+                            key={bay}
+                            className={clsx(
+                              "p-1 sticky top-0 bg-white border text-center font-bold text-xs",
+                              "min-w-[2rem] sm:min-w-[2.5rem]"
+                            )}
+                          >
+                            {String(bay).padStart(2, "0")}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((row, ri) => {
+                        const rowPositions = getPositionsForRow(row);
+                        const hasMultiplePositions = rowPositions.length > 1;
+
+                        return (
+                          <React.Fragment key={row}>
+                            {/* Add spacing before special sections */}
+                            {(row === "Q" || row === "R") && (
+                              <tr className="h-4">
+                                <td colSpan={bays.length + 1} className="border-0 bg-gray-50">
+                                  {row === "R" && (
+                                    <div className="text-center text-xs font-semibold text-gray-600 pt-1">
+                                      {t('client:cell_assignment.special_section')}
+                                    </div>
+                                  )}
+                                </td>
+                              </tr>
+                            )}
+
+                            {/* Render only the positions that exist for this row */}
+                            {rowPositions.map((pos, posIndex) => (
+                              <tr key={`${row}-${pos}`}>
+                                {/* Only render row label cell for first position */}
+                                {posIndex === 0 && (
+                                  <td
+                                    className={clsx(
+                                      "sticky left-0 bg-white border-r px-1 py-1 font-bold text-center",
+                                      "w-8 max-w-8"
+                                    )}
+                                    rowSpan={hasMultiplePositions ? rowPositions.length : 1}
+                                  >
+                                    <div className="flex flex-col items-center justify-center h-full">
+                                      <span className="text-sm font-bold leading-none">{row}</span>
+                                      {hasMultiplePositions && (
+                                        <span className="text-[10px] text-gray-500 leading-none">
+                                          {rowPositions.length}P
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                )}
+
+                                {bays.map((bay) => {
+                                  const cell = lookup[row]?.[bay]?.[pos];
+                                  const isSelected = cell ? selectedCells.some(c => c.id === cell.id) : false;
+                                  const style = getCellStyle(cell, isSelected);
+                                  const isAvailable = cell && cell.status === "AVAILABLE" && !cell.is_passage;
+
+                                  return (
+                                    <td
+                                      key={`${row}-${bay}-${pos}`}
+                                      className={clsx(
+                                        "h-6 sm:h-8 border text-[7px] sm:text-[9px] text-center relative",
+                                        "w-[1.8rem] sm:w-10 px-0.5",
+                                        style,
+                                        isAvailable && "cursor-pointer hover:opacity-80",
+                                        !isAvailable && cell && "cursor-not-allowed"
+                                      )}
+                                      title={
+                                        cell
+                                          ? `${formatId(row, bay, pos)} - ${cell.cell_role} - ${cell.status}${cell.is_passage ? ' - Passage' : ''}`
+                                          : `No cell at ${formatId(row, bay, pos)}`
+                                      }
+                                      onClick={() => cell && isAvailable && handleCellToggle(cell)}
+                                    >
+                                      {cell ? (
+                                        <div className="flex flex-col items-center justify-center h-full">
+                                          {!cell.is_passage && (
+                                            <>
+                                              <span className="font-mono">{formatId(row, bay, pos)}</span>
+                                              {hasMultiplePositions && (
+                                                <span className="text-[6px] sm:text-[8px] text-gray-600">P{pos}</span>
+                                              )}
+                                            </>
+                                          )}
+                                          {isSelected && (
+                                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-600 rounded-full flex items-center justify-center">
+                                              <span className="text-white text-[8px]">✓</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <div className="h-full flex items-center justify-center text-gray-400">
+                                          —
+                                        </div>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+
+                            {/* Add spacing after special rows group */}
+                            {row === "V" && (
+                              <tr className="h-4">
+                                <td colSpan={bays.length + 1} className="border-0 bg-gray-50"></td>
+                              </tr>
+                            )}
+
+                            {/* Add separator between different rows (except for last row) */}
+                            {ri < rows.length - 1 && (
+                              <tr className="h-2">
+                                <td className="bg-gray-200" colSpan={bays.length + 1}></td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
 
-          {/* Enhanced Legend */}
+          {/* Enhanced Legend - matching WarehouseGrid */}
           <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
             <Text additionalClass="text-sm font-medium text-gray-700 mb-2">
               {t('client:cell_assignment.legend.title')}
             </Text>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 text-xs">
-              <LegendItem color="bg-emerald-400" label={t('client:cell_assignment.legend.available')} />
-              <LegendItem color="bg-blue-500" label={t('client:cell_assignment.legend.selected')} />
-              <LegendItem color="bg-gray-200" label={t('client:cell_assignment.legend.occupied')} />
-              <LegendItem color="bg-rose-200 border-rose-400" label={t('client:cell_assignment.legend.damaged')} />
-              <LegendItem color="bg-amber-200 border-amber-400" label={t('client:cell_assignment.legend.expired')} />
-              <LegendItem color="bg-red-300 border-red-500" label={`${t('client:cell_assignment.row')} R`} />
-              <LegendItem color="bg-purple-300 border-purple-500" label={`${t('client:cell_assignment.row')} T`} />
-              <LegendItem color="bg-blue-300 border-blue-500" label={`${t('client:cell_assignment.row')} V`} />
+            <div className="flex flex-wrap gap-4 text-xs">
+              <div className="flex items-center gap-1">
+                <div className="w-4 h-4 bg-blue-500 border border-blue-600 rounded-sm"></div>
+                <span>{t('client:cell_assignment.legend.selected')}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  <div className="w-3 h-3 bg-emerald-400 border border-emerald-500 rounded-l-sm"></div>
+                  <div className="w-3 h-3 bg-emerald-200 border border-emerald-300 rounded-r-sm"></div>
+                </div>
+                <span>Standard</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  <div className="w-3 h-3 bg-rose-300 border border-rose-500 rounded-l-sm"></div>
+                  <div className="w-3 h-3 bg-rose-100 border border-rose-200 rounded-r-sm"></div>
+                </div>
+                <span>{t('client:cell_assignment.legend.damaged')}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  <div className="w-3 h-3 bg-amber-300 border border-amber-500 rounded-l-sm"></div>
+                  <div className="w-3 h-3 bg-amber-100 border border-amber-200 rounded-r-sm"></div>
+                </div>
+                <span>{t('client:cell_assignment.legend.expired')}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  <div className="w-3 h-3 bg-red-300 border border-red-500 rounded-l-sm"></div>
+                  <div className="w-3 h-3 bg-red-100 border border-red-200 rounded-r-sm"></div>
+                </div>
+                <span>{t('client:cell_assignment.rejected')}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  <div className="w-3 h-3 bg-purple-300 border border-purple-500 rounded-l-sm"></div>
+                  <div className="w-3 h-3 bg-purple-100 border border-purple-200 rounded-r-sm"></div>
+                </div>
+                <span>{t('client:cell_assignment.samples')}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="flex">
+                  <div className="w-3 h-3 bg-blue-300 border border-blue-500 rounded-l-sm"></div>
+                  <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded-r-sm"></div>
+                </div>
+                <span>{t('client:cell_assignment.returns')}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-4 h-4 bg-gray-200 border border-gray-400 rounded-sm"></div>
+                <span>Passage</span>
+              </div>
             </div>
           </div>
         </div>
@@ -413,15 +529,5 @@ const WarehouseCellSelector: React.FC<WarehouseCellSelectorProps> = ({
     </div>
   );
 };
-
-// Legend Item Component
-function LegendItem({ color, label }: { color: string; label: string }) {
-  return (
-    <div className="flex items-center gap-1 text-xs">
-      <div className={`w-4 h-4 rounded-sm ${color}`}></div>
-      <span>{label}</span>
-    </div>
-  );
-}
 
 export default WarehouseCellSelector; 
