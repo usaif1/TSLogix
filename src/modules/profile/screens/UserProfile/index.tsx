@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -9,6 +9,8 @@ import { Button, Text, LoaderSync } from "@/components";
 import { ProfileService } from "@/modules/profile/api/profile.service";
 import { ProfileStore } from "@/modules/profile/store";
 import { AuthStore } from "@/globalStore";
+import { ClientService } from "@/modules/client/api/client.service";
+import { ClientStore } from "@/modules/client/store";
 
 const UserProfilePage: React.FC = () => {
   const { t } = useTranslation(['common', 'client']);
@@ -28,13 +30,35 @@ const UserProfilePage: React.FC = () => {
     // resetPasswordForm, // Currently unused
   } = ProfileStore();
 
+  // Client store state
+  const currentClient = ClientStore.use.currentClient();
+  const isLoadingClient = ClientStore.use.loaders()['clients/fetch-client'];
+
+  // Fetch client data if user is a CLIENT
+  useEffect(() => {
+    const userRole = authUser?.role || localStorage.getItem("role");
+    const clientId = authUser?.client?.client_id || localStorage.getItem("client_id");
+
+    if (userRole === 'CLIENT' && clientId && !currentClient) {
+      ClientService.fetchClientById(clientId).catch((error) => {
+        console.error("Error fetching client data:", error);
+        toast.error("Failed to load client information");
+      });
+    }
+  }, [authUser, currentClient]);
+
   // Get user data with fallbacks
   const getUserInfo = () => {
     if (authUser) {
+      const clientName = authUser.client?.name || localStorage.getItem("client_name");
+      const username = authUser.username || localStorage.getItem("username");
+
       return {
-        name: authUser.first_name && authUser.last_name 
+        name: authUser.first_name && authUser.last_name
           ? `${authUser.first_name} ${authUser.last_name}`
           : authUser.name || authUser.username || authUser.userId || authUser.user_id || t('user'),
+        clientName: clientName || undefined,
+        username: username || undefined,
         role: authUser.role?.name || authUser.role || t('user'),
         email: authUser.email || 'N/A',
         phone: authUser.phone || 'N/A',
@@ -50,11 +74,14 @@ const UserProfilePage: React.FC = () => {
     const email = localStorage.getItem("email");
     const phone = localStorage.getItem("phone");
     const role = localStorage.getItem("role");
+    const clientName = localStorage.getItem("client_name");
 
     return {
-      name: firstName && lastName 
+      name: firstName && lastName
         ? `${firstName} ${lastName}`
         : name || username || t('user'),
+      clientName: clientName || undefined,
+      username: username || undefined,
       role: role || t('user'),
       email: email || 'N/A',
       phone: phone || 'N/A',
@@ -166,14 +193,14 @@ const UserProfilePage: React.FC = () => {
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validatePasswordForm()) {
       return;
     }
 
     try {
       await ProfileService.changePassword(passwordForm.currentPassword, passwordForm.newPassword);
-      
+
       toast.success(t('client:password.password_changed_successfully'));
       setShowPasswordModal(false);
     } catch (error: any) {
@@ -182,7 +209,17 @@ const UserProfilePage: React.FC = () => {
     }
   };
 
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const getTranslatedClientType = (clientType: string): string => {
+    if (!clientType) return '';
+    return t(`client:types.${clientType.toLowerCase()}`, clientType);
+  };
+
   const userInfo = getUserInfo();
+  const userRole = authUser?.role || localStorage.getItem("role");
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -204,15 +241,20 @@ const UserProfilePage: React.FC = () => {
               {/* Avatar */}
               <div className="w-20 h-20 bg-gray-800 rounded-full flex items-center justify-center">
                 <span className="text-2xl font-semibold text-white">
-                  {userInfo.initials}
+                  {userInfo.clientName ? userInfo.clientName[0] : ''}
                 </span>
               </div>
               
               {/* User Info */}
               <div className="flex-1">
                 <Text size="2xl" weight="font-semibold" additionalClass="text-gray-900 mb-1">
-                  {userInfo.name}
+                  {userRole === 'CLIENT' && userInfo.clientName ? userInfo.clientName : userInfo.name}
                 </Text>
+                {/* {userRole === 'CLIENT' && userInfo.username && (
+                  <Text size="sm" additionalClass="text-gray-600 mb-2">
+                    @{userInfo.username}
+                  </Text>
+                )} */}
                 <div className="mb-2">
                   <span className={`inline-flex px-3 py-1 text-sm font-medium rounded-full ${getRoleColor(userInfo.role)}`}>
                     {getRoleDisplayName(userInfo.role)}
@@ -222,26 +264,131 @@ const UserProfilePage: React.FC = () => {
             </div>
 
             {/* Contact Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Text size="sm" weight="font-medium" additionalClass="text-gray-700 mb-1">
-                  {t('email')}
-                </Text>
-                <Text additionalClass="text-gray-900">
-                  {userInfo.email}
-                </Text>
-              </div>
-              <div>
-                <Text size="sm" weight="font-medium" additionalClass="text-gray-700 mb-1">
-                  {t('phone')}
-                </Text>
-                <Text additionalClass="text-gray-900">
-                  {userInfo.phone}
-                </Text>
-              </div>
-            </div>
+            
           </div>
         </div>
+
+        {/* Client Information Section - Only for CLIENT role users */}
+        {userRole === 'CLIENT' && currentClient && (
+          <>
+            {/* Client Details Header */}
+            <div className="mb-6">
+              <Text size="2xl" weight="font-bold" additionalClass="text-gray-900 mb-2">
+                {t('client:detail.client_details')}
+              </Text>
+            </div>
+
+            {/* Client Information Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              {/* Basic Information */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  {t('client:detail.basic_information')}
+                </h2>
+                <div className="space-y-3">
+                  {/* Client Code */}
+                  <div>
+                    <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.client_code')}</Text>
+                    <div className="mt-1">
+                      <span className="inline-flex px-3 py-1 text-sm font-mono font-medium bg-gray-100 text-gray-800 rounded-md">
+                        {currentClient.client_code || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.client_type')}</Text>
+                    <div className="mt-1">
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        currentClient.client_type === "JURIDICO"
+                          ? "bg-blue-100 text-blue-800"
+                          : "bg-green-100 text-green-800"
+                      }`}>
+                        {getTranslatedClientType(currentClient.client_type)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {currentClient.client_type === "JURIDICO" ? (
+                    <>
+                      <div>
+                        <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.company_name')}</Text>
+                        <Text additionalClass="mt-1">{currentClient.company_name}</Text>
+                      </div>
+                      <div>
+                        <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.ruc')}</Text>
+                        <Text additionalClass="mt-1">{currentClient.ruc}</Text>
+                      </div>
+                      <div>
+                        <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.establishment_type')}</Text>
+                        <Text additionalClass="mt-1">{currentClient.establishment_type}</Text>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div>
+                        <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.full_name')}</Text>
+                        <Text additionalClass="mt-1">
+                          {`${currentClient.first_names || ""} ${currentClient.last_name || ""} ${currentClient.mothers_last_name || ""}`.trim()}
+                        </Text>
+                      </div>
+                      <div>
+                        <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.individual_id')}</Text>
+                        <Text additionalClass="mt-1">{currentClient.individual_id}</Text>
+                      </div>
+                      {currentClient.date_of_birth && (
+                        <div>
+                          <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.date_of_birth')}</Text>
+                          <Text additionalClass="mt-1">{formatDate(currentClient.date_of_birth)}</Text>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  <div>
+                    <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.created_at')}</Text>
+                    <Text additionalClass="mt-1">{formatDate(currentClient.created_at)}</Text>
+                  </div>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+                  {t('client:detail.contact_information')}
+                </h2>
+                <div className="space-y-3">
+                  <div>
+                    <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.email')}</Text>
+                    <Text additionalClass="mt-1">{currentClient.email}</Text>
+                  </div>
+                  <div>
+                    <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.phone')}</Text>
+                    <Text additionalClass="mt-1">{currentClient.phone}</Text>
+                  </div>
+                  {currentClient.cell_phone && (
+                    <div>
+                      <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.cell_phone')}</Text>
+                      <Text additionalClass="mt-1">{currentClient.cell_phone}</Text>
+                    </div>
+                  )}
+                  <div>
+                    <Text additionalClass="text-sm font-medium text-gray-500">{t('client:fields.address')}</Text>
+                    <Text additionalClass="mt-1">{currentClient.address}</Text>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </>
+        )}
+
+        {/* Loading state for client data */}
+        {userRole === 'CLIENT' && isLoadingClient && !currentClient && (
+          <div className="flex items-center justify-center py-12 mb-6">
+            <LoaderSync loaderText={t('client:messages.loading_clients')} />
+          </div>
+        )}
 
         {/* Security Settings Card */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
