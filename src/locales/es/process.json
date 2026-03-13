@@ -799,5 +799,19 @@
   "quantity_packages": "Cantidad (Paquetes)",
   "expiry_date": "Fecha de Vencimiento",
   "remarks": "Observaciones",
-  "entry_order": "Orden de Ingreso"
+  "entry_order": "Orden de Ingreso",
+
+  "bulk": "Masivo",
+  "bulk_entry": "Cargar Masivo",
+  "bulk_entry_order_upload": "Cargar Masivo Orden de Ingreso",
+  "instructions": "Instrucciones",
+  "download_excel_template_instruction": "Descargar planilla de excel dando click al siguiente botón",
+  "fill_entry_order_data_instruction": "Completar datos del orden de ingreso al formato excel",
+  "upload_completed_file_instruction": "Subir el archivo terminado",
+  "review_results_instruction": "Revisar datos procesados y corregir errores si hay alguno",
+  "download_excel_template": "Descargar Plantilla de Excel",
+  "change_file": "Seleccionar Otro Archivo",
+  "supported_format": "Formato válidos",
+  "upload_and_process": "Subir y Procesar",
+  "reset": "Resetear"
 }

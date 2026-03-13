@@ -22,7 +22,7 @@ export const useQuarantineManagement = () => {
   const qualityControlCells = inventoryLogStore.use.qualityControlCells();
   
   // Quarantine filters
-  const { selectedWarehouse, searchTerm, selectedStatus } = inventoryLogStore.use.quarantineFilters();
+  const { selectedWarehouse, searchTerm, selectedStatus, selectedEntryOrders, entryOrderInput } = inventoryLogStore.use.quarantineFilters();
   
   // Selection state
   const { selectedItems, isAllSelected } = inventoryLogStore.use.quarantineSelection();
@@ -61,19 +61,43 @@ export const useQuarantineManagement = () => {
   const fetchInventoryByStatus = useCallback(async (qualityStatus: QualityControlStatus) => {
     try {
       startLoader('inventoryLogs/fetch-quarantine-inventory');
-      
+
+      // Get current filter values at call time
+      const currentFilters = inventoryLogStore.getState().quarantineFilters;
+
       // Build filters object
-      const filters: { warehouse_id?: string } = {};
-      if (selectedWarehouse?.value) {
-        filters.warehouse_id = selectedWarehouse.value;
+      const filters: { warehouse_id?: string; entry_order_ids?: string[] } = {};
+      if (currentFilters.selectedWarehouse?.value) {
+        filters.warehouse_id = currentFilters.selectedWarehouse.value;
+      }
+
+      // Collect entry order IDs from multi-select and comma-separated input
+      const entryOrderIds: string[] = [];
+
+      // Add from multi-select
+      if (currentFilters.selectedEntryOrders && currentFilters.selectedEntryOrders.length > 0) {
+        entryOrderIds.push(...currentFilters.selectedEntryOrders.map(eo => eo.value));
+      }
+
+      // Add from comma-separated input
+      if (currentFilters.entryOrderInput && currentFilters.entryOrderInput.trim()) {
+        const inputIds = currentFilters.entryOrderInput
+          .split(',')
+          .map(id => id.trim())
+          .filter(id => id.length > 0 && !entryOrderIds.includes(id));
+        entryOrderIds.push(...inputIds);
+      }
+
+      if (entryOrderIds.length > 0) {
+        filters.entry_order_ids = entryOrderIds;
       }
 
       const response = await InventoryLogService.fetchInventoryByQualityStatus(qualityStatus, filters);
       setQuarantineInventory(response);
-      
+
       // Update the selected status in filters
       setQuarantineFilters({ selectedStatus: qualityStatus });
-      
+
       return response;
     } catch (error) {
       console.error('Error fetching inventory by quality status:', error);
@@ -82,19 +106,40 @@ export const useQuarantineManagement = () => {
     } finally {
       stopLoader('inventoryLogs/fetch-quarantine-inventory');
     }
-  }, [selectedWarehouse?.value]); // ✅ Only depend on the value, not the whole object
+  }, []); // ✅ No dependencies - get current state at call time
 
   const fetchQuarantineInventory = useCallback(async (qualityStatus: QualityControlStatus = QualityControlStatus.CUARENTENA) => {
     try {
       startLoader('inventoryLogs/fetch-quarantine-inventory');
-      
-      // Get current warehouse value at call time to avoid stale closures
-      const currentWarehouse = inventoryLogStore.getState().quarantineFilters.selectedWarehouse;
-      
+
+      // Get current filter values at call time to avoid stale closures
+      const currentFilters = inventoryLogStore.getState().quarantineFilters;
+
       // Build filters object
-      const filters: { warehouse_id?: string } = {};
-      if (currentWarehouse?.value) {
-        filters.warehouse_id = currentWarehouse.value;
+      const filters: { warehouse_id?: string; entry_order_ids?: string[] } = {};
+      if (currentFilters.selectedWarehouse?.value) {
+        filters.warehouse_id = currentFilters.selectedWarehouse.value;
+      }
+
+      // Collect entry order IDs from multi-select and comma-separated input
+      const entryOrderIds: string[] = [];
+
+      // Add from multi-select
+      if (currentFilters.selectedEntryOrders && currentFilters.selectedEntryOrders.length > 0) {
+        entryOrderIds.push(...currentFilters.selectedEntryOrders.map(eo => eo.value));
+      }
+
+      // Add from comma-separated input
+      if (currentFilters.entryOrderInput && currentFilters.entryOrderInput.trim()) {
+        const inputIds = currentFilters.entryOrderInput
+          .split(',')
+          .map(id => id.trim())
+          .filter(id => id.length > 0 && !entryOrderIds.includes(id));
+        entryOrderIds.push(...inputIds);
+      }
+
+      if (entryOrderIds.length > 0) {
+        filters.entry_order_ids = entryOrderIds;
       }
 
       const response = await InventoryLogService.fetchInventoryByQualityStatus(qualityStatus, filters);
@@ -167,6 +212,45 @@ export const useQuarantineManagement = () => {
     // ✅ FIXED: Don't call fetchQuarantineInventory here - let the useEffect handle it
     // This prevents duplicate API calls when warehouse changes
   }, []);
+
+  const handleEntryOrdersChange = useCallback((entryOrders: readonly { value: string; label: string }[]) => {
+    setQuarantineFilters({ selectedEntryOrders: [...entryOrders] });
+    resetQuarantineSelection();
+    // Don't auto-fetch - wait for Apply Filter button
+  }, []);
+
+  const handleEntryOrderInputChange = useCallback((input: string) => {
+    setQuarantineFilters({ entryOrderInput: input });
+    resetQuarantineSelection();
+    // Don't auto-fetch - wait for Apply Filter button
+  }, []);
+
+  const handleApplyFilters = useCallback(async () => {
+    const currentFilters = inventoryLogStore.getState().quarantineFilters;
+    const currentStatus = currentFilters.selectedStatus;
+
+    if (!currentStatus) return;
+
+    // Parse comma-separated input and merge with selected options
+    const entryOrderIds: string[] = [];
+
+    // Add selected options from multi-select
+    if (currentFilters.selectedEntryOrders && currentFilters.selectedEntryOrders.length > 0) {
+      entryOrderIds.push(...currentFilters.selectedEntryOrders.map(eo => eo.value));
+    }
+
+    // Parse and add comma-separated input
+    if (currentFilters.entryOrderInput && currentFilters.entryOrderInput.trim()) {
+      const inputIds = currentFilters.entryOrderInput
+        .split(',')
+        .map(id => id.trim())
+        .filter(id => id.length > 0 && !entryOrderIds.includes(id));
+      entryOrderIds.push(...inputIds);
+    }
+
+    // Fetch with the combined entry order IDs
+    await fetchQuarantineInventory(currentStatus);
+  }, [fetchQuarantineInventory]);
 
   const handleSearchChange = useCallback((term: string) => {
     setQuarantineFilters({ searchTerm: term });
@@ -552,6 +636,8 @@ export const useQuarantineManagement = () => {
       selectedWarehouse,
       searchTerm,
       selectedStatus,
+      selectedEntryOrders,
+      entryOrderInput,
     },
     
     // Selection state
@@ -602,6 +688,9 @@ export const useQuarantineManagement = () => {
     handlers: useMemo(() => ({
       // Filters
       onWarehouseChange: handleWarehouseChange,
+      onEntryOrdersChange: handleEntryOrdersChange,
+      onEntryOrderInputChange: handleEntryOrderInputChange,
+      onApplyFilters: handleApplyFilters,
       onSearchChange: handleSearchChange,
       
       // Selection
@@ -632,6 +721,9 @@ export const useQuarantineManagement = () => {
       onFetchCellsForStatus: handleFetchCellsForStatus,
     }), [
       handleWarehouseChange,
+      handleEntryOrdersChange,
+      handleEntryOrderInputChange,
+      handleApplyFilters,
       handleSearchChange,
       handleToggleItemSelection,
       handleToggleAllSelection,

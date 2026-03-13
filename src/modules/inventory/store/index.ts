@@ -348,6 +348,8 @@ export interface InventoryLogStore {
     selectedWarehouse: { value: string; label: string } | null;
     searchTerm: string;
     selectedStatus: QualityControlStatus | null;
+    selectedEntryOrders: { value: string; label: string }[];
+    entryOrderInput: string;
   };
   quarantineSelection: {
     selectedItems: string[];
@@ -467,6 +469,8 @@ const initialState: InventoryLogStore = {
     selectedWarehouse: null,
     searchTerm: '',
     selectedStatus: null,
+    selectedEntryOrders: [],
+    entryOrderInput: '',
   },
   quarantineSelection: {
     selectedItems: [],

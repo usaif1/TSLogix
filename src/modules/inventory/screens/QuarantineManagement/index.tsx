@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, Divider } from '@/components';
 import { useQuarantineManagement } from '../../hooks/useQuarantineManagement';
-import { 
-  QualityControlFilters, 
-  QualityControlInventoryTable, 
-  QualityStatusTransitionModal 
+import {
+  QualityControlFilters,
+  QualityControlInventoryTable,
+  QualityStatusTransitionModal
 } from './components';
 
 const QuarantineManagement: React.FC = () => {
@@ -26,6 +26,27 @@ const QuarantineManagement: React.FC = () => {
   // ✅ FIXED: Pre-load cells only when transitioning (removed automatic cell loading)
   // This prevents unnecessary API calls when just changing warehouse filters
   // Cells will be loaded only when needed (when opening transition modal)
+
+  // ✅ Generate entry order options from inventory data
+  const entryOrderOptions = useMemo(() => {
+    const uniqueEntryOrders = new Map<string, string>();
+
+    inventory.forEach((item) => {
+      const entryOrder = item.entry_order_product?.entry_order;
+      if (entryOrder?.entry_order_no) {
+        // Use entry_order_id as value and entry_order_no as label
+        const entryOrderId = item.entry_order_product?.entry_order_id || item.entry_order_id;
+        if (entryOrderId && !uniqueEntryOrders.has(entryOrderId)) {
+          uniqueEntryOrders.set(entryOrderId, entryOrder.entry_order_no);
+        }
+      }
+    });
+
+    return Array.from(uniqueEntryOrders.entries()).map(([id, orderNo]) => ({
+      value: id,
+      label: orderNo,
+    })).sort((a, b) => a.label.localeCompare(b.label));
+  }, [inventory]);
 
   // Show loading when initially fetching data (no warehouses loaded yet)
   if (isLoading && warehouses.length === 0) {
@@ -77,8 +98,15 @@ const QuarantineManagement: React.FC = () => {
         <QualityControlFilters
           warehouses={warehouses}
           selectedWarehouse={filters.selectedWarehouse}
+          selectedEntryOrders={filters.selectedEntryOrders}
+          entryOrderInput={filters.entryOrderInput}
+          entryOrderOptions={entryOrderOptions}
           searchTerm={filters.searchTerm}
+          isApplyingFilters={isLoading}
           onWarehouseChange={handlers.onWarehouseChange}
+          onEntryOrdersChange={handlers.onEntryOrdersChange}
+          onEntryOrderInputChange={handlers.onEntryOrderInputChange}
+          onApplyFilters={handlers.onApplyFilters}
           onSearchChange={handlers.onSearchChange}
           totalItems={inventory.length}
           filteredItems={filteredInventory.length}
