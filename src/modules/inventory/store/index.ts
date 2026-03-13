@@ -348,6 +348,8 @@ export interface InventoryLogStore {
     selectedWarehouse: { value: string; label: string } | null;
     searchTerm: string;
     selectedStatus: QualityControlStatus | null;
+    selectedEntryOrders: { value: string; label: string }[];
+    entryOrderInput: string;
   };
   quarantineSelection: {
     selectedItems: string[];
@@ -402,7 +404,7 @@ export interface InventoryLogStoreActions {
   setLastGeneratedAt: (timestamp: string) => void;
   
   // ✅ NEW: Quarantine Management Actions
-  setQuarantineFilters: (filters: Partial<{ selectedWarehouse: { value: string; label: string } | null; searchTerm: string; selectedStatus: QualityControlStatus | null }>) => void;
+  setQuarantineFilters: (filters: Partial<{ selectedWarehouse: { value: string; label: string } | null; searchTerm: string; selectedStatus: QualityControlStatus | null; selectedEntryOrders: { value: string; label: string }[]; entryOrderInput: string }>) => void;
   setQuarantineSelection: (selection: Partial<{ selectedItems: string[]; isAllSelected: boolean }>) => void;
   setQuarantineTransition: (transition: Partial<{ showModal: boolean; transitionStatus: QualityControlStatus | null; reason: string; notes: string; quantityToMove: number; packageQuantityToMove: number; weightToMove: number; volumeToMove: number; selectedItem: QuarantineInventoryItem | null }>) => void;
   resetQuarantineSelection: () => void;
@@ -467,6 +469,8 @@ const initialState: InventoryLogStore = {
     selectedWarehouse: null,
     searchTerm: '',
     selectedStatus: null,
+    selectedEntryOrders: [],
+    entryOrderInput: '',
   },
   quarantineSelection: {
     selectedItems: [],

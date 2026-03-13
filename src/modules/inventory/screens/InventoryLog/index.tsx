@@ -230,17 +230,24 @@ const InventoryLog: React.FC = () => {
             type === "ENTRY" ? "text-green-600" :
             type === "DEPARTURE" ? "text-red-600" :
             "text-orange-600";
-          
+
+          // For ADJUSTMENT (same-cell status change), show absolute value without +/- sign
+          const isAdjustment = type === "ADJUSTMENT";
+          const displayChange = isAdjustment ? Math.abs(data.change) : data.change;
+          const displayWeightChange = isAdjustment ? Math.abs(data.weight_change) : data.weight_change;
+          const changePrefix = isAdjustment ? '' : (data.change > 0 ? '+' : '');
+          const weightPrefix = isAdjustment ? '' : (data.weight_change > 0 ? '+' : '');
+
           return (
             <div className="text-sm space-y-1">
               <div className={`${changeColor} font-medium`}>
-                {data.change > 0 ? '+' : ''}{data.change} {t('inventory:units')}
+                {changePrefix}{displayChange} {t('inventory:units')}
               </div>
               <div className="text-xs text-gray-700">
                 {t('inventory:current')}: {data.current.toLocaleString()}
               </div>
               <div className="text-xs text-gray-500">
-                {data.weight_change > 0 ? '+' : ''}{data.weight_change} kg → {data.current_weight} kg
+                {weightPrefix}{displayWeightChange} kg → {data.current_weight} kg
               </div>
             </div>
           );

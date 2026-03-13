@@ -723,5 +723,20 @@
   "successfully_processed_orders": "Successfully processed {{successful}} out of {{total}} orders",
   "upload_failed": "Upload failed",
   "please_select_file_first": "Please select a file first",
-  "bulk_upload_completed": "Bulk upload completed"
+  "bulk_upload_completed": "Bulk upload completed",
+
+  "download_pdf": "Download PDF",
+  "download_excel": "Download Excel",
+  "pdf_downloaded_successfully": "PDF downloaded successfully",
+  "excel_downloaded_successfully": "Excel downloaded successfully",
+  "pdf_download_failed": "Failed to download PDF",
+  "excel_download_failed": "Failed to download Excel",
+  "no_products_to_export": "No products to export",
+  "product_code": "Product Code",
+  "product_name": "Product Name",
+  "quantity_unit": "Quantity (Units)",
+  "quantity_packages": "Quantity (Packages)",
+  "expiry_date": "Expiry Date",
+  "remarks": "Remarks",
+  "entry_order": "Entry Order"
 }

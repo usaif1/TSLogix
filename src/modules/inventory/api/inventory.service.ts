@@ -457,15 +457,21 @@ export const InventoryLogService = {
   // ✅ NEW: Get inventory by quality status (dynamic) with filters
   fetchInventoryByQualityStatus: async (qualityStatus: QualityControlStatus, filters?: {
     warehouse_id?: string;
+    entry_order_ids?: string[];
   }) => {
     try {
       startLoader("inventoryLogs/fetch-quarantine-inventory");
-      const params: any = { 
-        quality_status: qualityStatus 
+      const params: any = {
+        quality_status: qualityStatus
       };
-      
+
       if (filters?.warehouse_id) {
         params.warehouse_id = filters.warehouse_id;
+      }
+
+      // Support multiple entry order IDs as comma-separated string
+      if (filters?.entry_order_ids && filters.entry_order_ids.length > 0) {
+        params.entry_order_ids = filters.entry_order_ids.join(',');
       }
 
       const response = await api.get(`${baseURL}/by-quality-status`, { params });
@@ -479,7 +485,7 @@ export const InventoryLogService = {
         // For now, we'll use quarantine inventory store for all quality statuses
         setQuarantineInventory(data);
       }
-      
+
       return data;
     } catch (error) {
       console.error("Fetch inventory by quality status error:", error);

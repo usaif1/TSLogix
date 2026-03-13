@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { ProcessService } from '../../api/process.service';
 import { Button, DataTable, Spinner } from '@/components';
@@ -24,6 +25,7 @@ interface UploadProgress {
 }
 
 const BulkEntry: React.FC = () => {
+  const { t } = useTranslation(['process', 'common']);
   const [uploadProgress, setUploadProgress] = useState<UploadProgress>({
     isUploading: false,
     progress: 0,
@@ -226,19 +228,19 @@ const BulkEntry: React.FC = () => {
     <div className="container mx-auto p-6">
       <div className="bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          Bulk Entry Order Upload
+          {t('process:bulk_entry_order_upload')}
         </h1>
 
         {/* Instructions */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <h3 className="font-semibold text-blue-800 mb-2">
-            Instructions
+            {t('process:instructions')}
           </h3>
           <ol className="list-decimal list-inside text-blue-700 space-y-1">
-            <li>Download the Excel template using the button below</li>
-            <li>Fill in your entry order data following the template format</li>
-            <li>Upload the completed Excel file</li>
-            <li>Review the processing results and handle any errors</li>
+            <li>{t('process:download_excel_template_instruction')}</li>
+            <li>{t('process:fill_entry_order_data_instruction')}</li>
+            <li>{t('process:upload_completed_file_instruction')}</li>
+            <li>{t('process:review_results_instruction')}</li>
           </ol>
         </div>
 
@@ -252,7 +254,7 @@ const BulkEntry: React.FC = () => {
             {uploadProgress.isUploading && uploadProgress.currentStep.includes('template') ? (
               <Spinner />
             ) : null}
-            Download Excel Template
+            {t('process:download_excel_template')}
           </Button>
         </div>
 
@@ -281,14 +283,14 @@ const BulkEntry: React.FC = () => {
                 )}
               </div>
               <div className="text-sm text-gray-500 mb-4">
-                Supported formats: .xlsx, .xls (max 10MB)
+                {t('process:supported_format')}: .xlsx, .xls (max 10MB)
               </div>
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadProgress.isUploading}
                 variant="secondary"
               >
-                {selectedFile ? 'Change File' : 'Select File'}
+                {selectedFile ? t('process:change_file') : t('common:select_file')}
               </Button>
             </div>
           </div>
@@ -319,7 +321,7 @@ const BulkEntry: React.FC = () => {
             {uploadProgress.isUploading ? (
               <Spinner />
             ) : null}
-            Upload & Process
+            {t('process:upload_and_process')}
           </Button>
 
           <Button
@@ -327,7 +329,7 @@ const BulkEntry: React.FC = () => {
             disabled={uploadProgress.isUploading}
             variant="secondary"
           >
-            Reset
+            {t('process:reset')}
           </Button>
         </div>
 

@@ -16,12 +16,20 @@ const UserProfile: React.FC = () => {
   const getUserInfo = () => {
     // Try to get from auth store first
     if (authUser) {
-      return {
-        name: authUser.first_name && authUser.last_name 
+      const userRole = authUser.role?.name || authUser.role;
+      const clientName = authUser.client?.name || localStorage.getItem("client_name");
+
+      // For CLIENT users, show client name
+      const displayName = userRole === 'CLIENT' && clientName
+        ? clientName
+        : authUser.first_name && authUser.last_name
           ? `${authUser.first_name} ${authUser.last_name}`
-          : authUser.name || authUser.username || authUser.userId || authUser.user_id || t('common:user'),
-        role: authUser.role?.name || authUser.role || t('common:user'),
-        initials: getInitials(authUser.first_name, authUser.last_name, authUser.name, authUser.username, authUser.userId)
+          : authUser.name || authUser.username || authUser.userId || authUser.user_id || t('common:user');
+
+      return {
+        name: displayName,
+        role: userRole || t('common:user'),
+        initials: getInitials(authUser.first_name, authUser.last_name, authUser.name, authUser.username, authUser.userId, clientName)
       };
     }
 
@@ -30,12 +38,20 @@ const UserProfile: React.FC = () => {
       const storedUser = localStorage.getItem("liu");
       if (storedUser) {
         const userData = JSON.parse(storedUser);
-        return {
-          name: userData.first_name && userData.last_name 
+        const userRole = userData.role?.name || userData.role || localStorage.getItem("role");
+        const clientName = userData.client?.name || localStorage.getItem("client_name");
+
+        // For CLIENT users, show client name
+        const displayName = userRole === 'CLIENT' && clientName
+          ? clientName
+          : userData.first_name && userData.last_name
             ? `${userData.first_name} ${userData.last_name}`
-            : userData.name || userData.username || userData.userId || userData.user_id || t('common:user'),
-          role: userData.role?.name || userData.role || localStorage.getItem("role") || t('common:user'),
-          initials: getInitials(userData.first_name, userData.last_name, userData.name, userData.username, userData.userId)
+            : userData.name || userData.username || userData.userId || userData.user_id || t('common:user');
+
+        return {
+          name: displayName,
+          role: userRole || t('common:user'),
+          initials: getInitials(userData.first_name, userData.last_name, userData.name, userData.username, userData.userId, clientName)
         };
       }
     } catch (error) {
@@ -49,14 +65,20 @@ const UserProfile: React.FC = () => {
     const username = localStorage.getItem("username");
     const userId = localStorage.getItem("user_id");
     const role = localStorage.getItem("role");
+    const clientName = localStorage.getItem("client_name");
 
-    if (firstName || lastName || name || username || userId) {
+    // For CLIENT users, show client name
+    const displayName = role === 'CLIENT' && clientName
+      ? clientName
+      : firstName && lastName
+        ? `${firstName} ${lastName}`
+        : name || username || userId || t('common:user');
+
+    if (firstName || lastName || name || username || userId || clientName) {
       return {
-        name: firstName && lastName 
-          ? `${firstName} ${lastName}`
-          : name || username || userId || t('common:user'),
+        name: displayName,
         role: role || t('common:user'),
-        initials: getInitials(firstName || undefined, lastName || undefined, name || undefined, username || undefined, userId || undefined)
+        initials: getInitials(firstName || undefined, lastName || undefined, name || undefined, username || undefined, userId || undefined, clientName || undefined)
       };
     }
 
@@ -68,12 +90,24 @@ const UserProfile: React.FC = () => {
     };
   };
 
-  const getInitials = (firstName?: string, lastName?: string, name?: string, username?: string, userId?: string): string => {
+  const getInitials = (firstName?: string, lastName?: string, name?: string, username?: string, userId?: string, clientName?: string): string => {
+    // For CLIENT users, prioritize client name for initials
+    if (clientName) {
+      const words = clientName.trim().split(/\s+/);
+      if (words.length >= 2) {
+        return `${words[0].charAt(0)}${words[1].charAt(0)}`.toUpperCase();
+      }
+      if (words.length === 1 && words[0].length >= 2) {
+        return words[0].substring(0, 2).toUpperCase();
+      }
+      return words[0].charAt(0).toUpperCase();
+    }
+
     // Try first name + last name
     if (firstName && lastName) {
       return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
     }
-    
+
     // Try to get first 2 words from name
     if (name) {
       const words = name.trim().split(/\s+/);
@@ -85,7 +119,7 @@ const UserProfile: React.FC = () => {
       }
       return words[0].charAt(0).toUpperCase();
     }
-    
+
     // Try username
     if (username) {
       // Handle username patterns like "wh_incharge1" -> "WI"
@@ -101,7 +135,7 @@ const UserProfile: React.FC = () => {
       }
       return username.charAt(0).toUpperCase();
     }
-    
+
     // Try userId
     if (userId) {
       if (userId.length >= 2) {
@@ -109,7 +143,7 @@ const UserProfile: React.FC = () => {
       }
       return userId.charAt(0).toUpperCase();
     }
-    
+
     return "U";
   };
 
