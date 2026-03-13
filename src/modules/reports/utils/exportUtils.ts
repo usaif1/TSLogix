@@ -232,3 +232,83 @@ export const convertArrayToExportData = (
     metadata
   };
 };
+
+// Simple table export to Excel - clean format with just headers and data
+export const exportSimpleTableToExcel = (
+  headers: string[],
+  data: any[][],
+  filename: string,
+  sheetName: string = 'Data'
+) => {
+  try {
+    const wb = XLSX.utils.book_new();
+
+    // Create data array with headers first, then data rows
+    const wsData = [headers, ...data];
+
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Auto-fit columns based on content
+    const colWidths = headers.map((header, i) => {
+      const maxLength = Math.max(
+        header.length,
+        ...data.map(row => String(row[i] || '').length)
+      );
+      return { wch: Math.min(maxLength + 2, 50) };
+    });
+    ws['!cols'] = colWidths;
+
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    XLSX.writeFile(wb, filename);
+
+    return true;
+  } catch (error) {
+    console.error('Error exporting simple table to Excel:', error);
+    throw new Error('Error al exportar a Excel');
+  }
+};
+
+// Simple table export to PDF - clean format with just headers and data
+export const exportSimpleTableToPDF = (
+  title: string,
+  headers: string[],
+  data: any[][],
+  filename: string
+) => {
+  try {
+    const doc = new jsPDF();
+
+    // Add title
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, 14, 20);
+
+    // Add table
+    autoTable(doc, {
+      head: [headers],
+      body: data,
+      startY: 30,
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+      },
+      headStyles: {
+        fillColor: [66, 139, 202],
+        textColor: 255,
+        fontStyle: 'bold',
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { top: 10, right: 14, bottom: 10, left: 14 },
+      tableWidth: 'auto',
+    });
+
+    doc.save(filename);
+
+    return true;
+  } catch (error) {
+    console.error('Error exporting simple table to PDF:', error);
+    throw new Error('Error al exportar a PDF');
+  }
+};

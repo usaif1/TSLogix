@@ -3,10 +3,12 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Select from "react-select";
+import { toast } from "sonner";
 import { Text, LoaderSync, Divider, Button } from "@/components";
 import ProcessesStore from "@/modules/process/store";
 import { ProcessService } from "@/globalService";
 import { formatDate } from "@/utils/dateUtils";
+import { exportSimpleTableToExcel, exportSimpleTableToPDF } from "@/modules/reports/utils/exportUtils";
 
 interface ReviewData {
   review_status: "APPROVED" | "REJECTED" | "NEEDS_REVISION";
@@ -343,6 +345,99 @@ const Review: React.FC = () => {
     setReviewMode("approve");
     setIsSubmitting(false);
   }, [entry?.review_comments]);
+
+  // ✅ Helper function for review status text (needed by export functions)
+  const getReviewStatusText = useCallback((status: string) => {
+    switch (status) {
+      case "APPROVED":
+        return t('process:approved');
+      case "REJECTED":
+        return t('process:rejected');
+      case "NEEDS_REVISION":
+        return t('process:needs_revision');
+      case "PENDING":
+        return t('process:pending');
+      default:
+        return status;
+    }
+  }, [t]);
+
+  // ✅ Export to PDF function - Required fields: Product code, product name, Quantity Unit, Quantity packages, weight, Expiry date, remarks
+  const handleExportPDF = useCallback(() => {
+    if (!entry || !entry.products || entry.products.length === 0) {
+      toast.error(t('process:no_products_to_export'));
+      return;
+    }
+
+    try {
+      const headers = [
+        t('process:product_code'),
+        t('process:product_name'),
+        t('process:quantity_unit'),
+        t('process:quantity_packages'),
+        t('process:weight_kg'),
+        t('process:expiry_date'),
+        t('process:remarks')
+      ];
+
+      const data = entry.products.map((product: any) => [
+        product.product?.product_code || product.product_code || '-',
+        product.product?.name || '-',
+        product.inventory_quantity || 0,
+        product.package_quantity || 0,
+        product.weight_kg || 0,
+        formatDate(product.expiration_date),
+        product.lot_series || '-'
+      ]);
+
+      const title = `${t('process:entry_order')}: ${entry.entry_order_no}`;
+      const filename = `entry_order_${entry.entry_order_no.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
+
+      exportSimpleTableToPDF(title, headers, data, filename);
+      toast.success(t('process:pdf_downloaded_successfully'));
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error(t('process:pdf_download_failed'));
+    }
+  }, [entry, t]);
+
+  // ✅ Export to Excel function - Required fields: Product code, product name, Quantity Unit, Quantity packages, weight, Expiry date, remarks
+  const handleExportExcel = useCallback(() => {
+    if (!entry || !entry.products || entry.products.length === 0) {
+      toast.error(t('process:no_products_to_export'));
+      return;
+    }
+
+    try {
+      const headers = [
+        t('process:product_code'),
+        t('process:product_name'),
+        t('process:quantity_unit'),
+        t('process:quantity_packages'),
+        t('process:weight_kg'),
+        t('process:expiry_date'),
+        t('process:remarks')
+      ];
+
+      const data = entry.products.map((product: any) => [
+        product.product?.product_code || product.product_code || '-',
+        product.product?.name || '-',
+        product.inventory_quantity || 0,
+        product.package_quantity || 0,
+        product.weight_kg || 0,
+        formatDate(product.expiration_date),
+        product.lot_series || '-'
+      ]);
+
+      const filename = `entry_order_${entry.entry_order_no.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      exportSimpleTableToExcel(headers, data, filename, 'Entry Order');
+      toast.success(t('process:excel_downloaded_successfully'));
+    } catch (error) {
+      console.error('Excel export error:', error);
+      toast.error(t('process:excel_download_failed'));
+    }
+  }, [entry, t]);
 
   if (loading || formFieldsLoading) {
     return (
@@ -834,21 +929,6 @@ const Review: React.FC = () => {
     }
   };
 
-  const getReviewStatusText = (status: string) => {
-    switch (status) {
-      case "APPROVED":
-        return t('process:approved');
-      case "REJECTED":
-        return t('process:rejected');
-      case "NEEDS_REVISION":
-        return t('process:needs_revision');
-      case "PENDING":
-        return t('process:pending');
-      default:
-        return status;
-    }
-  };
-
   // ✅ Handle document download/view
   const handleDocumentAction = async (documentData: any, action: 'view' | 'download') => {
     if (typeof documentData === 'string') {
@@ -932,12 +1012,38 @@ const Review: React.FC = () => {
         <Text size="3xl" weight="font-bold">
           {t('process:entry_order_review')}: {orderNo}
         </Text>
-        <Button
-          variant="cancel"
-          onClick={() => navigate(-1)}
-        >
-          {t('common:back')}
-        </Button>
+        <div className="flex space-x-2">
+          {/* Download PDF Button */}
+          <Button
+            variant="action"
+            onClick={handleExportPDF}
+            additionalClass="px-4 py-2 bg-red-600 hover:bg-red-700 text-white flex items-center gap-2"
+            disabled={!entry?.products || entry.products.length === 0}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+            </svg>
+            {t('process:download_pdf')}
+          </Button>
+          {/* Download Excel Button */}
+          <Button
+            variant="action"
+            onClick={handleExportExcel}
+            additionalClass="px-4 py-2 bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+            disabled={!entry?.products || entry.products.length === 0}
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586l-1.293-1.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+            </svg>
+            {t('process:download_excel')}
+          </Button>
+          <Button
+            variant="cancel"
+            onClick={() => navigate(-1)}
+          >
+            {t('common:back')}
+          </Button>
+        </div>
       </div>
       <Divider height="lg" />
 
