@@ -36,22 +36,23 @@ const QualityControlFilters: React.FC<QualityControlFiltersProps> = ({
   warehouses,
   selectedWarehouse,
   selectedEntryOrders,
-  entryOrderInput,
+  entryOrderInput: _entryOrderInput,
   entryOrderOptions,
   searchTerm,
   isApplyingFilters = false,
   onWarehouseChange,
   onEntryOrdersChange,
-  onEntryOrderInputChange,
+  onEntryOrderInputChange: _onEntryOrderInputChange,
   onSearchChange,
   onApplyFilters,
-  totalItems,
-  filteredItems,
+  totalItems: _totalItems,
+  filteredItems: _filteredItems,
   selectedItemId,
   onTransitionToStatus,
   selectedStatus,
   onRefreshByStatus,
 }) => {
+  // Note: _entryOrderInput, _onEntryOrderInputChange, _totalItems, _filteredItems are currently unused but kept for future use
   const { t } = useTranslation(['inventory', 'common']);
 
   const warehouseOptions = warehouses.map(w => ({ value: w.warehouse_id, label: w.name }));
