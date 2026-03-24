@@ -306,7 +306,7 @@ const DepartureAudit: React.FC = () => {
   };
 
   const getStatusText = (status?: string) => {
-    if (!status) return 'Unknown';
+    if (!status) return t('process:unknown');
     return t(`process:${status.toLowerCase()}`, status);
   };
 

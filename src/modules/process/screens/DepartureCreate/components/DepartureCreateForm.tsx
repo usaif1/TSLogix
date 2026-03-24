@@ -737,7 +737,7 @@ const DepartureCreateForm: React.FC = () => {
                         placeholder={availableProducts?.length > 0 ? t('select_product') : t('process:loading_products')}
                         getOptionLabel={(option) => {
                           console.log("Rendering option:", option);
-                          return `${option.product_code || 'No Code'} - ${option.product_name || 'No Name'}`;
+                          return `${option.product_code || t('no_code')} - ${option.product_name || t('no_name')}`;
                         }}
                         getOptionValue={(option) => option.product_id}
                         styles={reactSelectStyle}

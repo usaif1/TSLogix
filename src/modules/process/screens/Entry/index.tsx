@@ -26,7 +26,7 @@ const Entry: React.FC = () => {
         route: "/processes/entry/new",
       },
       {
-        title: "Bulk Upload",
+        title: t("process:bulk_upload_orders"),
         icon: FileArrowUp,
         route: "/processes/entry/bulk",
       },

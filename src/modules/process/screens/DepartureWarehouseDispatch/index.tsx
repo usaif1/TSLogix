@@ -143,10 +143,11 @@ const DepartureWarehouseDispatch: React.FC = () => {
 
   const createDispatchRows = (products: any[]): DispatchRow[] => {
     return products.map((product: any) => {
-      // Calculate available packages and urgency
+      // Calculate available packages (use backend value for weight)
       const availablePackages = product.available_locations?.reduce((sum: number, loc: any) => sum + (loc.available_packages || 0), 0) || 0;
-      const availableWeight = product.available_locations?.reduce((sum: number, loc: any) => sum + (loc.available_weight || 0), 0) || 0;
-      
+      // ✅ FIXED: Use backend's available_weight directly instead of recalculating
+      const availableWeight = product.available_weight || 0;
+
       // Calculate total stored packages
       const totalStoredPackages = product.all_storage_locations?.reduce((sum: number, loc: any) => sum + (loc.stored_packages || 0), 0) || 0;
       
@@ -288,7 +289,7 @@ const DepartureWarehouseDispatch: React.FC = () => {
   const getOrderOptions = () => {
     return approvedDepartureOrders.map((order: any) => ({
       value: order.departure_order_id,
-      label: `${order.departure_order_no} - ${order.client?.company_name || 'Unknown Client'} (${order.total_products || 0} products)`
+      label: `${order.departure_order_no} - ${order.client?.company_name || t('unknown_client')} (${order.total_products || 0} ${t('products_lowercase')})`
     }));
   };
 
@@ -499,23 +500,23 @@ const DepartureWarehouseDispatch: React.FC = () => {
                     <td className="p-2 text-xs text-center">
                       <div>{row.requested_quantity} units</div>
                       <div className="text-gray-500">{row.requested_packages} {t('process:paq')}</div>
-                      <div className="text-gray-500">{row.requested_weight} kg</div>
+                      <div className="text-gray-500">{Number(row.requested_weight).toFixed(2)} kg</div>
                     </td>
 
-                    {/* Available Quantities */}
+                    {/* Available Quantities - Disponible (only approved for dispatch) */}
                     <td className="p-2 text-xs text-center">
                       <div className={row.available_quantity > 0 ? "text-green-600 font-semibold" : "text-red-600 font-semibold"}>
                         {row.available_quantity} units
                       </div>
                       <div className="text-gray-500">{row.available_packages} {t('process:paq')}</div>
-                      <div className="text-gray-500">{row.available_weight.toFixed(1)} kg</div>
+                      <div className="text-gray-500">{Number(row.available_weight).toFixed(2)} kg</div>
                     </td>
 
-                    {/* Total Stored */}
+                    {/* Total Stored - Almacenado (all stored units) */}
                     <td className="p-2 text-xs text-center">
                       <div>{row.total_stored_quantity} units</div>
                       <div className="text-gray-500">{row.total_stored_packages} {t('process:paq')}</div>
-                      <div className="text-gray-500">{row.total_stored_weight} kg</div>
+                      <div className="text-gray-500">{Number(row.total_stored_weight).toFixed(2)} kg</div>
                     </td>
 
                     {/* Storage Locations */}

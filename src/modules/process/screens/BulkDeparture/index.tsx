@@ -166,7 +166,7 @@ const BulkDeparture: React.FC = () => {
   const successColumns: ColumnDef<BulkUploadResult['successful_orders'][0]>[] = [
     {
       accessorKey: 'departure_order_no',
-      header: 'Order Number',
+      header: t('order_number'),
       cell: ({ row }) => (
         <span className="font-medium text-green-700">
           {row.original.departure_order_no}
@@ -175,7 +175,7 @@ const BulkDeparture: React.FC = () => {
     },
     {
       accessorKey: 'departure_order_id',
-      header: 'Order ID',
+      header: t('order_id'),
       cell: ({ row }) => (
         <span className="text-sm text-gray-600">
           {row.original.departure_order_id.substring(0, 8)}...
@@ -184,10 +184,10 @@ const BulkDeparture: React.FC = () => {
     },
     {
       accessorKey: 'products_count',
-      header: 'Products',
+      header: t('products'),
       cell: ({ row }) => (
         <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
-          {row.original.products_count} products
+          {row.original.products_count} {t('products_lowercase')}
         </span>
       )
     }
@@ -197,7 +197,7 @@ const BulkDeparture: React.FC = () => {
   const errorColumns: ColumnDef<BulkUploadResult['failed_orders'][0]>[] = [
     {
       accessorKey: 'departure_order_no',
-      header: 'Order Number',
+      header: t('order_number'),
       cell: ({ row }) => (
         <span className="font-medium text-red-700">
           {row.original.departure_order_no}
@@ -206,16 +206,16 @@ const BulkDeparture: React.FC = () => {
     },
     {
       accessorKey: 'row_number',
-      header: 'Row',
+      header: t('row'),
       cell: ({ row }) => (
         <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">
-          Row {row.original.row_number}
+          {t('row')} {row.original.row_number}
         </span>
       )
     },
     {
       accessorKey: 'error',
-      header: 'Error',
+      header: t('error'),
       cell: ({ row }) => (
         <span className="text-sm text-red-600">
           {row.original.error}
@@ -279,18 +279,18 @@ const BulkDeparture: React.FC = () => {
                     </span>
                   </div>
                 ) : (
-                  <span>Click to select Excel file or drag and drop</span>
+                  <span>{t('click_to_select_or_drag')}</span>
                 )}
               </div>
               <div className="text-sm text-gray-500 mb-4">
-                Supported formats: .xlsx, .xls (max 10MB)
+                {t('supported_formats')}
               </div>
               <Button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploadProgress.isUploading}
                 variant="secondary"
               >
-                {selectedFile ? 'Change File' : 'Select File'}
+                {selectedFile ? t('change_file') : t('select_file')}
               </Button>
             </div>
           </div>

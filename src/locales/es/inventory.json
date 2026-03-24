@@ -232,6 +232,7 @@
   "change": "Cambiar",
   "current_location": "Ubicación Actual",
   "approval_no_cell_change_message": "Para transiciones de aprobación, los elementos permanecen en su ubicación actual.",
+  "quarantine_to_approved_message": "Los elementos permanecerán en su ubicación actual al pasar de Cuarentena a Aprobado.",
   "cell_selection_required_message": "Por favor seleccione una posición de destino antes de continuar.",
   "devoluciones_cell_help": "Los elementos se trasladarán al área de devoluciones (fila V).",
   "contramuestras_cell_help": "Los elementos se trasladarán al área de muestras (fila T).",

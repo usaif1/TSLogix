@@ -126,7 +126,7 @@ const Departure: React.FC = () => {
           className="!w-64 bg-action-nav hover:bg-[#0F2F47] text-white px-2 py-2 rounded-md font-bold flex justify-center cursor-pointer "
         >
           <div className="flex items-center gap-x-2">
-            <Text color="text-white">Bulk Upload Orders</Text>
+            <Text color="text-white">{t('bulk_upload_departure_orders')}</Text>
             <Plus className="text-white" weight="bold" size={16} />
           </div>
         </Link>
