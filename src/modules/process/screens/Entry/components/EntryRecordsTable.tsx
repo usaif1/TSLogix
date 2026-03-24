@@ -6,7 +6,7 @@ import { ColumnDef } from "@tanstack/react-table";
 
 // store
 import { ProcessesStore } from "@/globalStore";
-import { formatDate } from "@/utils/dateUtils";
+import { formatDate, formatDateTime } from "@/utils/dateUtils";
 import { EntryOrdersTable } from ".";
 import type { EntryOrder } from "@/modules/process/types";
 
@@ -19,26 +19,30 @@ const EntryRecordsTable: React.FC = () => {
     navigate(`/processes/entry/audit?orderNo=${encodeURIComponent(orderCode)}`);
   }, [navigate]);
 
-  // ✅ Updated to use review_status instead of audit_status
-  const getBgColor = (reviewStatus: string) => {
-    switch (reviewStatus) {
-      case "APPROVED":
-        return "bg-emerald-600";
-      case "PENDING":
+  // ✅ Updated to use order_status with 4 new statuses
+  const getBgColor = (orderStatus: string) => {
+    switch (orderStatus) {
+      case "PENDIENTE":
         return "bg-sky-600";
-      case "REJECTED":
-        return "bg-red-600";
-      case "NEEDS_REVISION":
-        return "bg-orange-400";
+      case "APROBADO":
+        return "bg-emerald-600";
+      case "RECIBIDO":
+        return "bg-blue-600";
+      case "TERMINADO":
+        return "bg-gray-700";
       default:
         return "bg-gray-400";
     }
   };
 
-  const getReviewStatusText = useCallback((reviewStatus: string) => {
-    const statusLower = reviewStatus?.toLowerCase();
-    // ✅ Add fallback for missing translations
-    return t(`process:${statusLower}`, statusLower || 'Unknown');
+  const getOrderStatusText = useCallback((orderStatus: string) => {
+    const statusMap: Record<string, string> = {
+      'PENDIENTE': t('process:pendiente', 'Pendiente'),
+      'APROBADO': t('process:aprobado', 'Aprobado'),
+      'RECIBIDO': t('process:recibido', 'Recibido'),
+      'TERMINADO': t('process:terminado', 'Terminado')
+    };
+    return statusMap[orderStatus] || orderStatus;
   }, [t]);
 
   // ✅ Helper function to get main supplier from products
@@ -90,19 +94,21 @@ const EntryRecordsTable: React.FC = () => {
         ),
       },
       {
-        id: "review_status",
-        header: t('process:review_status'),
-        size: 120,
+        // ✅ Updated to show order_status instead of review_status
+        id: "order_status",
+        header: t('process:order_status_label'),
+        size: 140,
         cell: ({ row }) => {
           const entry = row.original;
+          const orderStatus = entry?.order_status || 'PENDIENTE';
           return (
             <button
               className={`min-w-20 cursor-pointer border rounded-md flex justify-center items-center py-0.5 px-2 ${getBgColor(
-                entry?.review_status
+                orderStatus
               )} text-white hover:opacity-80 transition-opacity`}
             >
               <p className="text-xs font-bold">
-                {getReviewStatusText(entry?.review_status)}
+                {getOrderStatusText(orderStatus)}
               </p>
             </button>
           );
@@ -182,13 +188,13 @@ const EntryRecordsTable: React.FC = () => {
         },
       },
       {
-        // ✅ Updated to use registration_date instead of admission_date_time
+        // ✅ Updated to use registration_date with date & time display
         accessorKey: "registration_date",
         header: t('process:registration_date'),
-        size: 140,
+        size: 160,
         cell: ({ getValue }) => {
           const dateString = getValue() as string;
-          return formatDate(dateString);
+          return formatDateTime(dateString);
         },
       },
       {
@@ -211,12 +217,6 @@ const EntryRecordsTable: React.FC = () => {
         id: "presentation",
         header: t('process:presentation'),
         size: 100,
-      },
-      {
-        // ✅ Updated to use order_status
-        accessorKey: "order_status",
-        header: t('process:order_status'),
-        size: 120,
       },
       {
         // ✅ Updated to use review_comments
@@ -296,7 +296,7 @@ const EntryRecordsTable: React.FC = () => {
         },
       },
     ],
-    [t, getReviewStatusText, navigateToAudit, getMainSupplier, getMainPresentation]
+    [t, getOrderStatusText, navigateToAudit, getMainSupplier, getMainPresentation]
   );
 
   return (

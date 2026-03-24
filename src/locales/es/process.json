@@ -26,6 +26,7 @@
   "supplier": "Proveedor",
   "select_supplier": "Seleccionar proveedor",
   "order_status": "Estado de la Orden",
+  "order_status_label": "Estado de la Orden",
   "select_status": "Seleccionar estado",
   "observation": "Observación",
   "cif_value": "Valor CIF",
@@ -82,6 +83,10 @@
   "rejected": "Rechazado",
   "needs_revision": "Necesita Revisión",
   "pending": "Pendiente",
+  "pendiente": "Pendiente",
+  "aprobado": "Aprobado",
+  "recibido": "Recibido",
+  "terminado": "Terminado",
   "in_progress": "En Progreso",
   "completed": "Completado",
   "order": "Orden",
@@ -810,8 +815,11 @@
   "upload_completed_file_instruction": "Subir el archivo terminado",
   "review_results_instruction": "Revisar datos procesados y corregir errores si hay alguno",
   "download_excel_template": "Descargar Plantilla de Excel",
-  "change_file": "Seleccionar Otro Archivo",
   "supported_format": "Formato válidos",
-  "upload_and_process": "Subir y Procesar",
-  "reset": "Resetear"
+  "click_to_select_or_drag": "Haga clic para seleccionar el archivo Excel o arrástrelo aquí",
+  "products_lowercase": "productos",
+  "unknown_client": "Cliente Desconocido",
+  "no_code": "Sin Código",
+  "no_name": "Sin Nombre",
+  "unknown": "Desconocido"
 }

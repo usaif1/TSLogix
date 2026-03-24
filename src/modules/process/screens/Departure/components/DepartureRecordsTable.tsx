@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { ProcessesStore } from "@/globalStore";
 import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
-import { formatDate } from "@/utils/dateUtils";
+import { formatDate, formatDateTime } from "@/utils/dateUtils";
 
 // Props interface for pagination
 interface PaginationState {
@@ -59,7 +59,7 @@ const DepartureRecordsTable: React.FC<DepartureRecordsTableProps> = ({
 
 
   const getStatusText = useCallback((status: string) => {
-    if (!status) return 'Unknown';
+    if (!status) return t('process:unknown');
     return t(`process:${status?.toLowerCase()}`, status);
   }, [t]);
 
@@ -261,13 +261,13 @@ const DepartureRecordsTable: React.FC<DepartureRecordsTableProps> = ({
           );
         }
       },
-      { 
-        accessor: 'created_at', 
+      {
+        accessor: 'created_at',
         header: t('process:created_date'),
         cell: (info: any) => {
           const order = info.row.original;
           const date = order.time_tracking?.created_at || order.registration_date || order.created_at;
-          return date ? formatDate(date) : '-';
+          return date ? formatDateTime(date) : '-';
         }
       },
     ]), 
