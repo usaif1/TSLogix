@@ -4,10 +4,8 @@ import {
   FileText,
   Table,
   Eye,
-  Clock,
   Package,
-  Truck,
-  CheckCircle
+  Truck
 } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -117,43 +115,6 @@ const MasterReport: React.FC<MasterReportProps> = ({
     }).format(num);
   }, []);
 
-  // Get status badge color
-  const getStatusBadgeColor = useCallback((status: string) => {
-    switch (status.toLowerCase()) {
-      case 'aprobado':
-        return 'bg-green-100 text-green-800';
-      case 'cuarentena':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'rechazados':
-        return 'bg-red-100 text-red-800';
-      case 'devoluciones':
-        return 'bg-orange-100 text-orange-800';
-      case 'contramuestras':
-        return 'bg-blue-100 text-blue-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  }, []);
-
-  // Get transaction type badge
-  const getTransactionTypeBadge = useCallback((type: string) => {
-    if (type === 'DISPATCHED') {
-      return (
-        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-          <CheckCircle size={12} className="mr-1" />
-          Dispatched
-        </span>
-      );
-    } else {
-      return (
-        <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-800">
-          <Package size={12} className="mr-1" />
-          In Stock
-        </span>
-      );
-    }
-  }, []);
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -175,7 +136,7 @@ const MasterReport: React.FC<MasterReportProps> = ({
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-lg shadow border">
           <div className="flex items-center">
             <div className="flex-shrink-0">
@@ -203,22 +164,10 @@ const MasterReport: React.FC<MasterReportProps> = ({
         <div className="bg-white p-4 rounded-lg shadow border">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <Clock className="h-8 w-8 text-purple-500" />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">Avg Days to Dispatch</p>
-              <p className="text-2xl font-semibold text-gray-900">{summary.average_days_to_dispatch}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white p-4 rounded-lg shadow border">
-          <div className="flex items-center">
-            <div className="flex-shrink-0">
               <Package className="h-8 w-8 text-orange-500" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500">In Stock</p>
+              <p className="text-sm font-medium text-gray-500">{t('in_stock')}</p>
               <p className="text-2xl font-semibold text-gray-900">{summary.in_stock_transactions}</p>
             </div>
           </div>
@@ -387,38 +336,36 @@ const MasterReport: React.FC<MasterReportProps> = ({
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <div className="text-sm text-gray-900">
-                            Entry: {item.entry_order_quantity}
+                            Entry: {item.entry_order_quantity} units
                           </div>
                           <div className="text-sm text-gray-900">
-                            Dispatch: {item.dispatch_order_quantity}
+                            Dispatch: {item.dispatch_order_quantity} units
                           </div>
-                          {item.entry_to_dispatch_days !== null && (
-                            <div className="text-sm text-gray-500">
-                              {item.entry_to_dispatch_days} days
-                            </div>
-                          )}
+                          <div className="text-sm text-gray-500">
+                            Packages: {item.entry_order_packages}
+                          </div>
                         </div>
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col">
                           <div className="text-sm text-gray-900">
-                            Entry: {formatCurrency(item.entry_order_total_cost, item.entry_order_currency)}
+                            Entry: ${item.entry_order_total_cost}
                           </div>
                           <div className="text-sm text-gray-900">
-                            Dispatch: {formatCurrency(item.dispatch_order_total_cost, item.dispatch_order_currency)}
+                            Dispatch: ${item.dispatch_order_total_cost}
                           </div>
                         </div>
                       </td>
 
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col space-y-2">
-                          {getTransactionTypeBadge(item.transaction_type)}
-                          {item.quality_status && (
-                            <span className={`inline-flex items-center px-2 py-1 text-xs font-medium rounded-full ${getStatusBadgeColor(item.quality_status)}`}>
-                              {item.quality_status}
-                            </span>
-                          )}
+                        <div className="flex flex-col space-y-1">
+                          <div className="text-sm text-gray-900">
+                            {t('position_pallet')}: {item.position_pallet || 'N/A'}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {item.packing_condition}
+                          </div>
                         </div>
                       </td>
 
@@ -438,34 +385,37 @@ const MasterReport: React.FC<MasterReportProps> = ({
                         <td colSpan={7} className="px-6 py-4">
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
                             <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Entry Details</h4>
-                              <p><span className="font-medium">Guia:</span> {item.entry_order_guia}</p>
-                              <p><span className="font-medium">Transport Guia:</span> {item.entry_order_transport_guia}</p>
-                              <p><span className="font-medium">Unit Cost:</span> {formatCurrency(item.entry_order_unit_cost, item.entry_order_currency)}</p>
-                              <p><span className="font-medium">Receiver:</span> {item.order_receiver_from_tsl}</p>
+                              <h4 className="font-medium text-gray-900 mb-2">{t('entry_order_details')}</h4>
+                              <p><span className="font-medium">{t('entry_order_guide_number')}:</span> {item.entry_order_guide_number || 'N/A'}</p>
+                              <p><span className="font-medium">{t('entry_order_packages')}:</span> {item.entry_order_packages}</p>
+                              <p><span className="font-medium">{t('entry_order_weight')}:</span> {item.entry_order_weight} kg</p>
+                              <p><span className="font-medium">{t('entry_order_unit_cost')}:</span> ${item.entry_order_unit_cost}</p>
+                              <p><span className="font-medium">{t('order_receiver_from_tsl')}:</span> {item.order_receiver_from_tsl}</p>
                             </div>
 
                             <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Dispatch Details</h4>
-                              <p><span className="font-medium">Guia:</span> {item.dispatch_order_guia || 'N/A'}</p>
-                              <p><span className="font-medium">Transport Guia:</span> {item.dispatch_order_transport_guia || 'N/A'}</p>
-                              <p><span className="font-medium">Unit Cost:</span> {item.dispatch_order_unit_cost ? formatCurrency(item.dispatch_order_unit_cost, item.dispatch_order_currency) : 'N/A'}</p>
-                              <p><span className="font-medium">Address:</span> {item.dispatch_order_customer_address || 'N/A'}</p>
+                              <h4 className="font-medium text-gray-900 mb-2">{t('dispatch_details')}</h4>
+                              <p><span className="font-medium">{t('dispatch_document_number')}:</span> {item.dispatch_document_number || 'N/A'}</p>
+                              <p><span className="font-medium">{t('dispatch_order_packages')}:</span> {item.dispatch_order_packages || 0}</p>
+                              <p><span className="font-medium">{t('dispatch_order_weight')}:</span> {item.dispatch_order_weight || 0} kg</p>
+                              <p><span className="font-medium">{t('dispatch_order_unit_cost')}:</span> ${item.dispatch_order_unit_cost || '0.00'}</p>
+                              <p><span className="font-medium">{t('order_out_customer_name')}:</span> {item.order_out_customer_name || 'N/A'}</p>
+                              <p><span className="font-medium">{t('order_dispatcher_from_tsl')}:</span> {item.order_dispatcher_from_tsl || 'N/A'}</p>
                             </div>
 
                             <div>
-                              <h4 className="font-medium text-gray-900 mb-2">Additional Info</h4>
-                              <p><span className="font-medium">Lot Number:</span> {item.lot_number}</p>
-                              <p><span className="font-medium">Expiry Date:</span> {item.expiry_date}</p>
-                              <p><span className="font-medium">Location:</span> {item.warehouse_location}</p>
-                              <p><span className="font-medium">Packing:</span> {item.packing_type} ({item.packing_condition})</p>
+                              <h4 className="font-medium text-gray-900 mb-2">{t('additional_information')}</h4>
+                              <p><span className="font-medium">{t('lot_number')}:</span> {item.lot_number || 'N/A'}</p>
+                              <p><span className="font-medium">{t('expiry_date')}:</span> {item.expiry_date || 'N/A'}</p>
+                              <p><span className="font-medium">{t('manufacturing_date')}:</span> {item.manufacturing_date || 'N/A'}</p>
+                              <p><span className="font-medium">{t('position_pallet')}:</span> {item.position_pallet || 'N/A'}</p>
+                              <p><span className="font-medium">{t('packing_condition')}:</span> {item.packing_condition}</p>
                             </div>
 
-                            {(item.remarks || item.observations) && (
+                            {item.remarks && (
                               <div className="col-span-full">
-                                <h4 className="font-medium text-gray-900 mb-2">Notes</h4>
-                                {item.remarks && <p><span className="font-medium">Remarks:</span> {item.remarks}</p>}
-                                {item.observations && <p><span className="font-medium">Observations:</span> {item.observations}</p>}
+                                <h4 className="font-medium text-gray-900 mb-2">{t('remarks')}</h4>
+                                <p>{item.remarks}</p>
                               </div>
                             )}
                           </div>

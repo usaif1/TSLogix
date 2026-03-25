@@ -821,5 +821,10 @@
   "unknown_client": "Cliente Desconocido",
   "no_code": "Sin Código",
   "no_name": "Sin Nombre",
-  "unknown": "Desconocido"
+  "unknown": "Desconocido",
+  "client_user": "Usuario del Cliente",
+  "select_client_user": "Seleccionar usuario del cliente",
+  "optional_specify_which_user": "Opcional - Especificar qué usuario de la organización del cliente",
+  "auto_selected_based_on_your_account": "Seleccionado automáticamente según su cuenta",
+  "select_client": "Seleccionar cliente"
 }

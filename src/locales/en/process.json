@@ -738,5 +738,10 @@
   "quantity_packages": "Quantity (Packages)",
   "expiry_date": "Expiry Date",
   "remarks": "Remarks",
-  "entry_order": "Entry Order"
+  "entry_order": "Entry Order",
+  "client_user": "Client User",
+  "select_client_user": "Select client user",
+  "optional_specify_which_user": "Optional - Specify which user from the client organization",
+  "auto_selected_based_on_your_account": "Auto-selected based on your account",
+  "select_client": "Select client"
 }

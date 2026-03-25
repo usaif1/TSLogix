@@ -10,19 +10,21 @@ export interface MasterReportItem {
   product_subcategory1: string;
   product_subcategory2: string;
 
-  // Packaging Information
-  packing_type: string;
+  // ✅ NEW: Position/Pallet field
+  position_pallet: string;
+
+  // Packaging Information (removed packing_type)
   packing_condition: string;
 
   // Entry Order Information
   entry_order_number: string;
   entry_order_date: string;
-  entry_order_guia: string;
-  entry_order_transport_guia: string;
+  entry_order_guide_number: string;
   entry_order_quantity: number;
+  entry_order_packages: number;
+  entry_order_weight: number;
   entry_order_unit_cost: string;
   entry_order_total_cost: string;
-  entry_order_currency: string;
   entry_order_supplier_code: string;
   entry_order_supplier_name: string;
   entry_order_customer_code: string;
@@ -31,15 +33,16 @@ export interface MasterReportItem {
   // Dispatch Order Information
   dispatch_order_number: string;
   dispatch_order_date: string;
-  dispatch_order_guia: string;
-  dispatch_order_transport_guia: string;
+  dispatch_document_number: string;
   dispatch_order_quantity: number;
+  dispatch_order_packages: number;
+  dispatch_order_weight: number;
   dispatch_order_unit_cost: string;
   dispatch_order_total_cost: string;
-  dispatch_order_currency: string;
-  dispatch_order_customer_code: string;
-  dispatch_order_customer_name: string;
-  dispatch_order_customer_address: string;
+
+  // ✅ NEW: Order Out Customer fields
+  order_out_customer_code: string;
+  order_out_customer_name: string;
 
   // TSL Personnel Information
   order_receiver_from_tsl: string;
@@ -48,14 +51,10 @@ export interface MasterReportItem {
   // Additional Information
   lot_number: string;
   expiry_date: string;
-  warehouse_location: string;
-  quality_status: string;
+  manufacturing_date: string;
   remarks: string;
-  observations: string;
 
-  // Transaction metadata
-  transaction_type: 'DISPATCHED' | 'IN_STOCK';
-  entry_to_dispatch_days: number | null;
+  // ✅ REMOVED: packing_type, warehouse_location, quality_status, transaction_type, entry_to_dispatch_days, observations
 }
 
 export interface MasterReportSummary {
@@ -69,7 +68,7 @@ export interface MasterReportSummary {
   unique_products: number;
   unique_customers: number;
   unique_suppliers: number;
-  average_days_to_dispatch: string;
+  // ✅ REMOVED: average_days_to_dispatch
 }
 
 export interface MasterReportFilters {
