@@ -79,7 +79,7 @@ export const generateOrderPDF = (options: OrderPDFExportOptions): void => {
   const boxHeight = 22;
 
   // Draw information boxes
-  infoBoxes.forEach((row, rowIndex) => {
+  infoBoxes.forEach((row) => {
     row.forEach((box, colIndex) => {
       const xPos = 14 + colIndex * (pageWidth - 28) / boxesPerRow;
 
@@ -147,14 +147,14 @@ export const generateOrderPDF = (options: OrderPDFExportOptions): void => {
     },
     columnStyles,
     margin: { left: 14, right: 14 },
-    didDrawPage: (data: any) => {
+    didDrawPage: (_data: any) => {
       // Footer on each page
       const footerY = pageHeight - 10;
       doc.setFontSize(8);
       doc.setTextColor(127, 140, 141);
       doc.setFont('helvetica', 'normal');
       doc.text(
-        `Generated: ${new Date().toLocaleString()} | Page ${data.pageNumber}`,
+        `Generated: ${new Date().toLocaleString()} | Page ${_data.pageNumber}`,
         pageWidth / 2,
         footerY,
         { align: 'center' }

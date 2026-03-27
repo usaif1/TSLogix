@@ -13,13 +13,17 @@ export interface MasterReportItem {
   // ✅ NEW: Position/Pallet field
   position_pallet: string;
 
-  // Packaging Information (removed packing_type)
+  // Packaging Information
+  packing_type: string;
   packing_condition: string;
 
   // Entry Order Information
   entry_order_number: string;
   entry_order_date: string;
   entry_order_guide_number: string;
+  entry_order_guia: string;
+  entry_order_transport_guia: string;
+  entry_order_currency: string;
   entry_order_quantity: number;
   entry_order_packages: number;
   entry_order_weight: number;
@@ -34,6 +38,10 @@ export interface MasterReportItem {
   dispatch_order_number: string;
   dispatch_order_date: string;
   dispatch_document_number: string;
+  dispatch_order_guia: string;
+  dispatch_order_transport_guia: string;
+  dispatch_order_currency: string;
+  dispatch_order_customer_address: string;
   dispatch_order_quantity: number;
   dispatch_order_packages: number;
   dispatch_order_weight: number;
@@ -53,8 +61,11 @@ export interface MasterReportItem {
   expiry_date: string;
   manufacturing_date: string;
   remarks: string;
-
-  // ✅ REMOVED: packing_type, warehouse_location, quality_status, transaction_type, entry_to_dispatch_days, observations
+  warehouse_location: string;
+  quality_status: string;
+  transaction_type: string;
+  entry_to_dispatch_days: number;
+  observations: string;
 }
 
 export interface MasterReportSummary {
@@ -68,7 +79,7 @@ export interface MasterReportSummary {
   unique_products: number;
   unique_customers: number;
   unique_suppliers: number;
-  // ✅ REMOVED: average_days_to_dispatch
+  average_days_to_dispatch: number;
 }
 
 export interface MasterReportFilters {

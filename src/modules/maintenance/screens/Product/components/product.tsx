@@ -26,7 +26,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const [uploadingProducts, setUploadingProducts] = useState<Set<string>>(new Set());
 
-  const handleFileSelect = useCallback(async (productId: string, productName: string, event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = useCallback(async (productId: string, _productName: string, event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 

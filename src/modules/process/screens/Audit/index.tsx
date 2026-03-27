@@ -25,6 +25,9 @@ interface ExtendedEntryOrder {
       name: string;
     };
   };
+  warehouse?: {
+    name: string;
+  };
   products?: any[];
   registration_date: string; // ✅ API returns ISO string
   document_date: string; // ✅ API returns ISO string
