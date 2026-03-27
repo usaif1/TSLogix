@@ -304,7 +304,6 @@ const EntryRecordsTable: React.FC = () => {
       <EntryOrdersTable
         data={entryOrders}
         columns={columns}
-        showPagination={true}
         emptyMessage={t('process:no_entry_orders')}
       />
     </div>

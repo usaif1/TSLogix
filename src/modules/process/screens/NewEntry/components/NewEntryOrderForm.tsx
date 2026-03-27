@@ -441,7 +441,7 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
         entry_date_time: formData.admission_date_time,
         created_by: localStorage.getItem("id"),
         organisation_id: localStorage.getItem("organisation_id"),
-        order_status: "REVISION",
+        order_status: "PENDIENTE",
         total_volume: formData.products.reduce((sum, p) => sum + parseFloat(p.volume_m3 || "0"), 0),
         total_weight: formData.products.reduce((sum, p) => sum + parseFloat(p.weight_kg || "0"), 0),
         cif_value: parseFloat(formData.cif_value) || null,
@@ -707,14 +707,14 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
             )}
           </div>
 
-          {/* order status - auto-filled as REVISION */}
+          {/* order status - auto-filled as PENDIENTE */}
           <div className="w-full flex flex-col">
             <label htmlFor="order_status">{t("process:order_status")} *</label>
             <input
               type="text"
               id="order_status"
               name="order_status"
-              value="REVISION"
+              value="PENDIENTE"
               disabled
               className="h-10 border border-slate-400 rounded-md px-4 bg-gray-100 text-gray-600"
             />

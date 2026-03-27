@@ -10,28 +10,11 @@ import LoaderSync from "@/components/Loaders/LoaderSync";
 import { ProcessService } from "@/modules/process/api/process.service";
 import { useDebounce } from "@/hooks/useDebounce";
 
-// Pagination state interface
-interface PaginationState {
-  currentPage: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-const PAGE_SIZE = 10; // Items per page
-
 const Departure: React.FC = () => {
   const { t } = useTranslation(['process', 'common']);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [pagination, setPagination] = useState<PaginationState>({
-    currentPage: 1,
-    totalItems: 0,
-    totalPages: 1,
-    hasNextPage: false,
-    hasPreviousPage: false,
-  });
+  const [totalOrders, setTotalOrders] = useState(0);
 
   // Get user role from localStorage
   const userRole = localStorage.getItem("role");
@@ -39,25 +22,18 @@ const Departure: React.FC = () => {
   // Debounce the search query with 500ms delay
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  // Function to fetch departure orders with pagination
-  const fetchDepartureOrders = useCallback(async (page: number, searchTerm?: string) => {
+  // Function to fetch all departure orders (no pagination)
+  const fetchDepartureOrders = useCallback(async (searchTerm?: string) => {
     setIsLoading(true);
     try {
       const organisationId = localStorage.getItem("organisation_id");
       const result = await ProcessService.fetchComprehensiveDepartureOrders({
         organisationId: organisationId || undefined,
         orderNo: searchTerm || undefined,
-        page,
-        limit: PAGE_SIZE,
+        // Remove pagination - fetch all
       });
 
-      setPagination({
-        currentPage: result.pagination.current_page,
-        totalItems: result.pagination.total_items,
-        totalPages: result.pagination.total_pages,
-        hasNextPage: result.pagination.has_next_page,
-        hasPreviousPage: result.pagination.has_previous_page,
-      });
+      setTotalOrders(result.pagination?.total_items || result.orders?.length || 0);
     } catch (error) {
       console.error("Failed to fetch departure orders:", error);
     } finally {
@@ -65,14 +41,9 @@ const Departure: React.FC = () => {
     }
   }, []);
 
-  // Effect for initial load and search changes - reset to page 1
+  // Effect for initial load and search changes
   useEffect(() => {
-    fetchDepartureOrders(1, debouncedSearchQuery || undefined);
-  }, [debouncedSearchQuery, fetchDepartureOrders]);
-
-  // Handle page change
-  const handlePageChange = useCallback((newPage: number) => {
-    fetchDepartureOrders(newPage, debouncedSearchQuery || undefined);
+    fetchDepartureOrders(debouncedSearchQuery || undefined);
   }, [debouncedSearchQuery, fetchDepartureOrders]);
 
   const handleSearch = useCallback((query: string) => {
@@ -139,10 +110,8 @@ const Departure: React.FC = () => {
           </div>
         )}
         <DepartureRecordsTable
-          pagination={pagination}
-          onPageChange={handlePageChange}
           isLoading={isLoading}
-          pageSize={PAGE_SIZE}
+          totalOrders={totalOrders}
         />
       </div>
     </div>

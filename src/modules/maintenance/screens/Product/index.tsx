@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Divider, Text } from "@/components";
 import ProductRegisterComponent from "./components/product";
@@ -24,21 +24,21 @@ const Product: React.FC = () => {
 
   const [searchText, setSearchText] = useState("");
 
-  useEffect(() => {
-    const fetchFilteredProducts = async () => {
-      try {
-        const filters: {
-          name?: string;
-        } = {};
-        if (searchText) filters.name = searchText;
-        await ProductService.fetchAllProducts(filters);
-      } catch (error) {
-        console.error("Error fetching filtered products:", error);
-      }
-    };
-
-    fetchFilteredProducts();
+  const fetchFilteredProducts = useCallback(async () => {
+    try {
+      const filters: {
+        name?: string;
+      } = {};
+      if (searchText) filters.name = searchText;
+      await ProductService.fetchAllProducts(filters);
+    } catch (error) {
+      console.error("Error fetching filtered products:", error);
+    }
   }, [searchText]);
+
+  useEffect(() => {
+    fetchFilteredProducts();
+  }, [fetchFilteredProducts]);
 
   useEffect(() => {
     ProductService.fetchProductFormFields();
@@ -54,6 +54,7 @@ const Product: React.FC = () => {
         products={products}
         searchText={searchText}
         setSearchText={setSearchText}
+        onRefresh={fetchFilteredProducts}
       />
       <Divider />
       {/* <OrderBtnGroup items={buttonGroup} /> */}

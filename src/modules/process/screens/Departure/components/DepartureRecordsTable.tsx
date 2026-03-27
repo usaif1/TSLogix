@@ -9,27 +9,14 @@ import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
 import { formatDate, formatDateTime } from "@/utils/dateUtils";
 
-// Props interface for pagination
-interface PaginationState {
-  currentPage: number;
-  totalItems: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
 interface DepartureRecordsTableProps {
-  pagination: PaginationState;
-  onPageChange: (page: number) => void;
   isLoading: boolean;
-  pageSize: number;
+  totalOrders: number;
 }
 
 const DepartureRecordsTable: React.FC<DepartureRecordsTableProps> = ({
-  pagination,
-  onPageChange,
   isLoading,
-  pageSize,
+  totalOrders,
 }) => {
   const { t } = useTranslation(['process', 'common']);
   const departureOrders = ProcessesStore.use.departureOrders();
@@ -283,21 +270,24 @@ const DepartureRecordsTable: React.FC<DepartureRecordsTableProps> = ({
   }, [departureOrders, getComprehensiveTotals]);
 
   return (
-    <div className="max-w-full h-full">
+    <div className="max-w-full h-full flex flex-col">
       <DataTable
         data={transformedData}
         columns={columns}
-        showPagination={true}
-        pageSize={pageSize}
+        showPagination={false}
         emptyMessage={t('common:no_data', 'No departure orders found')}
         onRowClick={(order: any) => {
           navigateToDepartureAudit(order.departure_order_no || order.departure_order_code);
         }}
-        // Server-side pagination props
-        serverPagination={pagination}
-        onPageChange={onPageChange}
-        isLoading={isLoading}
       />
+      {/* Show total count */}
+      {!isLoading && transformedData.length > 0 && (
+        <div className="px-4 py-3 bg-white border-t border-gray-200">
+          <div className="text-sm text-gray-700">
+            {t('common:total')}: <span className="font-medium">{totalOrders}</span> {t('process:orders')}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

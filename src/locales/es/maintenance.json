@@ -75,7 +75,6 @@
   "no_products_found_adjust_filters": "No se encontraron productos. Intente ajustar sus filtros.",
   "supplier_email": "Correo del Proveedor",
   "supplier_phone": "Teléfono del Proveedor",
-  
   "_comment_new_product_fields": "=== CAMPOS DE NUEVO PRODUCTO ===",
   "category": "Categoría",
   "subcategory_1": "Subcategoría 1",
@@ -99,7 +98,6 @@
   "supported_formats": "Formatos soportados",
   "max_file_size": "Tamaño máximo de archivo",
   "no_file_chosen": "Ningún archivo seleccionado",
-  
   "_comment_new_supplier_fields": "=== CAMPOS DE NUEVO PROVEEDOR ===",
   "supplier_category": "Categoría del Proveedor",
   "tax_id": "ID Fiscal",
@@ -121,7 +119,6 @@
   "enter_email": "Ingrese el correo electrónico",
   "please_select_country": "Por favor seleccione un país",
   "failed_create_supplier": "Error al crear el proveedor. Inténtelo de nuevo.",
-  
   "_comment_supplier_assignment": "=== ASIGNACIÓN DE PROVEEDORES ===",
   "assign_suppliers": "Asignar Proveedores",
   "assign_to_client": "Asignar a Cliente",
@@ -166,7 +163,6 @@
   "suppliers_found": "{{count}} proveedores encontrados",
   "assignments_found": "{{count}} asignaciones encontradas",
   "client": "Cliente",
-  
   "_comment_new_document_fields": "=== CAMPOS DE TIPO DE DOCUMENTO ===",
   "document_type": "Tipo de Documento",
   "ruc_id_fiscal": "RUC/ ID Fiscal",
@@ -188,7 +184,6 @@
   "supplier_not_found": "Proveedor no encontrado",
   "supplier_code": "Código de Proveedor",
   "auto_generated_code": "Código generado automáticamente",
-
   "_comment_bulk_upload_fields": "=== CAMPOS DE CARGA MASIVA ===",
   "bulk_upload_instructions": "Instrucciones de Carga Masiva",
   "download_template_instruction": "Descarga la plantilla de Excel a continuación",
@@ -206,5 +201,6 @@
   "successful_products": "Productos Exitosos",
   "failed_products": "Productos Fallidos",
   "error_details": "Detalles del Error",
-  "row": "Fila"
+  "row": "Fila",
+  "upload_document": "Subir Documento"
 }

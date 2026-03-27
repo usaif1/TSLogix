@@ -604,4 +604,16 @@ export const ProductService = {
     });
     return response;
   },
+
+  /**
+   * Upload documents to an existing product
+   */
+  uploadProductDocuments: async (productId: string, formData: FormData) => {
+    const response = await api.post(`${productBaseURL}/${productId}/documents`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response;
+  },
 };

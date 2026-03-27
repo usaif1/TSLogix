@@ -1,24 +1,71 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useMemo } from "react";
+import React, { useMemo, useRef, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { Divider } from "@/components";
 import DataTable from "@/components/DataTable";
 import { createTableColumns } from "@/utils/tableUtils";
 import { OrderBtnGroup } from "@/modules/process/components";
 import { Plus, Upload } from "@phosphor-icons/react";
+import { ProductService } from "@/modules/maintenance/api/maintenance.service";
 
 interface ProductRegisterProps {
   products: any[];
   searchText: string;
   setSearchText: (text: string) => void;
+  onRefresh?: () => void;
 }
 
 const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
   products,
   searchText,
   setSearchText,
+  onRefresh,
 }) => {
   const { t } = useTranslation(['maintenance', 'common']);
+  const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const [uploadingProducts, setUploadingProducts] = useState<Set<string>>(new Set());
+
+  const handleFileSelect = useCallback(async (productId: string, productName: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    const formData = new FormData();
+    Array.from(files).forEach(file => {
+      formData.append('uploaded_documents', file);
+    });
+
+    // Set uploading state
+    setUploadingProducts(prev => new Set(prev).add(productId));
+
+    try {
+      toast.loading(`Uploading ${files.length} document(s)...`, { id: `upload-${productId}` });
+
+      const response = await ProductService.uploadProductDocuments(productId, formData);
+
+      if (response.data.success) {
+        toast.success(response.data.message, { id: `upload-${productId}` });
+        if (onRefresh) {
+          onRefresh();
+        }
+      } else {
+        toast.error(response.data.error || 'Upload failed', { id: `upload-${productId}` });
+      }
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.response?.data?.error || 'Failed to upload documents', { id: `upload-${productId}` });
+    } finally {
+      // Remove uploading state
+      setUploadingProducts(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(productId);
+        return newSet;
+      });
+    }
+
+    // Reset the file input
+    event.target.value = '';
+  }, [onRefresh]);
   
   const columns = useMemo(
     () =>
@@ -81,15 +128,52 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
           header: t('documents'),
           cell: (info) => {
             const documents = info.getValue();
-            
-            if (!documents) {
+            const product = info.row.original;
+            const productId = product.product_id;
+            const productName = product.name;
+            const isUploading = uploadingProducts.has(productId);
+
+            // No documents - show upload button
+            if (!documents || (Array.isArray(documents) && documents.length === 0)) {
               return (
-                <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
-                  {t('no_documents')}
-                </span>
+                <label
+                  htmlFor={`file-upload-${productId}`}
+                  className={`inline-flex items-center px-3 py-1.5 text-xs font-semibold rounded transition-colors ${
+                    isUploading
+                      ? 'bg-blue-400 cursor-not-allowed'
+                      : 'bg-blue-600 cursor-pointer hover:bg-blue-700'
+                  } text-white`}
+                >
+                  {isUploading ? (
+                    <>
+                      <svg className="animate-spin h-3.5 w-3.5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      {t('uploading')}
+                    </>
+                  ) : (
+                    <>
+                      <Upload size={14} className="mr-1" />
+                      {t('upload_document')}
+                    </>
+                  )}
+                  <input
+                    id={`file-upload-${productId}`}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    disabled={isUploading}
+                    onChange={(e) => handleFileSelect(productId, productName, e)}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.csv"
+                    ref={(el) => {
+                      if (el) fileInputRefs.current[productId] = el;
+                    }}
+                  />
+                </label>
               );
             }
-            
+
             // Handle new format (array of document objects)
             if (Array.isArray(documents)) {
               return (
@@ -97,7 +181,10 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
                   {documents.map((doc: any, index: number) => (
                     <div key={index} className="flex items-center space-x-2">
                       <button
-                        onClick={() => window.open(doc.public_url, '_blank')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(doc.public_url, '_blank');
+                        }}
                         className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
                         title={`${doc.file_name} (${doc.document_type})`}
                       >
@@ -111,7 +198,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
                 </div>
               );
             }
-            
+
             // Handle old format (string filename)
             if (typeof documents === 'string') {
               const fileName = documents.split('/').pop() || documents;
@@ -124,7 +211,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
                 </span>
               );
             }
-            
+
             return "N/A";
           },
         },
@@ -137,7 +224,7 @@ const ProductRegisterComponent: React.FC<ProductRegisterProps> = ({
           },
         },
       ]),
-    [t]
+    [t, handleFileSelect, fileInputRefs, uploadingProducts]
   );
 
   const buttonGroup = useMemo(

@@ -8,7 +8,8 @@ import { Text, LoaderSync, Divider, Button } from "@/components";
 import ProcessesStore from "@/modules/process/store";
 import { ProcessService } from "@/globalService";
 import { formatDate } from "@/utils/dateUtils";
-import { exportSimpleTableToExcel, exportSimpleTableToPDF } from "@/modules/reports/utils/exportUtils";
+import { exportSimpleTableToExcel } from "@/modules/reports/utils/exportUtils";
+import { generateOrderPDF, getStatusColor } from "@/modules/reports/utils/orderPdfExport";
 
 interface ReviewData {
   review_status: "APPROVED" | "REJECTED" | "NEEDS_REVISION";
@@ -362,7 +363,7 @@ const Review: React.FC = () => {
     }
   }, [t]);
 
-  // ✅ Export to PDF function - Required fields: Product code, product name, Quantity Unit, Quantity packages, weight, Expiry date, remarks
+  // ✅ Export to PDF function - Using modular component
   const handleExportPDF = useCallback(() => {
     if (!entry || !entry.products || entry.products.length === 0) {
       toast.error(t('process:no_products_to_export'));
@@ -370,30 +371,73 @@ const Review: React.FC = () => {
     }
 
     try {
-      const headers = [
-        t('process:product_code'),
-        t('process:product_name'),
-        t('process:quantity_unit'),
-        t('process:quantity_packages'),
-        t('process:weight_kg'),
-        t('process:expiry_date'),
-        t('process:remarks')
-      ];
+      // Prepare table data
+      const tableData = entry.products.flatMap((product: any) => {
+        if (product.inventoryAllocations && product.inventoryAllocations.length > 0) {
+          return product.inventoryAllocations.map((allocation: any) => [
+            product.product?.product_code || '-',
+            product.product?.name || '-',
+            product.supplier?.company_name || product.supplier?.name || '-',
+            product.lot_series || '-',
+            allocation.inventory_quantity || 0,
+            allocation.package_quantity || 0,
+            `${allocation.weight_kg || 0} kg`,
+            formatDate(product.expiration_date),
+            allocation.cell ? `${allocation.cell.row}-${allocation.cell.bay}-${allocation.cell.position}` : '-',
+            allocation.product_status || '-'
+          ]);
+        } else {
+          return [[
+            product.product?.product_code || '-',
+            product.product?.name || '-',
+            product.supplier?.company_name || product.supplier?.name || '-',
+            product.lot_series || '-',
+            product.inventory_quantity || 0,
+            product.package_quantity || 0,
+            `${product.weight_kg || 0} kg`,
+            formatDate(product.expiration_date),
+            'Not Allocated',
+            'Pending'
+          ]];
+        }
+      });
 
-      const data = entry.products.map((product: any) => [
-        product.product?.product_code || product.product_code || '-',
-        product.product?.name || '-',
-        product.inventory_quantity || 0,
-        product.package_quantity || 0,
-        product.weight_kg || 0,
-        formatDate(product.expiration_date),
-        product.lot_series || '-'
-      ]);
+      generateOrderPDF({
+        headerInfo: {
+          title: 'ENTRY ORDER DETAILS',
+          orderNo: entry.entry_order_no,
+          headerColor: [41, 128, 185] // Professional blue
+        },
+        infoBoxes: [
+          [
+            { label: 'Registration Date:', value: formatDate(entry.registration_date) || '-' },
+            { label: 'Warehouse:', value: entry.warehouse?.name || 'Not Assigned' },
+            { label: 'Total Pallets:', value: `${entry.total_pallets || 0}` }
+          ],
+          [
+            { label: 'Order Status:', value: entry.order_status || '-', valueColor: getStatusColor(entry.order_status) },
+            { label: 'Total Weight:', value: `${entry.total_weight || 0} kg` },
+            { label: 'Total Volume:', value: `${entry.total_volume || 0} m³` }
+          ]
+        ],
+        tableColumns: [
+          { header: 'Code', width: 22, align: 'center' },
+          { header: 'Product Name', width: 50 },
+          { header: 'Supplier', width: 40 },
+          { header: 'Lot/Series', width: 25, align: 'center' },
+          { header: 'Qty (Units)', width: 20, align: 'center' },
+          { header: 'Qty (Pkg)', width: 20, align: 'center' },
+          { header: 'Weight', width: 22, align: 'right' },
+          { header: 'Expiry', width: 25, align: 'center' },
+          { header: 'Storage Cell', width: 28, align: 'center', fontStyle: 'bold' },
+          { header: 'Status', width: 25, align: 'center' }
+        ],
+        tableData,
+        tableTitle: 'Product Details & Storage Locations',
+        filename: `EntryOrder_${entry.entry_order_no.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
+        themeColor: [52, 73, 94]
+      });
 
-      const title = `${t('process:entry_order')}: ${entry.entry_order_no}`;
-      const filename = `entry_order_${entry.entry_order_no.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`;
-
-      exportSimpleTableToPDF(title, headers, data, filename);
       toast.success(t('process:pdf_downloaded_successfully'));
     } catch (error) {
       console.error('PDF export error:', error);
@@ -401,7 +445,7 @@ const Review: React.FC = () => {
     }
   }, [entry, t]);
 
-  // ✅ Export to Excel function - Required fields: Product code, product name, Quantity Unit, Quantity packages, weight, Expiry date, remarks
+  // ✅ Export to Excel function - Comprehensive entry order details
   const handleExportExcel = useCallback(() => {
     if (!entry || !entry.products || entry.products.length === 0) {
       toast.error(t('process:no_products_to_export'));
@@ -412,22 +456,68 @@ const Review: React.FC = () => {
       const headers = [
         t('process:product_code'),
         t('process:product_name'),
+        t('process:supplier'),
+        t('process:lot_series'),
         t('process:quantity_unit'),
         t('process:quantity_packages'),
+        t('process:quantity_pallets'),
         t('process:weight_kg'),
+        t('process:volume_m3'),
+        t('process:manufacturing_date'),
         t('process:expiry_date'),
-        t('process:remarks')
+        t('process:temperature_range'),
+        t('process:humidity'),
+        t('process:storage_location'),
+        t('process:quality_status'),
+        t('process:allocated_by'),
+        t('process:allocated_date')
       ];
 
-      const data = entry.products.map((product: any) => [
-        product.product?.product_code || product.product_code || '-',
-        product.product?.name || '-',
-        product.inventory_quantity || 0,
-        product.package_quantity || 0,
-        product.weight_kg || 0,
-        formatDate(product.expiration_date),
-        product.lot_series || '-'
-      ]);
+      const data = entry.products.flatMap((product: any) => {
+        // If product has allocations, create a row for each allocation
+        if (product.inventoryAllocations && product.inventoryAllocations.length > 0) {
+          return product.inventoryAllocations.map((allocation: any) => [
+            product.product?.product_code || product.product_code || '-',
+            product.product?.name || '-',
+            product.supplier?.company_name || product.supplier?.name || '-',
+            product.lot_series || '-',
+            allocation.inventory_quantity || 0,
+            allocation.package_quantity || 0,
+            allocation.quantity_pallets || 0,
+            allocation.weight_kg || 0,
+            allocation.volume_m3 || 0,
+            formatDate(product.manufacturing_date),
+            formatDate(product.expiration_date),
+            product.temperature_range || '-',
+            product.humidity || '-',
+            allocation.cell ? `${allocation.cell.row}-${allocation.cell.bay}-${allocation.cell.position}` : '-',
+            allocation.product_status || '-',
+            allocation.allocator ? `${allocation.allocator.first_name} ${allocation.allocator.last_name}` : '-',
+            formatDate(allocation.allocated_at)
+          ]);
+        } else {
+          // No allocations yet - show product without storage location
+          return [[
+            product.product?.product_code || product.product_code || '-',
+            product.product?.name || '-',
+            product.supplier?.company_name || product.supplier?.name || '-',
+            product.lot_series || '-',
+            product.inventory_quantity || 0,
+            product.package_quantity || 0,
+            product.quantity_pallets || 0,
+            product.weight_kg || 0,
+            product.volume_m3 || 0,
+            formatDate(product.manufacturing_date),
+            formatDate(product.expiration_date),
+            product.temperature_range || '-',
+            product.humidity || '-',
+            'Not Allocated',
+            'Pending',
+            '-',
+            '-'
+          ]];
+        }
+      });
 
       const filename = `entry_order_${entry.entry_order_no.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
 

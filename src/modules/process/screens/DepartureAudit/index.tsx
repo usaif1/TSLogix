@@ -7,6 +7,9 @@ import ProcessesStore from "@/modules/process/store";
 import { ProcessService } from "@/globalService";
 import { formatDate } from "@/utils/dateUtils";
 import { DepartureApprovalStep, UserRole } from "@/modules/process/types";
+import { exportSimpleTableToExcel } from "@/modules/reports/utils/exportUtils";
+import { generateOrderPDF, getStatusColor } from "@/modules/reports/utils/orderPdfExport";
+import { toast } from "sonner";
 
 const DepartureAudit: React.FC = () => {
   const { t } = useTranslation(['process', 'common']);
@@ -285,8 +288,154 @@ const DepartureAudit: React.FC = () => {
     setIsSubmitting(false);
   }, []);
 
+  // ✅ Export to PDF function - Using modular component
+  const handleExportPDF = useCallback(() => {
+    if (!order || !order.products || order.products.length === 0) {
+      toast.error(t('process:no_products_to_export'));
+      return;
+    }
+
+    try {
+      // Prepare table data
+      const tableData = (order.products || []).flatMap((product: any) => {
+        if (product.departureAllocations && product.departureAllocations.length > 0) {
+          return product.departureAllocations.map((allocation: any) => [
+            product.product?.product_code || product.product_code || '-',
+            product.product?.name || product.product_name || '-',
+            product.lot_series || product.lot_number || '-',
+            allocation.allocated_quantity || product.requested_quantity || 0,
+            allocation.allocated_packages || product.requested_packages || 0,
+            `${allocation.allocated_weight || product.requested_weight || 0} kg`,
+            allocation.cell ? `${allocation.cell.row}-${allocation.cell.bay}-${allocation.cell.position}` : '-',
+            allocation.product_status || '-',
+            formatDate(product.expiration_date)
+          ]);
+        } else {
+          return [[
+            product.product?.product_code || product.product_code || '-',
+            product.product?.name || product.product_name || '-',
+            product.lot_series || product.lot_number || '-',
+            product.requested_quantity || 0,
+            product.requested_packages || 0,
+            `${product.requested_weight || 0} kg`,
+            'Not Allocated',
+            '-',
+            formatDate(product.expiration_date)
+          ]];
+        }
+      });
+
+      generateOrderPDF({
+        headerInfo: {
+          title: 'DEPARTURE ORDER DETAILS',
+          orderNo: (order as any).departure_order_no || (order as any).departure_order_code || '-',
+          headerColor: [231, 76, 60] // Red for departure
+        },
+        infoBoxes: [
+          [
+            { label: 'Customer:', value: (order as any).customer?.name || (order as any).client?.company_name || (order as any).client?.first_names || 'N/A' },
+            { label: 'Destination:', value: (order as any).destination_point || (order as any).arrival_point || '-' },
+            { label: 'Transport:', value: (order as any).transport_type || '-' }
+          ],
+          [
+            { label: 'Order Status:', value: (order as any).order_status || '-', valueColor: getStatusColor((order as any).order_status) },
+            { label: 'Total Weight:', value: `${(order as any).total_weight || 0} kg` },
+            { label: 'Total Pallets:', value: `${(order as any).total_pallets || 0}` }
+          ]
+        ],
+        tableColumns: [
+          { header: 'Code', width: 25, align: 'center' },
+          { header: 'Product Name', width: 65 },
+          { header: 'Lot/Batch', width: 28, align: 'center' },
+          { header: 'Qty', width: 20, align: 'center' },
+          { header: 'Packages', width: 22, align: 'center' },
+          { header: 'Weight', width: 22, align: 'right' },
+          { header: 'From Cell', width: 28, align: 'center', fontStyle: 'bold' },
+          { header: 'Status', width: 25, align: 'center' },
+          { header: 'Expiry', width: 25, align: 'center' }
+        ],
+        tableData,
+        tableTitle: 'Products & Dispatch Details',
+        filename: `DepartureOrder_${((order as any).departure_order_no || (order as any).departure_order_code || 'UNKNOWN').replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`,
+        themeColor: [192, 57, 43] // Dark red
+      });
+
+      toast.success(t('process:pdf_downloaded_successfully'));
+    } catch (error) {
+      console.error('PDF export error:', error);
+      toast.error(t('process:pdf_download_failed'));
+    }
+  }, [order, t]);
+
+  // ✅ Export to Excel function - Comprehensive departure order details
+  const handleExportExcel = useCallback(() => {
+    if (!order || !order.products || order.products.length === 0) {
+      toast.error(t('process:no_products_to_export'));
+      return;
+    }
+
+    try {
+      const headers = [
+        t('process:product_code'),
+        t('process:product_name'),
+        t('process:lot_series'),
+        t('process:requested_quantity'),
+        t('process:requested_packages'),
+        t('process:requested_weight'),
+        t('process:dispatched_quantity'),
+        t('process:dispatched_packages'),
+        t('process:from_storage_cell'),
+        t('process:product_status'),
+        t('process:expiry_date'),
+        t('process:allocated_by')
+      ];
+
+      const data = (order.products || []).flatMap((product: any) => {
+        if (product.departureAllocations && product.departureAllocations.length > 0) {
+          return product.departureAllocations.map((allocation: any) => [
+            product.product?.product_code || product.product_code || '-',
+            product.product?.name || product.product_name || '-',
+            product.lot_series || product.lot_number || '-',
+            product.requested_quantity || 0,
+            product.requested_packages || 0,
+            product.requested_weight || 0,
+            allocation.allocated_quantity || 0,
+            allocation.allocated_packages || 0,
+            allocation.cell ? `${allocation.cell.row}-${allocation.cell.bay}-${allocation.cell.position}` : '-',
+            allocation.product_status || '-',
+            formatDate(product.expiration_date),
+            allocation.allocator ? `${allocation.allocator.first_name} ${allocation.allocator.last_name}` : '-'
+          ]);
+        } else {
+          return [[
+            product.product?.product_code || product.product_code || '-',
+            product.product?.name || product.product_name || '-',
+            product.lot_series || product.lot_number || '-',
+            product.requested_quantity || 0,
+            product.requested_packages || 0,
+            product.requested_weight || 0,
+            0,
+            0,
+            'Not Allocated',
+            '-',
+            formatDate(product.expiration_date),
+            '-'
+          ]];
+        }
+      });
+
+      const filename = `DepartureOrder_${((order as any).departure_order_no || (order as any).departure_order_code || 'UNKNOWN').replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+      exportSimpleTableToExcel(headers, data, filename, 'Departure Order');
+      toast.success(t('process:excel_downloaded_successfully'));
+    } catch (error) {
+      console.error('Excel export error:', error);
+      toast.error(t('process:excel_download_failed'));
+    }
+  }, [order, t]);
+
   // Get status styling
-  const getStatusColor = (status: string) => {
+  const getStatusColorClass = (status: string) => {
     switch (status) {
       case "APPROVED":
         return "bg-green-100 text-green-800";
@@ -698,7 +847,7 @@ const DepartureAudit: React.FC = () => {
             <Text size="lg" weight="font-semibold" additionalClass="text-gray-800">
               {order.departure_order_no || (order as any)?.departure_order_code} - {(order as any)?.creator ? `${(order as any).creator.first_name} ${(order as any).creator.last_name}` : (order as any)?.creator_name || 'N/A'}
             </Text>
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor((order as any)?.order_status || order.status)}`}>
+            <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColorClass((order as any)?.order_status || order.status)}`}>
               {getStatusText((order as any)?.order_status || order.status)}
             </span>
           </div>
@@ -852,6 +1001,20 @@ const DepartureAudit: React.FC = () => {
                   </Button>
                 </>
               )}
+
+              {/* Export Actions */}
+              <Button
+                onClick={handleExportPDF}
+                additionalClass="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                📄 {t('process:export_pdf')}
+              </Button>
+              <Button
+                onClick={handleExportExcel}
+                additionalClass="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white"
+              >
+                📊 {t('process:export_excel')}
+              </Button>
             </div>
           </div>
 

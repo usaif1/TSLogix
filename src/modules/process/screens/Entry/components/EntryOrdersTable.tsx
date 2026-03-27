@@ -1,7 +1,6 @@
 import {
   useReactTable,
   getCoreRowModel,
-  getPaginationRowModel,
   flexRender,
   ColumnDef,
 } from "@tanstack/react-table";
@@ -12,8 +11,6 @@ import { useTranslation } from "react-i18next";
 interface DataTableProps<T extends object> {
   data: T[];
   columns: ColumnDef<T, any>[]; // eslint-disable-line @typescript-eslint/no-explicit-any
-  showPagination?: boolean;
-  pageSize?: number;
   emptyMessage?: string;
   className?: string;
 }
@@ -23,8 +20,6 @@ const stickyColumns = [0, 1];
 function DataTable<T extends object>({
   data,
   columns,
-  showPagination = false,
-  pageSize = 10,
   emptyMessage,
   className = "",
 }: DataTableProps<T>) {
@@ -40,12 +35,7 @@ function DataTable<T extends object>({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: showPagination ? getPaginationRowModel() : undefined,
-    initialState: {
-      pagination: {
-        pageSize,
-      },
-    },
+    // Remove pagination - show all data
   });
 
   useEffect(() => {
@@ -64,8 +54,8 @@ function DataTable<T extends object>({
   }, [columns?.length, data?.length]);
 
   return (
-    <div className={`rounded-md shadow-sm border border-gray-200 ${className}`}>
-      <div className="overflow-x-auto">
+    <div className={`rounded-md shadow-sm border border-gray-200 h-full flex flex-col ${className}`}>
+      <div className="overflow-auto flex-1">
         <table ref={tableRef} className="w-full table-auto">
           <thead className="bg-gray-50">
             {table.getHeaderGroups().map((headerGroup) => (
@@ -152,40 +142,11 @@ function DataTable<T extends object>({
         </table>
       </div>
 
-      {showPagination && data.length > 0 && (
+      {/* Show total count instead of pagination */}
+      {data.length > 0 && (
         <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 w-full">
           <div className="text-sm text-gray-700">
-            {t('process:showing')}{" "}
-            <span className="font-medium">
-              {table.getState().pagination.pageIndex *
-                table.getState().pagination.pageSize +
-                1}
-            </span>{" "}
-            -{" "}
-            <span className="font-medium">
-              {Math.min(
-                (table.getState().pagination.pageIndex + 1) *
-                  table.getState().pagination.pageSize,
-                data.length
-              )}
-            </span>{" "}
-            {t('common:of')} <span className="font-medium">{data.length}</span> {t('process:results')}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              {t('common:previous')}
-            </button>
-            <button
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              {t('common:next')}
-            </button>
+            {t('common:total')}: <span className="font-medium">{data.length}</span> {t('process:orders')}
           </div>
         </div>
       )}

@@ -461,7 +461,7 @@ export interface EntryOrder {
   registration_date: Date;
   document_date: Date;
   entry_date_time: Date;
-  order_status: "REVISION" | "PRESENTACION" | "FINALIZACION";
+  order_status: "PENDIENTE" | "APROBADO" | "RECIBIDO" | "TERMINADO";
   review_status: "PENDING" | "APPROVED" | "REJECTED" | "NEEDS_REVISION";
   review_comments?: string;
   reviewed_at?: Date;

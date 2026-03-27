@@ -74,13 +74,14 @@ function DataTable<T extends object>({
   });
 
   return (
-    <div className={`rounded-md shadow-sm border border-gray-200 ${className}`}>
+    <div className={`rounded-md shadow-sm border border-gray-200 ${showPagination ? '' : 'h-full flex flex-col'} ${className}`}>
       {/* Table Container for horizontal scroll */}
       <div
+        className={showPagination ? '' : 'flex-1 overflow-auto'}
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(1, minmax(0, 1fr))",
-          overflow: "auto",
+          overflow: showPagination ? "auto" : undefined,
           whiteSpace: "normal",
         }}
       >
