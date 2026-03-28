@@ -793,6 +793,8 @@
 
   "download_pdf": "Descargar PDF",
   "download_excel": "Descargar Excel",
+  "export_pdf": "Exportar PDF",
+  "export_excel": "Exportar Excel",
   "pdf_downloaded_successfully": "PDF descargado exitosamente",
   "excel_downloaded_successfully": "Excel descargado exitosamente",
   "pdf_download_failed": "Error al descargar PDF",

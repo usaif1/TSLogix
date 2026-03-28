@@ -372,7 +372,11 @@ const ComprehensiveDepartureForm: React.FC = () => {
       // ✅ Append non-product form data
       Object.keys(orderData).forEach(key => {
         if (key !== 'products') {
-          formDataToSend.append(key, String(orderData[key as keyof typeof orderData]));
+          const value = orderData[key as keyof typeof orderData];
+          // Only append if value is not undefined (e.g., client_id for WAREHOUSE_INCHARGE)
+          if (value !== undefined) {
+            formDataToSend.append(key, String(value));
+          }
         }
       });
 

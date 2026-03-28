@@ -161,6 +161,8 @@
     "PASSWORD_CHANGED": "Password Changed",
     "PROFILE_UPDATED": "Profile Updated",
     "SESSION_STARTED": "Session Started",
-    "SESSION_ENDED": "Session Ended"
+    "SESSION_ENDED": "Session Ended",
+    "QUALITY_STATUS_CHANGED": "Quality Status Changed",
+    "QUALITY_CONTROL_TRANSITION": "Quality Control Transition"
   }
 } 

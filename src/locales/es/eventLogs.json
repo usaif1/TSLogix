@@ -24,8 +24,9 @@
   "system_activities": "Actividades del Sistema",
   "hourly_activity": "Actividad por Hora",
   "daily_activity": "Actividad Diaria",
-  "timestamp": "Marca de Tiempo", 
+  "timestamp": "Marca de Tiempo",
   "user": "Usuario",
+  "report": "Reporte",
   "action": "Acción",
   "entity_type": "Tipo de Entidad",
   "entity_id": "ID de Entidad",
@@ -162,6 +163,8 @@
     "PASSWORD_CHANGED": "Contraseña Cambiada",
     "PROFILE_UPDATED": "Perfil Actualizado",
     "SESSION_STARTED": "Sesión Iniciada",
-    "SESSION_ENDED": "Sesión Terminada"
+    "SESSION_ENDED": "Sesión Terminada",
+    "QUALITY_STATUS_CHANGED": "Estado de Calidad Cambiado",
+    "QUALITY_CONTROL_TRANSITION": "Transición de Control de Calidad"
   }
 } 

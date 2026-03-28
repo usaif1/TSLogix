@@ -1007,13 +1007,13 @@ const DepartureAudit: React.FC = () => {
                 onClick={handleExportPDF}
                 additionalClass="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white"
               >
-                📄 {t('process:export_pdf')}
+                {t('process:export_pdf')}
               </Button>
               <Button
                 onClick={handleExportExcel}
                 additionalClass="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white"
               >
-                📊 {t('process:export_excel')}
+                {t('process:export_excel')}
               </Button>
             </div>
           </div>

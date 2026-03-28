@@ -727,6 +727,8 @@
 
   "download_pdf": "Download PDF",
   "download_excel": "Download Excel",
+  "export_pdf": "Export PDF",
+  "export_excel": "Export Excel",
   "pdf_downloaded_successfully": "PDF downloaded successfully",
   "excel_downloaded_successfully": "Excel downloaded successfully",
   "pdf_download_failed": "Failed to download PDF",
