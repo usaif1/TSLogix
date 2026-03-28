@@ -23,7 +23,6 @@ const {
   setQuarantineInventory,
   setAvailableInventoryForDeparture,
   setAuditTrail,
-  setInventorySummaryStats,
   setFiltersApplied,
   setLastGeneratedAt,
   startLoader,
