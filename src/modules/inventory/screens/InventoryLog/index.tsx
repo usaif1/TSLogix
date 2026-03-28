@@ -13,23 +13,45 @@ import { CellContext, ColumnDef } from "@tanstack/react-table";
 
 const InventoryLog: React.FC = () => {
   const { t } = useTranslation(['inventory', 'common']);
-  const { 
-    inventoryLogs, 
+  const {
+    inventoryLogs,
     loaders
   } = useInventoryLogStore();
   const navigate = useNavigate();
-  
+
   // Search states
   const [clientSearch, setClientSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
 
-  const loadLogs = useCallback((filters?: { client_search?: string; product_name?: string }) => {
-    InventoryLogService.fetchAllLogs(filters).catch(console.error);
-  }, []);
+  // ✅ NEW: Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    page_size: 10,
+    total: 0,
+    total_pages: 0,
+    has_next: false,
+    has_prev: false
+  });
+
+  const loadLogs = useCallback((filters?: { client_search?: string; product_name?: string; page?: number }) => {
+    InventoryLogService.fetchAllLogs({
+      ...filters,
+      page: filters?.page || currentPage,
+      page_size: 10
+    })
+      .then((result) => {
+        // Update pagination info
+        if (result.pagination) {
+          setPagination(result.pagination);
+        }
+      })
+      .catch(console.error);
+  }, [currentPage]);
 
   useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
+    loadLogs({ page: currentPage });
+  }, [currentPage, loadLogs]);
 
   // Handle search
   const handleSearch = useCallback(() => {
@@ -493,6 +515,8 @@ const InventoryLog: React.FC = () => {
             columns={columns}
             data={inventoryLogs}
             maxBodyHeight="calc(100vh - 200px)"
+            pagination={pagination}
+            onPageChange={setCurrentPage}
           />
         )}
       </div>

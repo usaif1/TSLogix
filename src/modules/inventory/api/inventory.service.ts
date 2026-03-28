@@ -65,91 +65,92 @@ export const InventoryLogService = {
     }
   },
 
-  // ✅ UPDATED: Fetch inventory logs with simplified structure and search functionality
-  fetchAllLogs: async (filters?: Filters & { client_name?: string; product_name?: string }) => {
+  // ✅ UPDATED: Fetch inventory logs using new optimized paginated endpoint
+  fetchAllLogs: async (filters?: Filters & {
+    client_name?: string;
+    product_name?: string;
+    page?: number;
+    page_size?: number;
+  }) => {
     try {
       startLoader("inventoryLogs/fetch-logs");
-      const response = await api.get(`${baseURL}/summary`, { params: filters });
-      const responseData = response.data.data || response.data;
 
-      // ✅ Handle new flattened API response structure
-      const summaryStats = responseData.summary_stats || {};
-      const movementLogs = responseData.movement_logs || [];
+      // ✅ NEW: Use the optimized /movement-logs endpoint with pagination
+      const response = await api.get(`${baseURL}/movement-logs`, {
+        params: {
+          ...filters,
+          page: filters?.page || 1,
+          page_size: filters?.page_size || 10
+        }
+      });
+
+      const responseData = response.data;
+
+      // ✅ NEW: Handle paginated response structure
+      const movementLogs = responseData.data || [];
+      const pagination = responseData.pagination || {
+        page: 1,
+        page_size: 10,
+        total: 0,
+        total_pages: 0,
+        has_next: false,
+        has_prev: false
+      };
       const filtersApplied = responseData.filters_applied || {};
-      const generatedAt = responseData.generated_at || new Date().toISOString();
 
-      // ✅ Transform movement logs to match table expectations with flattened structure
+      // ✅ Transform movement logs to match table expectations
       const transformedLogs = movementLogs.map((log: any) => ({
-        log_id: log.log_id,
+        log_id: log.log_id || `temp_${Date.now()}`,
         timestamp: log.timestamp,
         movement_type: log.movement_type,
         quantity_change: log.quantity_change,
-        package_change: log.package_change,
+        package_change: log.package_change || 0,
         weight_change: log.weight_change,
         current_quantity: log.current_quantity,
         current_weight: log.current_weight,
-        
-        // Product information (flattened)
+
+        // Product information
         product: {
           product_code: log.product_code,
           name: log.product_name,
-          manufacturer: log.manufacturer,
         },
-        
-        // Location information (flattened)
+
+        // Location information
         warehouse: {
           name: log.warehouse_name,
         },
         cell_reference: log.cell_reference,
-        
-        // Client information (flattened)
+
+        // Client information
         client_info: {
           company_name: log.client_name,
-          client_email: log.client_email,
         },
-        
-        // Order information (flattened)
+
+        // Order information
         order_no: log.order_no,
-        order_id: log.order_id,
-        order_date: log.order_date,
-        order_type: log.order_type,
         order_status: log.order_status,
-        destination_point: log.destination_point,
-        carrier_name: log.carrier_name,
-        customer_name: log.customer_name,
-        
+
         // Status information
         quality_status: log.quality_status,
-        
-        // Additional information
-        lot_series: log.lot_series,
-        manufacturing_date: log.manufacturing_date,
-        expiration_date: log.expiration_date,
-        created_by: log.created_by,
-        reviewed_by: log.reviewed_by,
-        
-        // User information (simplified)
+
+        // User information (simplified for backward compatibility)
         user: {
-          first_name: log.reviewed_by?.split(' ')[0] || log.created_by?.split(' ')[0] || "System",
-          last_name: log.reviewed_by?.split(' ').slice(1).join(' ') || log.created_by?.split(' ').slice(1).join(' ') || "",
+          first_name: "System",
+          last_name: "",
         },
       }));
 
-      // Sort by timestamp (newest first)
-      transformedLogs.sort((a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
       setInventoryLogs(transformedLogs);
 
-      // ✅ Store additional data in state
-      setInventorySummaryStats(summaryStats);
+      // ✅ Store pagination and filter data in state
       setFiltersApplied(filtersApplied);
-      setLastGeneratedAt(generatedAt);
+      setLastGeneratedAt(new Date().toISOString());
 
       const enhancedData = {
         logs: transformedLogs,
-        summaryStats,
+        pagination, // ✅ NEW: Include pagination info
         filtersApplied,
-        generatedAt,
+        generatedAt: new Date().toISOString(),
       };
 
       return enhancedData;
