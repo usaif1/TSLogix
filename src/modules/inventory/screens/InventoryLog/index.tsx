@@ -19,6 +19,9 @@ const InventoryLog: React.FC = () => {
   } = useInventoryLogStore();
   const navigate = useNavigate();
 
+  // Get user role for access control
+  const userRole = localStorage.getItem("role");
+
   // Search states
   const [clientSearch, setClientSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
@@ -432,9 +435,12 @@ const InventoryLog: React.FC = () => {
             <Button onClick={handleNavigateToQuarantine}>
               {t('inventory:quality_control')}
             </Button>
-            <Button onClick={handleNavigateToAllocate}>
-              + {t('inventory:assign_product')}
-            </Button>
+            {/* Only show Assign Product button for roles that can allocate (not PHARMACIST) */}
+            {userRole !== 'PHARMACIST' && (
+              <Button onClick={handleNavigateToAllocate}>
+                + {t('inventory:assign_product')}
+              </Button>
+            )}
           </div>
         </div>
         
@@ -506,9 +512,12 @@ const InventoryLog: React.FC = () => {
             <p className="text-gray-500 mb-4">
               {t('inventory:no_products_assigned_yet')}
             </p>
-            <Button onClick={handleNavigateToAllocate}>
-              {t('inventory:assign_first_product')}
-            </Button>
+            {/* Only show Assign Product button for roles that can allocate (not PHARMACIST) */}
+            {userRole !== 'PHARMACIST' && (
+              <Button onClick={handleNavigateToAllocate}>
+                {t('inventory:assign_first_product')}
+              </Button>
+            )}
           </div>
         ) : (
           <InventoryTable

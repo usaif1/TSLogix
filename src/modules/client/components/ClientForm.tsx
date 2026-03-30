@@ -43,6 +43,7 @@ interface FormData {
     email?: string;
     password?: string;
     confirm_password?: string;
+    role?: string; // CLIENT or PHARMACIST
   }>;
 }
 
@@ -209,6 +210,7 @@ const ClientForm: React.FC = () => {
       email: "",
       password: "",
       confirm_password: "",
+      role: "CLIENT", // Default to CLIENT role
     };
     setFormData(prev => ({
       ...prev,
@@ -328,7 +330,8 @@ const ClientForm: React.FC = () => {
           client_users: formData.client_users.filter(user => user.name.trim()).map(user => ({
             name: user.name.trim(),
             email: user.email || `${user.name.toLowerCase().replace(/\s+/g, '.')}@${formData.email.split('@')[1]}`,
-            password: user.password || formData.ruc || 'TempPass123!' // Use RUC as default password for JURIDICO
+            password: user.password || formData.ruc || 'TempPass123!', // Use RUC as default password for JURIDICO
+            role: user.role || 'CLIENT' // Include role (CLIENT or PHARMACIST)
           })),
         };
       } else {
@@ -348,7 +351,8 @@ const ClientForm: React.FC = () => {
           client_users: formData.client_users.filter(user => user.name.trim()).map(user => ({
             name: user.name.trim(),
             email: user.email || `${user.name.toLowerCase().replace(/\s+/g, '.')}@${formData.email.split('@')[1]}`,
-            password: user.password || formData.individual_id || 'TempPass123!' // Use individual_id as default password for NATURAL
+            password: user.password || formData.individual_id || 'TempPass123!', // Use individual_id as default password for NATURAL
+            role: user.role || 'CLIENT' // Include role (CLIENT or PHARMACIST)
           })),
         };
       }
@@ -847,6 +851,30 @@ const ClientForm: React.FC = () => {
                                   {validationErrors[`client_user_${user.id}_password`]}
                                 </p>
                               )}
+                            </div>
+
+                            {/* Role Selection */}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {t('client:labels.role')}
+                              </label>
+                              <Select
+                                value={
+                                  user.role
+                                    ? { value: user.role, label: t(`client:roles.${user.role}`) }
+                                    : { value: 'CLIENT', label: t('client:roles.CLIENT') }
+                                }
+                                onChange={(option: SingleValue<OptionType>) => {
+                                  updateClientUser(user.id, 'role', option?.value || 'CLIENT');
+                                }}
+                                options={[
+                                  { value: 'CLIENT', label: t('client:roles.CLIENT') },
+                                  { value: 'PHARMACIST', label: t('client:roles.PHARMACIST') }
+                                ]}
+                                placeholder={t('client:placeholders.select_role')}
+                                className="react-select-container"
+                                classNamePrefix="react-select"
+                              />
                             </div>
                           </div>
                         </div>

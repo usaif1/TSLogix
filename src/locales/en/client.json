@@ -49,7 +49,8 @@
     "username": "Username",
     "email": "Email",
     "password": "Password",
-    "confirm_password": "Confirm Password"
+    "confirm_password": "Confirm Password",
+    "role": "Role"
   },
   "hints": {
     "email_auto_generate": "Email will be auto-generated if not provided",
@@ -82,6 +83,7 @@
     "select_active_state": "Select active state...",
     "select_establishment_type": "Select establishment type...",
     "select_company_type": "Select company type...",
+    "select_role": "Select role...",
     "assignment_notes": "Optional notes about cell assignment..."
   },
   "types": {
@@ -89,6 +91,10 @@
     "individual": "Individual",
     "juridico": "Legal Entity",
     "natural": "Natural Person"
+  },
+  "roles": {
+    "CLIENT": "Client",
+    "PHARMACIST": "Pharmacist"
   },
   "buttons": {
     "create_client": "Create Client",

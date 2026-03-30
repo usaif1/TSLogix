@@ -44,6 +44,17 @@
     "select_cells": "Seleccionar Posiciones",
     "assignment_notes": "Notas de Asignación"
   },
+  "labels": {
+    "username": "Nombre de Usuario",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "confirm_password": "Confirmar Contraseña",
+    "role": "Rol"
+  },
+  "hints": {
+    "email_auto_generate": "El correo se generará automáticamente si no se proporciona",
+    "password_default": "Se establecerá una contraseña predeterminada si no se proporciona"
+  },
   "placeholders": {
     "select_client_type": "Seleccione tipo de cliente",
     "client_code": "Código generado automáticamente",
@@ -60,10 +71,15 @@
     "phone": "Ingrese número de teléfono",
     "cell_phone": "Ingrese número de celular",
     "user_name": "Ingrese nombre del usuario",
+    "username_example": "ej., juanperez",
+    "user_email": "usuario@correo.com",
+    "initial_password": "Ingrese contraseña inicial",
+    "repeat_password": "Repita la contraseña",
     "select_warehouse": "Seleccione almacén...",
     "select_active_state": "Seleccione estado activo...",
     "select_establishment_type": "Seleccione tipo de establecimiento...",
     "select_company_type": "Seleccione tipo de empresa...",
+    "select_role": "Seleccione rol...",
     "assignment_notes": "Notas opcionales sobre asignación de posiciones..."
   },
   "types": {
@@ -71,6 +87,10 @@
     "individual": "Individual",
     "juridico": "Jurídico",
     "natural": "Natural"
+  },
+  "roles": {
+    "CLIENT": "Cliente",
+    "PHARMACIST": "Farmacéutico"
   },
   "buttons": {
     "create_client": "Crear Cliente",
