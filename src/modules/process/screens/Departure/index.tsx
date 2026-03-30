@@ -5,6 +5,7 @@ import { Plus } from "@phosphor-icons/react";
 
 import { Text, Divider } from "@/components";
 import Searchbar from "@/components/Searchbar";
+import { Pagination } from "@/components/Pagination";
 import DepartureRecordsTable from "./components/DepartureRecordsTable";
 import LoaderSync from "@/components/Loaders/LoaderSync";
 import { ProcessService } from "@/modules/process/api/process.service";
@@ -14,7 +15,9 @@ const Departure: React.FC = () => {
   const { t } = useTranslation(['process', 'common']);
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [totalOrders, setTotalOrders] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(20);
+  const [pagination, setPagination] = useState<any>(null);
 
   // Get user role from localStorage
   const userRole = localStorage.getItem("role");
@@ -22,18 +25,21 @@ const Departure: React.FC = () => {
   // Debounce the search query with 500ms delay
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
-  // Function to fetch all departure orders (no pagination)
-  const fetchDepartureOrders = useCallback(async (searchTerm?: string) => {
+  // Function to fetch departure orders with pagination
+  const fetchDepartureOrders = useCallback(async (page: number, limit: number, searchTerm?: string) => {
     setIsLoading(true);
     try {
       const organisationId = localStorage.getItem("organisation_id");
       const result = await ProcessService.fetchComprehensiveDepartureOrders({
         organisationId: organisationId || undefined,
         orderNo: searchTerm || undefined,
-        // Remove pagination - fetch all
+        page,
+        limit
       });
 
-      setTotalOrders(result.pagination?.total_items || result.orders?.length || 0);
+      if (result?.pagination) {
+        setPagination(result.pagination);
+      }
     } catch (error) {
       console.error("Failed to fetch departure orders:", error);
     } finally {
@@ -43,12 +49,26 @@ const Departure: React.FC = () => {
 
   // Effect for initial load and search changes
   useEffect(() => {
-    fetchDepartureOrders(debouncedSearchQuery || undefined);
-  }, [debouncedSearchQuery, fetchDepartureOrders]);
+    setCurrentPage(1); // Reset to first page on search
+    fetchDepartureOrders(1, itemsPerPage, debouncedSearchQuery || undefined);
+  }, [debouncedSearchQuery, itemsPerPage, fetchDepartureOrders]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
   }, []);
+
+  // Handle page change
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+    fetchDepartureOrders(page, itemsPerPage, debouncedSearchQuery || undefined);
+  }, [itemsPerPage, debouncedSearchQuery, fetchDepartureOrders]);
+
+  // Handle items per page change
+  const handleItemsPerPageChange = useCallback((limit: number) => {
+    setItemsPerPage(limit);
+    setCurrentPage(1); // Reset to first page
+    fetchDepartureOrders(1, limit, debouncedSearchQuery || undefined);
+  }, [debouncedSearchQuery, fetchDepartureOrders]);
 
   return (
     <div className="flex flex-col h-full">
@@ -103,16 +123,28 @@ const Departure: React.FC = () => {
         </Link>
       </div>
       <Divider />
-      <div className="h-4/5 bg-white rounded-md px-2 py-1.5 relative">
+      <div className="flex-1 flex flex-col bg-white rounded-md px-2 py-1.5 relative min-h-0">
         {isLoading && (
           <div className="absolute inset-0 bg-white/70 z-10 flex items-center justify-center rounded-md">
             <LoaderSync loaderText={t('common:loading_orders')} size="lg" />
           </div>
         )}
-        <DepartureRecordsTable
-          isLoading={isLoading}
-          totalOrders={totalOrders}
-        />
+        <div className="flex-1 overflow-hidden">
+          <DepartureRecordsTable
+            isLoading={isLoading}
+            totalOrders={pagination?.total_items || 0}
+          />
+        </div>
+        {pagination && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={pagination.total_pages}
+            totalItems={pagination.total_items}
+            itemsPerPage={itemsPerPage}
+            onPageChange={handlePageChange}
+            onItemsPerPageChange={handleItemsPerPageChange}
+          />
+        )}
       </div>
     </div>
   );

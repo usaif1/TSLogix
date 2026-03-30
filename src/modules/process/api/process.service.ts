@@ -397,11 +397,13 @@ export const ProcessService = {
   /**
    * Fetch all entry orders with filtering
    */
-  fetchEntryOrders: async (filters?: { 
-    status?: string; 
-    organisationId?: string; 
+  fetchEntryOrders: async (filters?: {
+    status?: string;
+    organisationId?: string;
     orderNo?: string;
     reviewStatus?: string;
+    page?: number;
+    limit?: number;
   }) => {
     const { startLoader, stopLoader, setEntryOrders } = ProcessesStore.getState();
     startLoader("processes/fetch-entry-orders");
@@ -412,12 +414,17 @@ export const ProcessService = {
       if (filters?.orderNo) params.append("orderNo", filters.orderNo);
       if (filters?.reviewStatus) params.append("reviewStatus", filters.reviewStatus);
       if (filters?.status) params.append("status", filters.status);
+      if (filters?.page) params.append("page", filters.page.toString());
+      if (filters?.limit) params.append("limit", filters.limit.toString());
 
       const response = await api.get(`${entryBaseURL}/entry-orders?${params.toString()}`);
       const orders: EntryOrder[] = response.data.data || response.data;
 
       setEntryOrders(orders);
-      return orders;
+      return {
+        orders,
+        pagination: response.data.pagination || null
+      };
     } catch (error) {
       console.error("Failed to fetch entry orders:", error);
       throw error;
