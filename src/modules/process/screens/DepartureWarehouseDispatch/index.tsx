@@ -264,12 +264,20 @@ const DepartureWarehouseDispatch: React.FC = () => {
       };
 
       const result = await ProcessService.dispatchApprovedOrder(dispatchData);
-      
+
       toast.success(t('process:dispatch_completed_successfully'));
       console.log("✅ Dispatch completed:", result);
-      
-      // Navigate back to departure page after successful dispatch
-      navigate('/processes/departure');
+
+      // ✅ FIXED: Reload the approved orders list to remove dispatched order from UI
+      // This ensures the list is refreshed and dispatched order is removed
+      await loadApprovedOrders();
+
+      // Clear the selected order and reset dispatch rows
+      setSelectedDepartureOrder(null);
+      setDispatchRows([]);
+      clearDispatchSelections();
+
+      console.log("✅ Approved orders list reloaded. Dispatched order should now be removed from the list.");
       
     } catch (error: unknown) {
       console.error("❌ Error executing dispatch:", error);
