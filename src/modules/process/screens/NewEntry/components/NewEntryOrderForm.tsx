@@ -95,6 +95,19 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
     currentEntryOrderNo,
   } = ProcessesStore();
 
+  // Helper to create Date objects for time restrictions
+  const minTime = React.useMemo(() => {
+    const date = new Date();
+    date.setHours(8, 30, 0, 0);
+    return date;
+  }, []);
+
+  const maxTime = React.useMemo(() => {
+    const date = new Date();
+    date.setHours(17, 30, 0, 0);
+    return date;
+  }, []);
+
   const dropdownOptions = useMemo(() => {
     return {
       origins: origins || [],
@@ -642,8 +655,8 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
               dateFormat="Pp"
               timeFormat="HH:mm"
               timeIntervals={30}
-              minTime={new Date().setHours(8, 30, 0, 0)}
-              maxTime={new Date().setHours(17, 30, 0, 0)}
+              minTime={minTime}
+              maxTime={maxTime}
               className="w-full border border-slate-400 h-10 rounded-md pl-4"
               id="admission_date_and_time"
               name="admission_date_and_time"

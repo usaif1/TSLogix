@@ -12,14 +12,14 @@ import { ProcessService } from "@/modules/process/api/process.service";
 const ComprehensiveDepartureForm: React.FC = () => {
   const { t } = useTranslation(['process']);
   const navigate = useNavigate();
-  
+
   // ✅ Document type options for Departure Orders
   const DEPARTURE_DOCUMENT_TYPES = [
     { value: 'CUSTOMER_DISPATCH_NOTE', label: t('process:customer_dispatch_note') || 'Customer Dispatch Note' },
     { value: 'TRANSPORT_DISPATCH_NOTE', label: t('process:transport_dispatch_note') || 'Transport Dispatch Note' },
     { value: 'WAREHOUSE_EXIT_NOTE', label: t('process:warehouse_exit_note') || 'Warehouse Exit Note' }
   ];
-  
+
   const {
     departureFormFields,
     warehouses,
@@ -44,6 +44,19 @@ const ComprehensiveDepartureForm: React.FC = () => {
   } = ProcessesStore();
 
   const fifoTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper to create Date objects for time restrictions
+  const minTime = React.useMemo(() => {
+    const date = new Date();
+    date.setHours(8, 30, 0, 0);
+    return date;
+  }, []);
+
+  const maxTime = React.useMemo(() => {
+    const date = new Date();
+    date.setHours(17, 30, 0, 0);
+    return date;
+  }, []);
 
   // ✅ State for multi-select document types and files
   const [selectedDocumentTypes, setSelectedDocumentTypes] = React.useState<Array<{value: string, label: string}>>([]);
@@ -523,8 +536,8 @@ const ComprehensiveDepartureForm: React.FC = () => {
                   showTimeSelect
                   timeFormat="HH:mm"
                   timeIntervals={30}
-                  minTime={new Date().setHours(8, 30, 0, 0)}
-                  maxTime={new Date().setHours(17, 30, 0, 0)}
+                  minTime={minTime}
+                  maxTime={maxTime}
                   dateFormat="MM/dd/yyyy HH:mm"
                   className="w-full border border-gray-300 p-1"
                 />
