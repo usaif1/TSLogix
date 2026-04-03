@@ -220,6 +220,7 @@
     "contact_information": "Información de Contacto",
     "cell_assignments": "Asignaciones de Posiciones",
     "recent_orders": "Órdenes Recientes",
+    "client_users": "Usuarios del Cliente",
     "no_cell_assignments": "No se encontraron asignaciones de posiciones",
     "no_recent_orders": "No se encontraron órdenes recientes",
     "assigned_on": "Asignado el",

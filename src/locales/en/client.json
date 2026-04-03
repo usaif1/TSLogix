@@ -221,6 +221,7 @@
     "contact_information": "Contact Information",
     "cell_assignments": "Cell Assignments",
     "recent_orders": "Recent Orders",
+    "client_users": "Client Users",
     "no_cell_assignments": "No cell assignments found",
     "no_recent_orders": "No recent orders found",
     "assigned_on": "Assigned on",
