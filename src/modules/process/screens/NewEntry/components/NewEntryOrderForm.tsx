@@ -640,6 +640,10 @@ const NewEntryOrderForm: React.FC<NewEntryOrderFormProps> = () => {
             <DatePicker
               showTimeSelect
               dateFormat="Pp"
+              timeFormat="HH:mm"
+              timeIntervals={30}
+              minTime={new Date().setHours(8, 30, 0, 0)}
+              maxTime={new Date().setHours(17, 30, 0, 0)}
               className="w-full border border-slate-400 h-10 rounded-md pl-4"
               id="admission_date_and_time"
               name="admission_date_and_time"

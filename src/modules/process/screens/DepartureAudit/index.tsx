@@ -333,14 +333,19 @@ const DepartureAudit: React.FC = () => {
         },
         infoBoxes: [
           [
+            { label: 'Departure Date/Time:', value: (order as any).departure_date_time ? new Date((order as any).departure_date_time).toLocaleString() : '-' },
             { label: 'Customer:', value: (order as any).customer?.name || (order as any).client?.company_name || (order as any).client?.first_names || 'N/A' },
-            { label: 'Destination:', value: (order as any).destination_point || (order as any).arrival_point || '-' },
-            { label: 'Transport:', value: (order as any).transport_type || '-' }
+            { label: 'Destination:', value: (order as any).destination_point || (order as any).arrival_point || '-' }
           ],
           [
+            { label: 'Transport:', value: (order as any).transport_type || '-' },
             { label: 'Order Status:', value: (order as any).order_status || '-', valueColor: getStatusColor((order as any).order_status) },
-            { label: 'Total Weight:', value: `${(order as any).total_weight || 0} kg` },
-            { label: 'Total Pallets:', value: `${(order as any).total_pallets || 0}` }
+            { label: 'Total Weight:', value: `${(order as any).total_weight || 0} kg` }
+          ],
+          [
+            { label: 'Total Pallets:', value: `${(order as any).total_pallets || 0}` },
+            { label: 'Total Volume:', value: `${(order as any).total_volume || 0} m³` },
+            { label: '', value: '' }
           ]
         ],
         tableColumns: [

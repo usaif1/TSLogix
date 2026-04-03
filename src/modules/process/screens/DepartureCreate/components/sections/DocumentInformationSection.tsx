@@ -74,6 +74,7 @@ const DocumentInformationSection: React.FC<Props> = ({
           className="w-full border border-slate-400 h-10 rounded-md pl-4"
           selected={formData.document_date}
           onChange={(date) => handleDateChange(date, "document_date")}
+          dateFormat="MM/dd/yyyy"
           required
           disabled={isSubmitting}
         />

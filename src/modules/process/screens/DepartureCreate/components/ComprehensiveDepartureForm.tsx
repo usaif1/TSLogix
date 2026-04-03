@@ -3,6 +3,7 @@ import React, { useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Select from "react-select";
+import DatePicker from "react-datepicker";
 import { Button, Text } from "@/components";
 import FileUpload from "@/components/FileUpload";
 import ProcessesStore, { ProductRow } from "@/modules/process/store";
@@ -345,7 +346,7 @@ const ComprehensiveDepartureForm: React.FC = () => {
         document_number: formData.document_number,
         document_date: formData.document_date,
         dispatch_document_number: formData.dispatch_document_number,
-        departure_date: formData.departure_date,
+        departure_date_time: formData.departure_date,
         entry_date_time: new Date().toISOString(),
         transport_type: formData.transport_type,
         arrival_point: formData.arrival_point,
@@ -505,10 +506,10 @@ const ComprehensiveDepartureForm: React.FC = () => {
                 {t('document_date')}
               </td>
               <td className="border border-gray-300 p-2">
-                <input
-                  type="date"
-                  value={formData.document_date}
-                  onChange={(e) => handleFormDataChange('document_date', e.target.value)}
+                <DatePicker
+                  selected={formData.document_date ? new Date(formData.document_date) : null}
+                  onChange={(date) => handleFormDataChange('document_date', date)}
+                  dateFormat="MM/dd/yyyy"
                   className="w-full border border-gray-300 p-1"
                 />
               </td>
@@ -516,10 +517,15 @@ const ComprehensiveDepartureForm: React.FC = () => {
                 {t('departure_date')}
               </td>
               <td className="border border-gray-300 p-2">
-                <input
-                  type="date"
-                  value={formData.departure_date}
-                  onChange={(e) => handleFormDataChange('departure_date', e.target.value)}
+                <DatePicker
+                  selected={formData.departure_date ? new Date(formData.departure_date) : null}
+                  onChange={(date) => handleFormDataChange('departure_date', date)}
+                  showTimeSelect
+                  timeFormat="HH:mm"
+                  timeIntervals={30}
+                  minTime={new Date().setHours(8, 30, 0, 0)}
+                  maxTime={new Date().setHours(17, 30, 0, 0)}
+                  dateFormat="MM/dd/yyyy HH:mm"
                   className="w-full border border-gray-300 p-1"
                 />
               </td>

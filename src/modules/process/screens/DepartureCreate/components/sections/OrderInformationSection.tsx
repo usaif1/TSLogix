@@ -40,6 +40,10 @@ const OrderInformationSection: React.FC<Props> = ({
         <DatePicker
           showTimeSelect
           dateFormat="Pp"
+          timeFormat="HH:mm"
+          timeIntervals={30}
+          minTime={new Date().setHours(8, 30, 0, 0)}
+          maxTime={new Date().setHours(17, 30, 0, 0)}
           className="w-full border border-slate-400 h-10 rounded-md pl-4"
           selected={formData.departure_date}
           onChange={(date) => handleDateChange(date, "departure_date")}

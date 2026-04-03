@@ -413,7 +413,7 @@ const Review: React.FC = () => {
         },
         infoBoxes: [
           [
-            { label: 'Registration Date:', value: formatDate(entry.registration_date) || '-' },
+            { label: 'Entry Date/Time:', value: entry.entry_date_time ? new Date(entry.entry_date_time).toLocaleString() : '-' },
             { label: 'Warehouse:', value: entry.warehouse?.name || 'Not Assigned' },
             { label: 'Total Pallets:', value: `${entry.total_pallets || 0}` }
           ],
