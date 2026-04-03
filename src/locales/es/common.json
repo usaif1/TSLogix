@@ -223,6 +223,7 @@
   "warehouse_manager": "Gerente de Almacén",
   "warehouse_assistant": "Asistente de Almacén",
   "pharmacist": "Químico Farmacéutico",
+  "client_pharmacist": "Químico Farmacéutico de Cliente",
   "allocate": "Asignar",
   "item_selected": "Artículo Seleccionado",
   "view_profile": "Ver Perfil",

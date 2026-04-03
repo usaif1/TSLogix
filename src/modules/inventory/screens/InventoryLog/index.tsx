@@ -435,8 +435,8 @@ const InventoryLog: React.FC = () => {
             <Button onClick={handleNavigateToQuarantine}>
               {t('inventory:quality_control')}
             </Button>
-            {/* Only show Assign Product button for roles that can allocate (not PHARMACIST) */}
-            {userRole !== 'PHARMACIST' && (
+            {/* Only show Assign Product button for roles that can allocate (not PHARMACIST or CLIENT_PHARMACIST) */}
+            {userRole !== 'PHARMACIST' && userRole !== 'CLIENT_PHARMACIST' && (
               <Button onClick={handleNavigateToAllocate}>
                 + {t('inventory:assign_product')}
               </Button>
@@ -512,8 +512,8 @@ const InventoryLog: React.FC = () => {
             <p className="text-gray-500 mb-4">
               {t('inventory:no_products_assigned_yet')}
             </p>
-            {/* Only show Assign Product button for roles that can allocate (not PHARMACIST) */}
-            {userRole !== 'PHARMACIST' && (
+            {/* Only show Assign Product button for roles that can allocate (not PHARMACIST or CLIENT_PHARMACIST) */}
+            {userRole !== 'PHARMACIST' && userRole !== 'CLIENT_PHARMACIST' && (
               <Button onClick={handleNavigateToAllocate}>
                 {t('inventory:assign_first_product')}
               </Button>

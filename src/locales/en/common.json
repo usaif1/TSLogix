@@ -108,6 +108,7 @@
   "warehouse_manager": "Warehouse Manager",
   "warehouse_assistant": "Warehouse Assistant",
   "pharmacist": "Pharmacist",
+  "client_pharmacist": "Client Pharmacist",
   "user": "User",
   "allocate": "Allocate",
   "item_selected": "Item Selected",

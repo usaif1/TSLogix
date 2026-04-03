@@ -6,9 +6,10 @@ import { TFunction } from "i18next";
 export enum UserRole {
   CLIENT = "CLIENT",
   USER = "USER", // Same as CLIENT for this system
-  WAREHOUSE_INCHARGE = "WAREHOUSE_INCHARGE", 
+  WAREHOUSE_INCHARGE = "WAREHOUSE_INCHARGE",
   WAREHOUSE_ASSISTANT = "WAREHOUSE_ASSISTANT",
   PHARMACIST = "PHARMACIST",
+  CLIENT_PHARMACIST = "CLIENT_PHARMACIST",
   ADMIN = "ADMIN"
 }
 
@@ -81,7 +82,7 @@ export const getFilteredLinksData = (t: TFunction, userRole: string | null) => {
   switch (normalizedRole) {
     case UserRole.CLIENT:
     case UserRole.USER:
-      // USER can see everything EXCEPT: clients, inventory, event_logs
+      // CLIENT can see everything EXCEPT: clients, inventory, event_logs
       return allLinks.map(link => {
         if (link.route === "/maintenance") {
           return {
@@ -90,8 +91,22 @@ export const getFilteredLinksData = (t: TFunction, userRole: string | null) => {
           };
         }
         return link;
-      }).filter(link => 
-        link.route !== "/inventory" && 
+      }).filter(link =>
+        link.route !== "/inventory" &&
+        link.route !== "/system-logs/events"
+      );
+
+    case UserRole.CLIENT_PHARMACIST:
+      // CLIENT_PHARMACIST can see inventory (for quality control) but NOT clients or event_logs
+      return allLinks.map(link => {
+        if (link.route === "/maintenance") {
+          return {
+            ...link,
+            subroutes: link.subroutes.filter(subroute => subroute.route !== "/maintenance/client")
+          };
+        }
+        return link;
+      }).filter(link =>
         link.route !== "/system-logs/events"
       );
       

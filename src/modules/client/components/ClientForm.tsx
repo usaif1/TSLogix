@@ -43,7 +43,7 @@ interface FormData {
     email?: string;
     password?: string;
     confirm_password?: string;
-    role?: string; // CLIENT or PHARMACIST
+    role?: string; // CLIENT or CLIENT_PHARMACIST
   }>;
 }
 
@@ -869,7 +869,7 @@ const ClientForm: React.FC = () => {
                                 }}
                                 options={[
                                   { value: 'CLIENT', label: t('client:roles.CLIENT') },
-                                  { value: 'PHARMACIST', label: t('client:roles.PHARMACIST') }
+                                  { value: 'CLIENT_PHARMACIST', label: t('client:roles.CLIENT_PHARMACIST') }
                                 ]}
                                 placeholder={t('client:placeholders.select_role')}
                                 className="react-select-container"

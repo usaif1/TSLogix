@@ -19,8 +19,8 @@ const UserProfile: React.FC = () => {
       const userRole = authUser.role?.name || authUser.role;
       const clientName = authUser.client?.name || localStorage.getItem("client_name");
 
-      // For CLIENT users, show client name
-      const displayName = userRole === 'CLIENT' && clientName
+      // For CLIENT and CLIENT_PHARMACIST users, show client name
+      const displayName = (userRole === 'CLIENT' || userRole === 'CLIENT_PHARMACIST') && clientName
         ? clientName
         : authUser.first_name && authUser.last_name
           ? `${authUser.first_name} ${authUser.last_name}`
@@ -41,8 +41,8 @@ const UserProfile: React.FC = () => {
         const userRole = userData.role?.name || userData.role || localStorage.getItem("role");
         const clientName = userData.client?.name || localStorage.getItem("client_name");
 
-        // For CLIENT users, show client name
-        const displayName = userRole === 'CLIENT' && clientName
+        // For CLIENT and CLIENT_PHARMACIST users, show client name
+        const displayName = (userRole === 'CLIENT' || userRole === 'CLIENT_PHARMACIST') && clientName
           ? clientName
           : userData.first_name && userData.last_name
             ? `${userData.first_name} ${userData.last_name}`
@@ -67,8 +67,8 @@ const UserProfile: React.FC = () => {
     const role = localStorage.getItem("role");
     const clientName = localStorage.getItem("client_name");
 
-    // For CLIENT users, show client name
-    const displayName = role === 'CLIENT' && clientName
+    // For CLIENT and CLIENT_PHARMACIST users, show client name
+    const displayName = (role === 'CLIENT' || role === 'CLIENT_PHARMACIST') && clientName
       ? clientName
       : firstName && lastName
         ? `${firstName} ${lastName}`
@@ -154,6 +154,8 @@ const UserProfile: React.FC = () => {
       case "CLIENT":
       case "USER":
         return t('common:client');
+      case "CLIENT_PHARMACIST":
+        return t('common:client_pharmacist');
       case "WAREHOUSE_INCHARGE":
         return t('common:warehouse_manager');
       case "WAREHOUSE_ASSISTANT":
@@ -172,6 +174,8 @@ const UserProfile: React.FC = () => {
       case "CLIENT":
       case "USER":
         return "bg-blue-500 text-white";
+      case "CLIENT_PHARMACIST":
+        return "bg-indigo-500 text-white";
       case "WAREHOUSE_INCHARGE":
         return "bg-green-500 text-white";
       case "WAREHOUSE_ASSISTANT":

@@ -94,7 +94,7 @@
   },
   "roles": {
     "CLIENT": "Client",
-    "PHARMACIST": "Pharmacist"
+    "CLIENT_PHARMACIST": "Client Pharmacist"
   },
   "buttons": {
     "create_client": "Create Client",
